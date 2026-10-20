@@ -127,13 +127,33 @@ class Store:
 
     @contextmanager
     def _transaction(self) -> Iterator[None]:
-        self._db.execute('BEGIN IMMEDIATE')
+        nested = self._db.in_transaction
+        self._db.execute('SAVEPOINT store_write' if nested else 'BEGIN IMMEDIATE')
         try:
             yield
-            self._db.execute('COMMIT')
+            self._db.execute('RELEASE store_write' if nested else 'COMMIT')
         except BaseException:
-            self._db.execute('ROLLBACK')
+            self._db.execute('ROLLBACK TO store_write' if nested else 'ROLLBACK')
+            if nested:
+                self._db.execute('RELEASE store_write')
             raise
+
+    @contextmanager
+    def scheduling_round(self) -> Iterator[None]:
+        """Serialize admission reads and assignment writes in one transaction."""
+        with self._transaction():
+            yield
+
+    def record_waiting(self, job_id: str, reason: str) -> None:
+        """Persist a changed queued waiting reason without growing identical history."""
+        if not isinstance(reason, str) or not reason.strip() or '\x00' in reason:
+            raise StoreError('Waiting reason must be a nonempty string without NUL')
+        with self._transaction():
+            if self.job_state(job_id) != 'queued':
+                raise StoreError('Only queued jobs can have waiting reasons')
+            latest = self.events(job_id)[-1]
+            if latest['reason'] != reason:
+                self._event(job_id, None, 'queued', reason)
 
     def submit(self, specification: JobSpecification) -> None:
         """Persist a snapshot; identical submission is a no-op."""
@@ -210,8 +230,9 @@ class Store:
                directory: str) -> Attempt:
         """Atomically assign a queued job and reserve its snapshot resources.
 
-        Admission and capacity decisions belong to the future scheduler. An
-        existing attempt ID is replayable only with the same assignment values.
+        Admission and capacity decisions belong to the scheduler; this low-level
+        API does not enforce capacity itself. An existing attempt ID is replayable
+        only with the same assignment values.
         """
         for name, value in (('attempt_id', attempt_id), ('worker_id', worker_id),
                             ('directory', directory)):

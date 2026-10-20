@@ -32,8 +32,11 @@ with Store('/var/lib/lammps-manager/state.sqlite') as store:
   state, and an event in one `BEGIN IMMEDIATE` transaction. CPU slots equal MPI
   ranks multiplied by OpenMP threads. This serializes writers and prevents two
   connections from assigning the same job. It does not check worker quotas:
-  future scheduling must perform admission within the same write transaction
-  rather than making a separate read-then-assign decision.
+  the [scheduler](scheduling.md) uses `scheduling_round()` to hold admission reads
+  and assignment writes within the same write transaction. Nested store writes
+  use savepoints; any round failure rolls back all assignments and waiting events.
+- `record_waiting()` records changed queued waiting reasons as events, suppressing
+  identical consecutive reasons. It does not change job specifications or state.
 - `transition()` updates job and attempt state, timestamps and result fields,
   appends an event, and releases a reservation for a terminal result in one
   transaction. Exceptions roll back all changes, including events.
