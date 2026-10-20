@@ -1,0 +1,15 @@
+worker:
+  id: node-a
+  cpu_slots: 24
+  memory_budget_gib: 96
+  max_concurrent_jobs: 4
+manager_endpoint: https://manager.example.invalid:8443
+work_root: /shared/lammps/jobs
+token_file: /etc/lammps-manager/worker.token
+execution:
+  lammps_path: /opt/lammps/bin/lmp
+  mpi_launcher_path: /usr/bin/mpirun
+  mpi_args: [--bind-to, core]
+  lammps_args: []
+  environment:
+    OMP_PROC_BIND: close

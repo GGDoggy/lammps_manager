@@ -23,6 +23,15 @@ class CliTests(unittest.TestCase):
                 self.assertIn("usage: lammps-manager", result.stdout)
                 self.assertIn("not implemented yet", " ".join(result.stdout.split()))
 
+    def test_validate_config(self) -> None:
+        for kind in ('manager', 'worker'):
+            result = self.run_cli('validate-config', kind, f'examples/{kind}.yaml')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('deployment paths not checked', result.stdout)
+        result = self.run_cli('validate-config', 'manager', '/missing/config.yaml')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('/missing/config.yaml', result.stderr)
+
     def test_version(self) -> None:
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -31,7 +40,7 @@ class CliTests(unittest.TestCase):
     def test_unsupported_command_is_rejected(self) -> None:
         result = self.run_cli("submit")
         self.assertEqual(result.returncode, 2)
-        self.assertIn("unrecognized arguments", result.stderr)
+        self.assertIn("invalid choice", result.stderr)
 
 
 if __name__ == "__main__":

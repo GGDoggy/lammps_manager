@@ -1,0 +1,19 @@
+manager:
+  database_path: /var/lib/lammps-manager/state.sqlite3
+storage:
+  mode: shared
+  work_root: /shared/lammps/jobs
+job_defaults:
+  mpi_ranks: 4
+  omp_threads_per_rank: 1
+  memory_gib: 8
+  time_limit_seconds: 86400
+  max_retries: 0
+scheduler:
+  policy: fifo_least_loaded
+workers:
+  - id: node-a
+    cpu_slots: 24
+    memory_budget_gib: 96
+    max_concurrent_jobs: 4
+    labels: [cpu]

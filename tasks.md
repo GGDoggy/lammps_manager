@@ -14,13 +14,29 @@ See `docs/workflow.md` for instructions and the task template. Current architect
 
 ## T001: Validate configuration and create job specifications
 
-- Status: todo
+- Status: done
 - Dependencies: T000
 - Goal and scope: implement manager / worker YAML configuration, type and value validation, resource defaults, and immutable submission specifications; provide example configuration and a validate-config CLI.
 - Acceptance criteria: valid examples pass; negative values, incorrect types, unknown fields, duplicate worker IDs, and unsupported policies produce clear errors; MPI ranks × threads is correct; new config does not modify existing specifications; missing path / executable checks distinguish local validation from remote deployment checks.
-- Execution plan: refine configuration structures, the YAML dependency choice, affected files, and test commands when starting.
-- Decisions / blockers: follow section 3 of plan.md; remote paths that are not yet deployed cannot be assumed directly inspectable by the manager.
-- Verification record: not started.
+- Execution plan: add strict YAML loading and frozen configuration / submission models in config.py and models.py; expose validate-config with explicit local filesystem checks; add portable examples, permanent schema documentation, and unittest coverage; run make check and review the diff. Acceptance includes invalid types / values / fields, duplicate IDs, unsupported modes / policies, CPU multiplication, immutable snapshots, and local versus remote path validation.
+- Decisions / blockers: implemented section 3 of plan.md and transferred the schema / validation boundaries into docs/configuration.md. Use PyYAML>=6.0,<7 because the standard library does not parse YAML; safe loading rejects duplicate keys. Frozen dataclasses and copied resource overrides preserve submission values. Only shared storage and fifo_least_loaded are accepted; their execution behavior remains later work. Structural validation never probes remote paths; --check-local-paths checks the current host explicitly. Input SHA-256 is caller-supplied at this stage; actual generation / verification belongs to T003. CI now installs project dependencies before checking.
+- Verification record (2026-10-20): make check passed initially with system PyYAML 5.4.1; downloaded declared PyYAML 6.0.3 into /tmp/task-manager-t001-deps and ran PYTHONPATH=/tmp/task-manager-t001-deps make check successfully (11 unittest tests, syntax compilation, git diff --check). Both example validate-config commands passed. Tests cover CLI errors, malformed / unsafe YAML, duplicate keys / workers, missing fields, unknown fields, types and ranges, unsupported policy / storage, endpoint validation, argument arrays, CPU multiplication, frozen snapshots after defaults / overrides change, and local directory / executable / token checks using temporary fixtures and /bin/true without launching it. Self-review covered tracked diffs and six new files, including separate whitespace inspection; corrected README dependency wording and CI installation. No remote workers, real LAMMPS / MPI, external deployment, GitHub CI, commit, or push were performed. Next authorized task would be T002; it was not started.
+
+## T001 follow-up: Allow empty environment values
+
+- Status: done
+- Goal and scope: fix rejection of valid empty worker environment values while preserving strict validation elsewhere.
+- Acceptance criteria: empty and whitespace-only environment values survive loading unchanged; NUL and non-string values remain rejected; empty names and required paths remain rejected.
+- Execution plan: add a regression test and confirm failure, allow empty strings only for environment values, document the behavior, run targeted tests and make check, and self-review.
+- Verification record (2026-10-20): `PYTHONPATH=src python3 -m unittest discover -s tests -p test_config.py -v` first reproduced the empty-value failure, then passed all 8 configuration tests after the fix. `make check` passed all 12 tests, syntax compilation, and Git whitespace checks. Self-review confirmed only environment values opt into empty strings; names and required paths retain their existing checks. Regression coverage also rejects NUL, null, boolean, and numeric values and preserves whitespace exactly. Updated docs/configuration.md. No remote or LAMMPS integration was run.
+
+## T001 review fixes: Argument values and input path validation
+
+- Status: done
+- Goal and scope: address both review findings without changing unrelated pending work.
+- Acceptance criteria: both launcher argument lists preserve empty and whitespace-only strings, reject NUL and non-string elements, and leave required strings strict; submission rejects `.`, `./`, and `././` while accepting relative input files.
+- Execution plan: reproduce both failures with regression tests; restrict empty-string support to argument fields; compare normalized input paths; update configuration documentation; run targeted tests and make check, then self-review.
+- Verification record (2026-10-20): `PYTHONPATH=src python3 -m unittest discover -s tests -p test_config.py -v` reproduced rejection of empty launcher arguments and acceptance of `./` and `././` before the fix; after the fix all 10 configuration tests passed. `make check` passed all 14 tests, syntax compilation, and Git whitespace checks. Self-review confirmed both argument fields preserve values exactly while NUL / non-string elements, empty labels, and empty executable paths remain rejected; normalized directory-only input paths are rejected while relative file spellings are preserved. Updated docs/configuration.md. Preserved existing uncommitted work; no real MPI / LAMMPS execution or remote integration was performed.
 
 ## T002: Persist SQLite jobs and attempt state
 

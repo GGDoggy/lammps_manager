@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Central dispatcher for independent LAMMPS simulations"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["PyYAML>=6.0,<7"]
 
 [project.scripts]
 lammps-manager = "lammps_manager.cli:main"

@@ -2,11 +2,11 @@
 
 A central manager dispatches independent LAMMPS simulations according to Linux worker load and resource quotas. See [plan.md](plan.md) for the temporary user-facing design draft.
 
-The repository and agent workflow are initialized. The CLI currently provides help and version information. Configuration loading, job submission, scheduling, workers, and LAMMPS execution are planned features.
+The CLI provides help, version information, and strict manager / worker YAML validation. The Python API creates immutable job specification snapshots. Job submission, SQLite persistence, scheduling, workers, and LAMMPS execution are planned features. See [configuration documentation](docs/configuration.md) and [examples](examples/manager.yaml).
 
 ## Local development
 
-Python 3.10+ is required. Running the scaffold and its tests uses only the standard library; LAMMPS, MPI, and third-party Python packages are not required.
+Python 3.10+ is required. Configuration validation requires PyYAML (`python3 -m pip install 'PyYAML>=6.0,<7'`); LAMMPS and MPI are not required.
 
 ```bash
 make help
@@ -26,13 +26,13 @@ python -m pip install -e .
 lammps-manager --help
 ```
 
-Installation may download setuptools build tools. Running directly with `PYTHONPATH=src` requires no downloads. `make check` runs tests, syntax compilation, and Git whitespace checks. Initially untracked files also need manual inspection. CI runs the same command after the repository is pushed to GitHub.
+Installation may download setuptools build tools. Running directly with `PYTHONPATH=src` requires PyYAML to be installed. `make check` runs tests, syntax compilation, and Git whitespace checks. Initially untracked files also need manual inspection. CI runs the same command after the repository is pushed to GitHub.
 
 ## Development guide
 
 - [AGENTS.md](AGENTS.md): agent development and review rules, including language policy.
 - [docs/workflow.md](docs/workflow.md): workflow, sources, and task template.
-- [tasks.md](tasks.md): task backlog; T001 covers configuration validation and job specifications.
+- [tasks.md](tasks.md): task backlog; T001 records configuration validation and job specifications.
 - `src/lammps_manager/`: Python package; add modules as their features are implemented.
 - `tests/`: automated tests that do not depend on remote machines.
 
