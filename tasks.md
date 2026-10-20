@@ -40,12 +40,22 @@ See `docs/workflow.md` for instructions and the task template. Current architect
 
 ## T002: Persist SQLite jobs and attempt state
 
-- Status: todo
+- Status: done
 - Dependencies: T001
 - Goal and scope: persist jobs, attempts, events, and resource reservations; define legal state transitions and atomic dispatch transactions.
 - Acceptance criteria: data survives restarts; illegal transitions are rejected; rolled-back transactions leave no reservations; repeated operations on the same attempt create no duplicate records.
-- Execution plan: add the schema, transaction boundaries, and tests when starting.
-- Verification record: not started.
+- Execution plan: implement a standard-library SQLite store with immutable specification snapshots, attempts, events, and reservations; use immediate transactions for atomic assignment and transitions; test restart persistence, rollback, concurrent assignment, idempotency, legal transitions, and termination evidence; document the Python API and boundaries; run make check and self-review.
+- Decisions / blockers: T002 provides storage primitives only; scheduler admission policy, execution, automatic retries, and network recovery remain later tasks. Standard-library SQLite uses schema version 1, foreign keys, and BEGIN IMMEDIATE write transactions. Unknown and cancelling attempts retain reservations until caller-supplied termination evidence is recorded. Evidence is not independently verified by the store. Each job supports one attempt for now; retry support will require an explicit API and schema migration in T006. Attempt directories are unique normalized absolute strings, with no filesystem creation or deletion. Future scheduler capacity checks must join the assignment transaction. See docs/storage.md for the Python API and exact transition table. No new CLI commands or configuration keys were added.
+- Verification record (2026-10-20): targeted PYTHONPATH=src python3 -m unittest discover -s tests -p test_store.py -v passed the initial 9 storage tests. Final make check passed all 27 tests (13 storage tests plus 14 existing tests), syntax compilation, and git diff --check. Storage coverage includes close/reopen durability, immutable snapshots, legal and illegal transitions, conflicting identities, identical and concurrent replay, concurrent competing assignments, late injected assignment/completion failures with complete rollback, terminal evidence, resource retention for unknown/cancelling, event reasons/results, invalid direct submissions, and unsupported schema versions. A separate Python check passed whitespace and local Markdown links across all six changed/new files. Self-review inspected tracked diffs and new store, tests, and storage documentation; added direct submission validation, durable event details, and explicit close/reopen verification. README and architecture now identify SQLite persistence as implemented while keeping execution and scheduling pending. Initial Git status was clean. No remote workers, real MPI / LAMMPS, external deployments, commit, or push were performed. T003 was not started.
+
+## T002 review fix: Normalize Linux attempt-directory roots
+
+- Status: done
+- Goal and scope: prevent leading double slashes from bypassing attempt-directory uniqueness while preserving existing uncommitted work.
+- Acceptance criteria: single- and multiple-slash roots identify the same stored directory; equivalent assignment replays remain idempotent; conflicting assignments leave job state, reservations, and events unchanged.
+- Execution plan: add a regression test and reproduce the failure; normalize leading slashes without accessing the filesystem; document the behavior; run storage tests and make check, then self-review.
+- Decisions: collapse all leading slashes to one before Path normalization and assignment identity checks. No filesystem access, schema change, or submission snapshot changes are needed.
+- Verification record (2026-10-20): `PYTHONPATH=src python3 -m unittest discover -s tests -p test_store.py -v` first reproduced the root-alias bug (one failure and two replay errors), then passed all 14 storage tests after the fix. `make check` passed all 28 tests, syntax compilation, and Git whitespace checks. The regression covers single-, double-, and triple-slash initial assignments, equivalent replays, conflicting directory assignments, and unchanged job state, reservations, and event history after conflicts. Self-review inspected the changed implementation, regression, and documentation, with a separate whitespace check for untracked files. Existing uncommitted changes were preserved. No real output directories, jobs, remote workers, or deployments were touched.
 
 ## T003: Generate, execute, and inspect local batches
 

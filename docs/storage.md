@@ -1,0 +1,92 @@
+# SQLite persistence API
+
+T002 adds `lammps_manager.store.Store`, using Python's standard-library `sqlite3`.
+It does not submit through the CLI, execute jobs, select workers, enforce capacity,
+reconcile processes, or retry attempts. Those capabilities remain future tasks.
+Use a database on the manager's local disk, not a shared filesystem. Its parent
+directory must already exist. No new configuration fields or commands are added;
+the existing manager `database_path` will be used when a manager is implemented.
+
+```python
+from lammps_manager.store import Store
+
+# specification is an immutable JobSpecification from create_job_specification().
+with Store('/var/lib/lammps-manager/state.sqlite') as store:
+    store.submit(specification)
+    attempt = store.assign(specification.job_id, 'attempt-001', 'worker-01',
+                           '/shared/jobs/job-001/attempt-001')
+    # After external confirmation that the worker started this attempt:
+    store.transition(attempt.attempt_id, 'running')
+    # After external confirmation that the process group terminated:
+    store.transition(attempt.attempt_id, 'succeeded', exit_code=0,
+                     termination_evidence='worker confirmed process group exit')
+```
+
+## Data and transaction boundaries
+
+- `submit()` persists a JSON copy of the complete specification and a queued
+  event. Later configuration changes do not affect that snapshot. Directly
+  constructed specifications also receive structural validation. Inputs are not
+  read and hashes are not verified by the store.
+- `assign()` creates an attempt, a CPU / memory reservation, an assigned job
+  state, and an event in one `BEGIN IMMEDIATE` transaction. CPU slots equal MPI
+  ranks multiplied by OpenMP threads. This serializes writers and prevents two
+  connections from assigning the same job. It does not check worker quotas:
+  future scheduling must perform admission within the same write transaction
+  rather than making a separate read-then-assign decision.
+- `transition()` updates job and attempt state, timestamps and result fields,
+  appends an event, and releases a reservation for a terminal result in one
+  transaction. Exceptions roll back all changes, including events.
+- Identical submissions, assignment deliveries, and same-state transitions are
+  no-ops. Reusing an identity with different data raises `StoreError`. An old
+  assignment replay returns its current attempt, including a terminal state;
+  it does not create a reservation or authorize a new process launch. Later
+  worker implementation must still provide durable start idempotency.
+- Each job currently permits one attempt. Attempt IDs and normalized absolute
+  attempt-directory strings are globally unique. Multiple leading slashes are
+  collapsed to a single Linux root slash before storage and replay comparisons,
+  so `/work/a1` and `//work/a1` cannot belong to different attempts.
+  `..` paths are rejected;
+  symlinks are not resolved or checked. Retry creation will need an explicit
+  transactional API and schema migration in T006; changing `max_retries` alone
+  does not enable retries. Output directories are neither created nor deleted.
+
+Each Store owns one connection and should be used from one thread. Multiple
+Store instances can share a local database; writes wait up to five seconds for
+locks, then SQLite raises an error. Foreign keys are enabled. Schema version 1
+is recorded in `PRAGMA user_version`; unsupported versions fail without migration.
+The initial schema is created transactionally. Do not point the store at unrelated
+SQLite databases. Operational database / disk / lock failures propagate as SQLite
+exceptions; assignment integrity conflicts and invalid operations use `StoreError`.
+
+## State transitions and evidence
+
+Jobs begin `queued`. Assignment changes both job and attempt to `assigned`.
+The following transitions are allowed (same-state identical replays are omitted):
+
+| From | To |
+|---|---|
+| assigned | running, cancelling, unknown, failed, cancelled |
+| running | cancelling, unknown, succeeded, failed |
+| cancelling | unknown, cancelled, succeeded, failed |
+| unknown | assigned, running, cancelling, succeeded, failed, cancelled |
+| succeeded / failed / cancelled | none |
+
+`unknown` and `cancelling` retain reservations. Returning from `unknown` requires
+the caller to reconcile actual worker state; this storage primitive does not
+prove liveness or authorize re-execution. Every terminal transition requires a
+nonempty `termination_evidence` string from the caller. This can describe confirmed
+process termination or a confirmed never-started assignment. The store only
+records this evidence; remote verification is not implemented. Success requires
+exit code zero and failure requires a reason. Exit codes are optional for failure
+and cancellation when termination can be established without an exit status.
+A running process cannot jump directly to cancelled; persist cancelling first.
+A cancellation racing with normal completion may finish succeeded or failed.
+
+`started_at` records the first transition to running; `ended_at` records the
+terminal transition. All timestamps are UTC database observation times, not
+worker process timestamps. `events(job_id)` returns ordered dictionaries including
+state, reason, exit code and evidence, so later transitions do not erase earlier
+failure or disconnection explanations. `specification()`, `job_state()`,
+`attempt()` and `reservations(worker_id=None)` provide read access. No credentials,
+process output, arguments, or real process identities are stored by this API yet.
