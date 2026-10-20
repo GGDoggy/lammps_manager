@@ -323,3 +323,107 @@ Translated README.md, AGENTS.md, docs/workflow.md, and this agent-facing task li
 - Execution plan: distinguish synchronous input preparation from background result collection, link the detailed result protocol, run make check and review the documentation diff.
 - Acceptance criteria: current descriptions match the dedicated collection executor and retained synchronous input staging; historical verification records remain intact.
 - Verification record (2026-10-21): corrected docs/staged-inputs.md and the T008 implementation summary against Worker.tick and its dedicated collection executor; preserved historical verification records and all pre-existing changes. Initial sandboxed make check ran 144 tests with 75 loopback socket permission errors (/tmp/task-manager-d002-check.log). Authorized make check passed all 144 tests, syntax compilation and Git whitespace checks (/tmp/task-manager-d002-check-authorized.log). Self-review confirmed the documentation distinguishes synchronous input downloads from background enumeration, hashing, uploads and commit replay, and links the existing result lifecycle documentation. No code changes, new tests, remote operations, commits or pushes were performed.
+
+## D003: Plan worker concurrency, runtime limits and staged cleanup
+
+- Status: done
+- Dependencies: T005, T008
+- Goal and scope: record the three requested enhancements as ordered, reviewable backlog tasks; do not implement features or delete files.
+- Execution plan: inspect current scheduling, worker and collection boundaries; add T010-T012 with dependencies, safety decisions and observable acceptance criteria; run make check and review the documentation diff.
+- Acceptance criteria: all three requests have distinct todo entries, current limitations remain explicit, and future implementation and real-machine verification are not claimed.
+- Decisions: recommended implementation order is T010, T011, then T012. This planning request authorizes backlog changes only.
+- Verification record (2026-10-21): added T010-T012 and reviewed dependencies, current implementation limitations, quota/recovery invariants and cleanup eligibility. Initial sandboxed make check ran 144 tests with 75 loopback permission errors (/tmp/task-manager-planning-check.log). Authorized make check passed all 144 tests, syntax compilation and Git whitespace checks (/tmp/task-manager-planning-check-authorized.log). Self-review confirmed all feature entries remain todo, runtime limit changes preserve existing submissions and processes, and cleanup requires durable acknowledgement while retaining launch fences. Only tasks.md changed; no feature implementation, real-file deletion, remote operations, commits or pushes occurred. Final task-record edit passed git diff --check.
+
+## T010: Execute multiple jobs concurrently on one worker
+
+- Status: todo
+- Dependencies: T005, T006, T008, R007
+- Goal and scope: replace the current single-execution worker with multiple concurrent attempts in shared and staged modes, bounded by effective CPU, memory and concurrency quotas. The current manager can reserve multiple attempts, but the worker executes one at a time.
+- Acceptance criteria:
+  - Two fake jobs overlap on one worker when quotas permit; CPU slots remain MPI ranks multiplied by OpenMP threads, and aggregate CPU, memory and job-count reservations never exceed effective limits.
+  - Assignment and reservation remain atomic across polling rounds; repeated delivery, worker restart and staging retries never launch an attempt twice.
+  - Local launch admission accounts for all active and unresolved attempts and pending memory without double-counting running memory already reflected in metrics. Stale snapshots cannot admit excessive launches.
+  - Cancelling or timing out one attempt terminates its complete launch session without affecting other attempts; disconnected or uncertain processes retain reservations.
+  - Polling and background result delivery continue during concurrent execution; shared and staged inputs, output paths and journals remain isolated per attempt.
+- Execution plan: on implementation, review scheduler/store accounting and worker execution/recovery ownership; track execution futures per attempt, enforce aggregate local admission and bounded concurrency, then add observable concurrency, quota, restart, cancellation and result-delivery tests. Update workers/configuration documentation, run relevant unittest suites and make check, and self-review.
+- Decisions / blockers: preserve durable launch claims, process identity checks and single outstanding collection pass. Local fake-process tests are required; real MPI concurrency and affinity verification must be run separately and reported explicitly.
+- Verification record: not implemented or verified.
+
+## T011: Admit jobs using per-logical-CPU load and a minimum slot floor
+
+- Status: todo
+- Dependencies: T010
+- Goal and scope: automatically admit subsequent jobs primarily from individual logical CPU utilization, configurable `min_slots` and `reserve_slots`. This replaces the earlier aggregate external-load estimate and operator-driven runtime-limit proposals. Existing MPI/OpenMP jobs retain their resources.
+- Confirmed requirements and admission rules:
+  - Sample each `cpuN` line in Linux `/proc/stat` over an interval and count only online logical CPUs in the worker's current affinity set. A qualifying CPU has utilization strictly below the configured threshold (80% by default); utilization exactly at the threshold does not qualify. Logical CPUs, including SMT siblings, each count as one slot; this is not a physical-core count.
+  - Let `F` be the qualifying CPU count, `P` the slots reserved for launches not yet reflected in the sample, `J` the proposed job's MPI ranks multiplied by OpenMP threads, and `R` all unreleased own CPU reservations before admission.
+  - Normal load admission requires `max(0, F - P) >= J + reserve_slots`: enough low-load logical CPUs for the new job while leaving the reserve. Repeated admissions against the same sample must consume its remaining budget atomically; do not count the same observed headroom again.
+  - Preserve the previously confirmed floor: a job with `R + J <= min_slots` may bypass the per-CPU load/reserve gate. Above that floor, require the normal rule. `min_slots` is an admission floor, not guaranteed CPU time; do not partially resize a fixed-size job to fit it. A job crossing the floor must pass normal admission in full.
+  - Every admission, including the floor exception, must still fit effective manager/worker/hardware quotas, memory and concurrency limits, and pass enabled/online/pause/freshness checks. Never release live reservations due to low measured load. Lower available headroom only blocks further work; running jobs continue.
+- Acceptance criteria:
+  - Test two samples with equal aggregate CPU utilization but different per-CPU distributions and observe decisions based on qualifying CPU counts. Whole-host average usage must not veto an otherwise eligible per-CPU decision in this policy.
+  - Test below/equal/above-threshold utilization, exact `J + reserve_slots` fit and one-slot shortage, reserve zero, floor equality and crossing, and a fully busy host with the floor exception. Reject invalid settings and a minimum exceeding effective CPU capacity.
+  - Test affinity restrictions, CPU hotplug, noncontiguous CPU IDs, SMT interpretation, initial/missing samples and counter resets. Missing/invalid per-CPU deltas cannot establish idle headroom; stale or missing monitoring must not be bypassed by the minimum.
+  - Account conservatively for assigned, launching, unknown and cancelling attempts and launches at/after sample time. Preserve CPU reservations even if own running processes are temporarily idle, and prevent over-admission across multiple jobs, repeated polls and simultaneous scheduler connections.
+  - Worker launch rechecks apply the same policy with a fresh local sample and exclude the candidate's own existing reservation from pending-launch deductions exactly once. A deferred assignment keeps its reservation and does not relaunch.
+  - Report per-CPU sampling scope, qualifying count, pending deduction, requested slots, reserve, minimum exception and admission reason. Polling, cancellation, timeout handling and staged result collection remain independent.
+- Execution plan: define metric payload/backward compatibility, sampling window, iowait semantics, pending-start accounting and anti-oscillation behavior; implement per-CPU monitoring and transactional manager admission plus consistent worker launch rechecks. Add deterministic monitoring/scheduler tests and local fake-process concurrency tests, document the policy and settings in configuration/architecture/worker documentation, run relevant suites and make check, and self-review.
+- Decisions / blockers:
+  - User requested on 2026-10-21 that individual CPU load be primary and that qualifying CPU count cover the job plus reserve. Do not derive capacity from aggregate utilization or an estimate of total external busy slots. Existing whole-host gating remains the implemented behavior until this task ships; document policy migration and `account_external_load` semantics explicitly.
+  - Per-CPU samples include all activity on each logical CPU, including own jobs. Combine this observation with separate reservation accounting; do not subtract all running reservations from `F` again. Unreflected launches must consume sampled headroom.
+  - Define how pending launch deductions become reflected, including slow startup and affinity/placement overlap, before implementation. A low-load CPU count is admission evidence, not exclusive ownership or a guarantee that a job will execute on those specific CPUs; document MPI/OpenMP placement limitations.
+  - The idle reserve is best effort and yields to `min_slots`; unrelated programs may also change load after sampling. This task changes new-work admission only and does not stop, migrate or resize running work.
+- Verification record: not implemented. Earlier requirements refinement on 2026-10-21 passed authorized make check (144 tests, syntax compilation and whitespace checks; /tmp/task-manager-t011-refinement-check.log), followed by a clarification-only edit that passed git diff --check and self-review. That run did not implement a controller or change real jobs, output or deployments. D004 records the subsequent per-CPU requirements revision.
+
+## T012: Remove worker staged files after durable result acknowledgement
+
+- Status: todo
+- Dependencies: T008, R007, T010
+- Goal and scope: automatically reclaim worker-private staged attempt inputs, execution files and transfer temporaries after confirmed process termination and durable manager result acknowledgement. Current staged execution retains worker files even after acknowledgement. Shared-mode output and manager results are outside this cleanup scope.
+- Acceptance criteria:
+  - Successful, failed and cancelled staged attempts become eligible only after process termination is confirmed and the matching result manifest/publication is durably acknowledged by the manager and recorded by the worker.
+  - Running/unknown attempts, pending/failed transfers and lost acknowledgements retain all files needed for recovery or replay. Missing output must never be silently treated as delivered.
+  - Cleanup removes only verified worker-owned paths for the acknowledged attempt beneath the worker staged root; traversal, symlinks and path replacement cannot delete another attempt, shared files, journals, credentials or manager artifacts.
+  - Durable launch fences, outcome/manifest identity and acknowledgement/cleanup records survive deletion so repeated assignments and restart never relaunch a cleaned attempt or require its deleted files for ordinary report replay.
+  - Partial deletion, permission errors and crashes before/during/after cleanup are visible and retryable; cleanup is idempotent, does not change process success or collected state, and does not block polling or other simulations.
+  - Tests verify reclaimed files and preserved manager hashes/results, plus lost acknowledgements, restart, partial cleanup, unsafe paths and concurrent execution. Documentation defines eligible files, cleanup status and operator controls.
+- Execution plan: on implementation, define the cleanup state machine and file ownership boundaries; persist acknowledgement before deletion, implement bounded background cleanup and restart recovery, add failure-injection and path-safety tests, update staged-result/operations documentation, run relevant tests and make check, and self-review.
+- Decisions / blockers: user requested automatic deletion after completion and confirmation; execution exit alone is insufficient. Preserve compact journal/tombstone records indefinitely until a separately designed retention policy exists. This backlog entry does not authorize deleting existing real simulation output during planning or tests; implementation verification uses temporary files unless separately authorized.
+- Verification record: not implemented or verified.
+
+## D004: Refine T011 to per-CPU load admission
+
+- Status: done
+- Dependencies: D003
+- Goal and scope: revise T011 to the user's per-logical-CPU threshold/count policy while retaining the confirmed minimum floor and admission-only behavior; preserve all pre-existing task changes.
+- Execution plan: replace aggregate-load targeting with per-CPU counting, specify reserve/floor boundaries and pending-reservation safeguards, run make check and self-review the revised entry.
+- Acceptance criteria: T011 remains todo; its normal rule requires qualifying CPU headroom for the whole job plus reserve; floor precedence, logical CPU scope and current/planned behavior are explicit.
+- Verification record (2026-10-21): authorized make check passed all 144 tests, syntax compilation and Git whitespace checks (/tmp/task-manager-d004-check.log). Self-review checked per-logical-CPU scope, strict threshold boundary, pending-launch deductions, minimum-floor precedence, unchanged live reservations and explicit separation from implemented aggregate monitoring. Preserved pre-existing task edits and historical verification. Final record edit passed git diff --check. Only tasks.md changed; no feature code, real simulation files, processes or deployments were changed.
+
+## D005: Assign pending features to commit batches
+
+- Status: done
+- Dependencies: D004
+- Goal and scope: inventory unfinished tasks and assign reviewable implementation commits without implementing features or creating commits; preserve existing uncommitted planning changes.
+- Execution plan: confirm unfinished statuses and dependencies, record commit order and completion gates, run make check and review the task diff.
+- Acceptance criteria: every unfinished feature is assigned once, dependency order is respected, and tests/documentation ship with the behavior they verify.
+- Commit plan (2026-10-21; suggested subjects, not existing commits):
+
+  | Order | Task / suggested commit subject | Included scope and completion gate |
+  |---|---|---|
+  | 0 | Planning only: `docs: plan concurrent workers and CPU admission` | Save the existing uncommitted tasks.md requirements and this commit plan as a documentation baseline before feature work. This does not complete T010-T012. |
+  | 1 | T010: `feat: execute concurrent attempts on each worker` | Concurrent shared/staged execution, aggregate local quota checks, per-attempt cancellation/timeouts/recovery, isolated outputs and continued polling/collection. Include behavioral tests and worker/configuration documentation. Complete all T010 acceptance criteria and make check before marking done. |
+  | 2 | T011: `feat: admit jobs using per-CPU load and slot reserves` | Per-logical-CPU monitoring within affinity, validated minimum/reserve configuration, manager admission and worker launch rechecks, pending-budget accounting, floor exception and diagnostics. Replace whole-host average blocking for this policy; total load may remain telemetry/ranking input, never an additional veto. Include monitoring/scheduler/worker tests and permanent configuration/architecture/operations documentation. Complete all T011 acceptance criteria and make check. |
+  | 3 | T012: `feat: clean staged worker files after result acknowledgement` | Durable cleanup eligibility/state, safe attempt-owned deletion, background retries and restart recovery, retained launch fences and manager results. Include temporary-file failure/path-safety/concurrency tests and staged-result/operations documentation. Complete all T012 acceptance criteria and make check. |
+
+- Decisions: unfinished feature inventory is exactly T010, T011 and T012 (all todo); no in_progress or blocked feature exists. Recommended sequence is T010 then T011 then T012. T012 technically depends on T010 rather than T011, but keep this sequence for review. Each feature commit includes its own tests, documentation and actual verification record; do not postpone reliability fixes to a later commit. If implementation reveals a necessary split, update this plan before committing and keep each intermediate commit functional and verified. Real MPI/host acceptance must be reported separately; local tests do not establish it. This request authorizes planning only, not feature implementation, commits, real-output deletion or deployment changes.
+- Verification record (2026-10-21): inspected all task statuses and dependencies; authorized make check passed all 144 tests, syntax compilation and Git whitespace checks (/tmp/task-manager-d005-check.log). Self-review confirmed each todo feature appears once, T010 precedes its dependants, and every feature commit includes tests, documentation and verification. Preserved existing uncommitted tasks.md edits. Final record edit passed git diff --check. No feature implementation, actual commits, remote operations or simulation-file changes occurred.
+
+## D006: Save the commit 0 planning baseline
+
+- Status: done
+- Dependencies: D005
+- Goal and scope: commit the reviewed T010-T012 requirements and commit allocation in tasks.md, as explicitly requested by the user; do not implement feature commits 1-3.
+- Execution plan: inspect Git status and the complete pending diff, run make check, review the staged documentation, create the planned documentation commit and verify the resulting working tree.
+- Acceptance criteria: commit 0 contains only tasks.md planning records; T010-T012 remain todo; verification is recorded and the created commit is reported.
+- Verification record (2026-10-21): reviewed the complete pending tasks.md diff and confirmed T010-T012 remain todo. Authorized make check passed all 144 tests, syntax compilation and Git whitespace checks (/tmp/task-manager-commit0-check.log). Final record edit passed git diff --check; staged review is restricted to tasks.md. This entry completes the planning baseline for commit 0 with subject `docs: plan concurrent workers and CPU admission`; no feature implementation, real output deletion, remote job control or deployment changes are included.
