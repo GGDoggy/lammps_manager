@@ -9,7 +9,7 @@ import sqlite3
 from pathlib import Path
 from typing import Iterator
 
-from .models import JobSpecification, Resources
+from .models import JobSpecification, Resources, specification_from_dict
 
 
 class StoreError(ValueError):
@@ -112,6 +112,9 @@ class Store:
                             self._db.execute(statement)
                 elif version != 1:
                     raise StoreError(f'Unsupported database schema version: {version}')
+                self._db.execute("CREATE TABLE IF NOT EXISTS input_transfers ("
+                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                 "directory TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
                 self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
                                  "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
                                  "snapshot TEXT)")
@@ -208,12 +211,20 @@ class Store:
         if (type(resources.memory_gib) not in (int, float)
                 or not math.isfinite(resources.memory_gib) or resources.memory_gib <= 0):
             raise StoreError('memory_gib must be finite and positive')
+        if specification.storage_mode not in ('shared', 'staged'):
+            raise StoreError('Unsupported storage mode')
+        if specification.storage_mode == 'staged':
+            from .staging import validate_manifest
+            validate_manifest(specification.input_manifest)
+            if not any(f.path == specification.input_file and f.sha256 == specification.input_sha256
+                       for f in specification.input_manifest):
+                raise StoreError('Primary input missing from manifest')
         payload = json.dumps(asdict(specification), sort_keys=True, allow_nan=False)
         with self._transaction():
             row = self._db.execute('SELECT specification FROM jobs WHERE job_id=?',
                                    (specification.job_id,)).fetchone()
             if row:
-                if row['specification'] != payload:
+                if specification_from_dict(json.loads(row['specification'])) != specification:
                     raise StoreError('Job ID already has a different specification')
                 return
             self._db.execute('INSERT INTO jobs(job_id,specification,state) VALUES(?,?,?)',
@@ -223,8 +234,7 @@ class Store:
     def specification(self, job_id: str) -> JobSpecification:
         row = self._job(job_id)
         data = json.loads(row['specification'])
-        data['resources'] = Resources(**data['resources'])
-        return JobSpecification(**data)
+        return specification_from_dict(data)
 
     def jobs(self) -> tuple[dict[str, str], ...]:
         """List jobs in stable submission order."""
@@ -336,6 +346,29 @@ class Store:
                 self._db.execute('DELETE FROM reservations WHERE attempt_id=?', (attempt_id,))
             self._event(old.job_id, attempt_id, state, reason, exit_code, termination_evidence)
         return self.attempt(attempt_id)
+
+    def set_input_transfer(self, attempt_id: str, directory: str, status: str,
+                           reason: str | None = None) -> None:
+        """Record transfer progress without asserting process termination."""
+        if (not isinstance(directory, str) or not Path(directory).is_absolute()
+                or '\x00' in directory or '..' in Path(directory).parts):
+            raise StoreError('Input transfer directory must be an absolute path without .. or NUL')
+        if reason is not None and (not isinstance(reason, str) or '\x00' in reason):
+            raise StoreError('Input transfer reason must be a string without NUL')
+        if not isinstance(status, str) or status not in {'downloading', 'failed', 'ready'}:
+            raise StoreError('Invalid input transfer status')
+        with self._transaction():
+            self.attempt(attempt_id)
+            self._db.execute('INSERT INTO input_transfers VALUES(?,?,?,?) '
+                             'ON CONFLICT(attempt_id) DO UPDATE SET '
+                             'directory=excluded.directory,status=excluded.status,reason=excluded.reason',
+                             (attempt_id, directory, status, reason))
+
+    def input_transfer(self, attempt_id: str) -> dict | None:
+        """Read durable worker-local paths and transfer diagnostics."""
+        row = self._db.execute('SELECT * FROM input_transfers WHERE attempt_id=?',
+                               (attempt_id,)).fetchone()
+        return dict(row) if row else None
 
     def reservations(self, worker_id: str | None = None) -> tuple[Reservation, ...]:
         """Read active reservations, including unknown and cancelling attempts."""

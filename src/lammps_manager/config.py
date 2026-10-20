@@ -29,6 +29,9 @@ class Storage:
     work_root: str
     mode: str = 'shared'
     preserve_failed_jobs: bool = True
+    max_input_files: int = 10000
+    max_input_file_bytes: int = 1073741824
+    max_input_total_bytes: int = 10737418240
 
 
 @dataclass(frozen=True)
@@ -76,6 +79,10 @@ class WorkerConfig:
     execution: Execution
     token_file: str
     heartbeat_interval_seconds: float = 10
+    storage_mode: str = 'shared'
+    max_input_files: int = 10000
+    max_input_file_bytes: int = 1073741824
+    max_input_total_bytes: int = 10737418240
 
 
 class StrictLoader(yaml.SafeLoader):
@@ -156,8 +163,10 @@ def _validate(instance: Any, location: str) -> None:
         if name in ('database_path', 'work_root', 'lammps_path', 'mpi_launcher_path', 'token_file', 'work_directory'):
             if not Path(value).is_absolute():
                 raise ConfigurationError(f'{location}.{name}: must be an absolute path')
-    if isinstance(instance, Storage) and instance.mode != 'shared':
-        raise ConfigurationError(f'{location}.mode: only shared is supported; staged storage is not implemented')
+    if isinstance(instance, Storage) and instance.mode not in ('shared', 'staged'):
+        raise ConfigurationError(f'{location}.mode: expected shared or staged')
+    if isinstance(instance, WorkerConfig) and instance.storage_mode not in ('shared', 'staged'):
+        raise ConfigurationError(f'{location}.storage_mode: expected shared or staged')
     if isinstance(instance, Scheduler):
         if instance.policy != 'fifo_least_loaded':
             raise ConfigurationError(f'{location}.policy: unsupported policy {instance.policy!r}')

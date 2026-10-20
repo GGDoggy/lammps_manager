@@ -30,7 +30,7 @@ class ConfigurationTests(unittest.TestCase):
                  ('job_defaults', 'memory_gib', '8'), ('job_defaults', 'max_retries', -1),
                  ('scheduler', 'policy', 'arbitrary'), ('scheduler', 'reserve_memory_gib', -1),
                  ('scheduler', 'max_cpu_utilization_percent', 101),
-                 ('storage', 'mode', 'staged'), ('storage', 'work_root', 'relative'),
+                 ('storage', 'mode', 'unsupported'), ('storage', 'work_root', 'relative'),
                  ('manager', 'unknown', 1), ('manager', 'schedule_interval_seconds', 0)]
         for section, key, value in cases:
             with self.subTest(section=section, key=key, value=value):

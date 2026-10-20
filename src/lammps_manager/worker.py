@@ -1,5 +1,7 @@
 """Sequential persistent Linux worker with polling independent of execution."""
 
+from typing import BinaryIO
+
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import asdict
 import fcntl
@@ -9,13 +11,14 @@ import os
 from pathlib import Path
 import sys
 import time
+from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
-from .models import JobSpecification, Resources
+from .models import specification_from_dict
 from .store import Store
 
 
@@ -82,12 +85,19 @@ class Worker:
         identity = state / 'identity.json'
         expected = {'worker_id': config.worker.id, 'manager': config.manager_endpoint,
                     'work_root': str(Path(config.work_root).resolve())}
+        if config.storage_mode != 'shared':
+            expected.update(storage_mode=config.storage_mode, protocol=2)
         try:
             if identity.exists():
                 if json.loads(identity.read_text()) != expected:
                     raise ValueError('Worker journal identity differs from configuration')
             else:
-                identity.write_text(json.dumps(expected))
+                with identity.open('x') as stream:
+                    json.dump(expected, stream)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                from .staging import sync_directory
+                sync_directory(state)
             self.database = state / 'attempts.sqlite3'
             with Store(self.database):
                 pass
@@ -125,27 +135,44 @@ class Worker:
                 report = {'attempt_id': attempt.attempt_id, 'state': attempt.state,
                           'started': attempt.started_at is not None, 'exit_code': attempt.exit_code,
                           'termination_evidence': attempt.termination_evidence, 'reason': attempt.reason}
+                transfer = store.input_transfer(attempt.attempt_id)
+                if transfer is not None:
+                    report['input_transfer'] = transfer
                 if self.acknowledged.get(attempt.attempt_id) != report:
                     reports.append(report)
         request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
                           data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
-                                           'reports': reports}).encode(),
+                                           'reports': reports, 'protocol': 2,
+                                           'storage_mode': self.config.storage_mode}).encode(),
                           headers={'Content-Type': 'application/json',
                                    'X-Worker-ID': self.config.worker.id,
                                    'Authorization': 'Bearer ' + self.token})
-        with self.opener.open(request, timeout=10) as response:
-            result = json.load(response)
-        # The challenge path must itself be contained in the configured root.
         try:
-            challenge = Path(result['challenge']).resolve(strict=True)
+            with self.opener.open(request, timeout=10) as response:
+                result = json.load(response)
+        except HTTPError as exc:
+            if exc.code == 409:
+                exc.close()
+                raise ValueError('Incompatible manager storage protocol or mode') from None
+            raise
+        if self.config.storage_mode == 'staged':
             root = Path(self.config.work_root).resolve(strict=True)
-            if challenge.parent != root or not challenge.name.startswith('.shared-check-'):
-                raise ValueError('Manager and worker shared roots differ')
-            self.proof = challenge.read_text()
-        except OSError as exc:
-            # Access failure neither acknowledges reports nor authorizes a launch.
-            print(f'Shared storage check deferred: {type(exc).__name__}: {exc}', file=sys.stderr)
-            return result
+            if result.get('protocol') != 2 or result.get('storage_mode') != 'staged':
+                raise ValueError('Staged inputs require a protocol 2 staged manager')
+        else:
+            if result.get('storage_mode', 'shared') != 'shared':
+                raise ValueError('Manager and worker storage modes differ')
+            # The challenge path must itself be contained in the configured root.
+            try:
+                challenge = Path(result['challenge']).resolve(strict=True)
+                root = Path(self.config.work_root).resolve(strict=True)
+                if challenge.parent != root or not challenge.name.startswith('.shared-check-'):
+                    raise ValueError('Manager and worker shared roots differ')
+                self.proof = challenge.read_text()
+            except OSError as exc:
+                # Access failure neither acknowledges reports nor authorizes a launch.
+                print(f'Shared storage check deferred: {type(exc).__name__}: {exc}', file=sys.stderr)
+                return result
         # Challenge-only replies have not processed reports.
         if 'policy' not in result:
             return result
@@ -156,14 +183,33 @@ class Worker:
         with Store(self.database) as store:
             # An accepted but unresolved old attempt blocks all fresh execution.
             if store.reservations():
+                if self.config.storage_mode == 'staged':
+                    for reserved in store.reservations():
+                        self._stage(store, reserved.attempt_id)
                 return result
             for assignment in result['assignments']:
                 spec_data = assignment['specification']
-                spec = JobSpecification(**{**spec_data, 'resources': Resources(**spec_data['resources'])})
+                spec = specification_from_dict(spec_data)
+                if spec.storage_mode != self.config.storage_mode:
+                    raise ValueError('Assignment storage mode differs from worker')
                 attempt = assignment['attempt']
                 if attempt['worker_id'] != self.config.worker.id:
                     raise ValueError('Assignment identity mismatch')
                 directory = Path(attempt['directory'])
+                if spec.storage_mode == 'staged':
+                    from .staging import safe_path
+                    for identifier in (spec.job_id, attempt['attempt_id']):
+                        if len(safe_path(identifier).parts) != 1:
+                            raise ValueError('Invalid staged assignment identifier')
+                    job_root = root / spec.job_id
+                    directory = job_root / attempt['attempt_id']
+                    if any(p.is_symlink() for p in (job_root, directory)):
+                        raise ValueError('Unsafe staged runtime directory')
+                    with store.scheduling_round():
+                        store.submit(spec)
+                        store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
+                    self._stage(store, attempt['attempt_id'])
+                    break
                 try:
                     job_root = Path(spec.work_directory).resolve(strict=True)
                 except OSError as exc:
@@ -204,6 +250,43 @@ class Worker:
                     self.future = self.pool.submit(self._execute, accepted.attempt_id)
                 break
         return result
+
+    def _stage(self, store: Store, attempt_id: str) -> None:
+        """Retry input transfer independently of process acceptance; never launch."""
+        from .staging import publish_inputs
+        attempt = store.attempt(attempt_id)
+        if attempt.state != 'assigned':
+            return
+        previous = store.input_transfer(attempt_id)
+        if previous and previous['status'] == 'ready':
+            return
+        destination = Path(attempt.directory) / 'inputs'
+        store.set_input_transfer(attempt_id, str(destination), 'downloading')
+        spec = store.specification(attempt.job_id)
+
+        def fetch(index: int) -> BinaryIO:
+            request = Request(self.config.manager_endpoint.rstrip('/') +
+                              f'/v2/inputs/{attempt_id}/files/{index}',
+                              headers={'X-Worker-ID': self.config.worker.id,
+                                       'Authorization': 'Bearer ' + self.token})
+            return self.opener.open(request, timeout=10)
+
+        try:
+            from urllib.error import URLError
+            root = Path(self.config.work_root).resolve(strict=True)
+            for parent in (destination.parent.parent, destination.parent):
+                if parent.is_symlink() or parent.resolve() != parent or not parent.is_relative_to(root):
+                    raise ValueError('Unsafe staged runtime directory')
+            publish_inputs(destination, spec.input_manifest, fetch,
+                           dict(max_files=self.config.max_input_files,
+                                max_file_bytes=self.config.max_input_file_bytes,
+                                max_total_bytes=self.config.max_input_total_bytes))
+        except (OSError, ValueError, IncompleteRead, URLError) as exc:
+            store.set_input_transfer(attempt_id, str(destination), 'failed',
+                                     f'{type(exc).__name__}: {exc}')
+            return
+        store.set_input_transfer(attempt_id, str(destination), 'ready',
+                                 'Inputs verified; staged execution requires T008 result collection')
 
     def run(self) -> None:
         """Poll continuously; transport errors retain reservations and local work."""

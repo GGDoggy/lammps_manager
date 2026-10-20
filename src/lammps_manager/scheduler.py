@@ -73,6 +73,11 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
             if job['state'] != 'queued':
                 continue
             spec = store.specification(job['job_id'])
+            if spec.storage_mode != config.storage.mode:
+                reason = 'storage_mode_mismatch: existing specification requires ' + spec.storage_mode
+                store.record_waiting(spec.job_id, reason)
+                waiting[spec.job_id] = reason
+                continue
             r = spec.resources
             candidates = []
             reasons = {}

@@ -1,6 +1,6 @@
 """Batch submission, isolated attempt execution and durable inspection."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import hashlib
 import json
 import os
@@ -27,7 +27,10 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
         input_value = entry.get('input_file')
         if not isinstance(source_value, str) or not isinstance(input_value, str):
             raise ValueError('source_directory and input_file must be strings')
-        source = (manifest.parent / source_value).resolve()
+        source = manifest.parent / source_value
+        if source.is_symlink():
+            raise ValueError('Source root must not be a symlink')
+        source = source.resolve()
         relative = Path(input_value)
         if relative.is_absolute() or '..' in relative.parts or relative == Path('.'):
             raise ValueError('input_file must be a relative file inside source_directory')
@@ -39,7 +42,8 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
         directory = Path(config.storage.work_root).resolve() / job_id
         # Validate all entries before creating output or submitting any jobs.
         spec = create_job_specification(config, job_id=job_id, work_directory=str(directory),
-                input_file=input_value, input_sha256=hashlib.sha256((source / relative).read_bytes()).hexdigest(),
+                input_file=str(relative), input_sha256=('0' * 64 if config.storage.mode == 'staged'
+                    else hashlib.sha256((source / relative).read_bytes()).hexdigest()),
                 resource_overrides=entry.get('resources'))
         if directory == source or source in directory.parents:
             raise ValueError('Storage work_root must not be inside a source tree')
@@ -47,8 +51,23 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
     submitted = []
     for source, directory, spec in prepared:
         directory.mkdir(parents=True, exist_ok=False)
-        shutil.copytree(source, directory / 'inputs')
-        if hashlib.sha256((directory / 'inputs' / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
+        if config.storage.mode == 'staged':
+            from .staging import snapshot_inputs, sync_directory
+            limits = dict(max_files=config.storage.max_input_files,
+                          max_file_bytes=config.storage.max_input_file_bytes,
+                          max_total_bytes=config.storage.max_input_total_bytes)
+            files = snapshot_inputs(source, directory / 'inputs', limits)
+            sync_directory(directory)
+            sync_directory(directory.parent)
+            primary = next((item for item in files if item.path == spec.input_file), None)
+            if primary is None:
+                raise ValueError('Primary input disappeared during submission')
+            spec = replace(spec, storage_mode='staged', input_manifest=files,
+                           input_sha256=primary.sha256)
+        else:
+            shutil.copytree(source, directory / 'inputs')
+        if spec.storage_mode == 'shared' and hashlib.sha256(
+                (directory / 'inputs' / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
             raise ValueError(f'Input changed during submission: {spec.job_id}')
         store.submit(spec)
         submitted.append(spec.job_id)
@@ -62,6 +81,9 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
         if row['state'] != 'queued':
             continue
         spec = store.specification(row['job_id'])
+        if spec.storage_mode == 'staged':
+            store.record_waiting(spec.job_id, 'Staged execution requires T008 result collection')
+            continue
         root = Path(spec.work_directory).resolve()
         if not root.is_relative_to(Path(worker.work_root).resolve()):
             raise ValueError(f'Job outside worker work_root: {root}')
@@ -80,6 +102,8 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
     if attempt.state != 'assigned':
         raise ValueError('Only a newly accepted assigned attempt can execute')
     spec = store.specification(attempt.job_id)
+    if spec.storage_mode == 'staged':
+        raise ValueError('Staged execution requires T008 result collection')
     root = Path(spec.work_directory).resolve()
     directory = Path(attempt.directory)
     process = None
@@ -145,5 +169,6 @@ def inspect_job(store: Store, job_id: str) -> dict[str, object]:
     return {'specification': asdict(store.specification(job_id)), 'state': store.job_state(job_id),
             'attempts': [{**asdict(a), 'stdout': str(Path(a.directory) / 'stdout'),
                           'stderr': str(Path(a.directory) / 'stderr'),
-                          'execution_metadata': str(Path(a.directory) / 'execution.json')}
+                          'execution_metadata': str(Path(a.directory) / 'execution.json'),
+                          'input_transfer': store.input_transfer(a.attempt_id)}
                          for a in store.job_attempts(job_id)], 'events': store.events(job_id)}

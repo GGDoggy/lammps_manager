@@ -132,6 +132,16 @@ class WorkerTests(unittest.TestCase):
         for worker in workers:
             worker.tick()
 
+    def test_legacy_shared_protocol_preserves_specification_keys(self) -> None:
+        self.submit((0,))
+        payload = {'proof': self.service.proof,
+                   'snapshot': LinuxMonitor().sample(self.worker_config()), 'reports': []}
+        result = self.poll('a', 'a' * 40, payload)
+        specification = result['assignments'][0]['specification']
+        self.assertEqual(set(specification), {'job_id', 'work_directory', 'input_file',
+                                            'input_sha256', 'resources'})
+        self.assertEqual(result['storage_mode'], 'shared')
+
     def test_authentication_shared_path_and_malformed_payload(self) -> None:
         self.submit((0,))
         for identity, token in [('unregistered', 'a' * 40), ('a', 'wrong'), ('a', 'b' * 40)]:

@@ -17,9 +17,24 @@ class Resources:
 
 
 @dataclass(frozen=True)
+class InputFile:
+    path: str
+    size: int
+    sha256: str
+
+
+@dataclass(frozen=True)
 class JobSpecification:
     job_id: str
     work_directory: str
     input_file: str
     input_sha256: str
     resources: Resources = field(default_factory=Resources)
+    storage_mode: str = 'shared'
+    input_manifest: tuple[InputFile, ...] = ()
+
+
+def specification_from_dict(data: dict) -> JobSpecification:
+    """Decode old shared snapshots and new immutable manifests."""
+    return JobSpecification(**{**data, 'resources': Resources(**data['resources']),
+        'input_manifest': tuple(InputFile(**item) for item in data.get('input_manifest', ()))})
