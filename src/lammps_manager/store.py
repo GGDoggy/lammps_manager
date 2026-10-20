@@ -179,6 +179,17 @@ class Store:
         data['resources'] = Resources(**data['resources'])
         return JobSpecification(**data)
 
+    def jobs(self) -> tuple[dict[str, str], ...]:
+        """List jobs in stable submission order."""
+        return tuple(dict(row) for row in self._db.execute(
+            'SELECT job_id,state,created_at FROM jobs ORDER BY rowid'))
+
+    def job_attempts(self, job_id: str) -> tuple[Attempt, ...]:
+        """Read attempts belonging to a known job."""
+        self._job(job_id)
+        return tuple(Attempt(**dict(row)) for row in self._db.execute(
+            'SELECT * FROM attempts WHERE job_id=? ORDER BY rowid', (job_id,)))
+
     def job_state(self, job_id: str) -> str:
         return str(self._job(job_id)['state'])
 

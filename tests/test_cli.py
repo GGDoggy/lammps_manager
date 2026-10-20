@@ -21,7 +21,8 @@ class CliTests(unittest.TestCase):
                 result = self.run_cli(*args)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("usage: lammps-manager", result.stdout)
-                self.assertIn("not implemented yet", " ".join(result.stdout.split()))
+                self.assertIn("Remote simulation dispatch is not implemented yet",
+                              " ".join(result.stdout.split()))
 
     def test_validate_config(self) -> None:
         for kind in ('manager', 'worker'):
@@ -38,7 +39,7 @@ class CliTests(unittest.TestCase):
         self.assertTrue(result.stdout.startswith("lammps-manager "))
 
     def test_unsupported_command_is_rejected(self) -> None:
-        result = self.run_cli("submit")
+        result = self.run_cli("unsupported")
         self.assertEqual(result.returncode, 2)
         self.assertIn("invalid choice", result.stderr)
 

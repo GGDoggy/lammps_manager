@@ -1,11 +1,11 @@
 # SQLite persistence API
 
 T002 adds `lammps_manager.store.Store`, using Python's standard-library `sqlite3`.
-It does not submit through the CLI, execute jobs, select workers, enforce capacity,
-reconcile processes, or retry attempts. Those capabilities remain future tasks.
+The storage module does not execute jobs, select workers, enforce capacity,
+reconcile processes, or retry attempts. T003 adds a separate [local batch CLI and executor](local-batches.md).
 Use a database on the manager's local disk, not a shared filesystem. Its parent
-directory must already exist. No new configuration fields or commands are added;
-the existing manager `database_path` will be used when a manager is implemented.
+directory must already exist. T002 added no configuration fields or commands;
+the existing manager `database_path` is also used by the local batch CLI.
 
 ```python
 from lammps_manager.store import Store
@@ -88,5 +88,5 @@ terminal transition. All timestamps are UTC database observation times, not
 worker process timestamps. `events(job_id)` returns ordered dictionaries including
 state, reason, exit code and evidence, so later transitions do not erase earlier
 failure or disconnection explanations. `specification()`, `job_state()`,
-`attempt()` and `reservations(worker_id=None)` provide read access. No credentials,
+`attempt()`, `jobs()`, `job_attempts(job_id)` and `reservations(worker_id=None)` provide read access. No credentials,
 process output, arguments, or real process identities are stored by this API yet.

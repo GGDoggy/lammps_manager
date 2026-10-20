@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Execution, scheduling, and process recovery behavior below remains required future behavior, not an available service. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity.
+This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; scheduling, remote execution and process recovery below remain future behavior, not an available service. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity.
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.
 
@@ -40,7 +40,7 @@ Add modules only with their features:
 | `worker` / `executor` | Monitoring, local durable records, process start / stop, results |
 | `cli` | Submission, status, inspection, cancellation, pause / resume |
 
-Provide CLI operations before considering a Web UI. Only the validation CLI currently exists.
+Provide CLI operations before considering a Web UI. Validation, submit, run-local, status and inspect commands currently exist.
 
 ## Configuration and state boundaries
 
@@ -106,7 +106,7 @@ The stages describe product acceptance; [tasks.md](../tasks.md) defines the impl
 
 | Stage | Work and acceptance |
 |---|---|
-| 1: Configuration and local batches | Schema, SQLite, generator, CLI, local execution. Submit a batch into separate directories, persist specifications, inspect status, and record success / nonzero exit correctly. First use fake jobs with controlled duration and exit codes, then separately run a small LAMMPS example when available. T001–T002 are implemented; T003 remains pending. |
+| 1: Configuration and local batches | Schema, SQLite, generator, CLI, local execution. Submit a batch into separate directories, persist specifications, inspect status, and record success / nonzero exit correctly. First use fake jobs with controlled duration and exit codes, then separately run a small LAMMPS example when available. T001–T003 are implemented locally; real LAMMPS acceptance remains unverified. |
 | 2: Multi-host dispatch | Registration, authentication, heartbeat, monitoring, reservations, scheduling, shared storage, real MPI arguments. Complete a batch on at least two workers; enforce CPU / memory / concurrency limits; pause, stale metrics, and high external load block admission. T004–T005 remain pending. |
 | 3: Recovery and operations | Idempotency, durable local records, reconciliation, cancellation, time limits, controlled retries, deployment / service restart documentation. Manager / worker restarts, temporary disconnection, duplicate delivery, and MPI cancellation must neither duplicate jobs nor release resources prematurely; failed output remains inspectable. T006 remains pending. |
 | 4: Optional extensions | If needed, staged inputs with checksums and result collection; do not present results as deliverably complete before collection finishes. Then consider Web UI, priorities, fairness, cgroup enforcement, monitoring, and alerts. |
