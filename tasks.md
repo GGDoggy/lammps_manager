@@ -1,6 +1,6 @@
 # Development Tasks
 
-See `docs/workflow.md` for instructions and the task template. Current architecture requirements come from the temporary user-facing design draft `plan.md`. Transfer lasting requirements into permanent English documentation and update task references before retiring that draft. Task status does not imply remote integration has been verified.
+See `docs/workflow.md` for instructions and the task template. Current architecture requirements are maintained in `docs/architecture.md`; exact implemented configuration behavior is documented in `docs/configuration.md`. Task status does not imply remote integration has been verified.
 
 ## T000: Initialize the repository and agent workflow
 
@@ -61,7 +61,7 @@ See `docs/workflow.md` for instructions and the task template. Current architect
 - Status: todo
 - Dependencies: T003
 - Goal and scope: FIFO, deterministic worker selection, CPU / memory / concurrency reservations, and external load policies; test with fake metrics first.
-- Acceptance criteria: cover all thresholds in section 5 of plan.md; exclude stale, offline, and paused workers; low instantaneous CPU usage does not offset reservations; available memory is not deducted twice; unschedulable reasons can be inspected.
+- Acceptance criteria: cover all thresholds in docs/architecture.md under Scheduling and resource accounting; exclude stale, offline, and paused workers; low instantaneous CPU usage does not offset reservations; available memory is not deducted twice; unschedulable reasons can be inspected.
 - Execution plan: define ordering rules, a test matrix, and store integration when starting.
 - Verification record: not started.
 
@@ -70,7 +70,7 @@ See `docs/workflow.md` for instructions and the task template. Current architect
 - Status: todo
 - Dependencies: T004
 - Goal and scope: manager API, worker polling, authentication, heartbeats, system monitoring, local resource rechecks, pause / resume, and shared storage checks.
-- Acceptance criteria: unregistered workers are rejected; duplicate assignment does not duplicate execution; local tests with multiple workers finish a batch. Before deployment, confirm section 8 of plan.md, then verify with two real workers and record that evidence separately.
+- Acceptance criteria: unregistered workers are rejected; duplicate assignment does not duplicate execution; local tests with multiple workers finish a batch. Before deployment, confirm Deployment prerequisites in docs/architecture.md, then verify with two real workers and record that evidence separately.
 - Execution plan: choose minimal communication dependencies and define the API and worker persistence when starting.
 - Verification record: not started.
 
@@ -88,3 +88,13 @@ After T001–T006, plan staged storage, a Web UI, fairness, and cgroups accordin
 ## Documentation language update (2026-10-20)
 
 Translated README.md, AGENTS.md, docs/workflow.md, and this agent-facing task list into English. AGENTS.md requires Traditional Chinese for temporary user-facing material and English for permanent documentation and agent-facing records. The user subsequently clarified that plan.md is a temporary user-facing design draft, so its Chinese language follows the temporary-material policy. Updated related descriptions and documented the requirement to transfer lasting decisions and update references before retiring it. These updates change documentation only.
+
+## D001: Consolidate the design draft into permanent documentation
+
+- Status: done
+- Dependencies: T001
+- Goal and scope: preserve the draft's lasting requirements in English documentation, update active references and reading instructions, then delete the temporary draft. No pending runtime features are authorized by this documentation task.
+- Acceptance criteria: architecture, configuration boundaries, scheduling rules, recovery guarantees, milestones, and deployment questions remain discoverable; current capabilities remain distinct from plans; no active references require the deleted draft; make check passes.
+- Execution plan: compare the draft with configuration documentation and code; write docs/architecture.md for remaining design requirements; update README, workflow, agent instructions, and backlog references; remove the draft only after transfer; check links and whitespace, run make check, and self-review coverage.
+- Decisions: docs/architecture.md now owns the lasting design requirements; docs/configuration.md remains the source for accepted schema fields. The design explicitly identifies requirements without current schema or runtime support. Removed plan.md after transfer; remaining mentions in earlier task records are historical evidence, not active dependencies. No runtime features were implemented.
+- Verification record (2026-10-20): make check passed all 14 unittest tests, syntax compilation, and git diff --check. A Python documentation check verified local Markdown link targets, whitespace (including the new untracked architecture document), and draft removal. rg located only historical draft mentions in earlier task records. Self-review compared all eight draft sections with architecture.md, configuration.md, and the backlog, and inspected tracked diffs and the new document. Updated the stale workflow example that still requested completed T001. No remote, MPI / LAMMPS, or deployment checks were performed. T002 remains pending and requires separate authorization.

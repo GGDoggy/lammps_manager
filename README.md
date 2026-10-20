@@ -1,6 +1,6 @@
 # LAMMPS Task Manager
 
-A central manager dispatches independent LAMMPS simulations according to Linux worker load and resource quotas. See [plan.md](plan.md) for the temporary user-facing design draft.
+A central manager dispatches independent LAMMPS simulations according to Linux worker load and resource quotas. See [architecture requirements](docs/architecture.md) for the permanent design reference and planned behavior.
 
 The CLI provides help, version information, and strict manager / worker YAML validation. The Python API creates immutable job specification snapshots. Job submission, SQLite persistence, scheduling, workers, and LAMMPS execution are planned features. See [configuration documentation](docs/configuration.md) and [examples](examples/manager.yaml).
 
@@ -36,6 +36,6 @@ Installation may download setuptools build tools. Running directly with `PYTHONP
 - `src/lammps_manager/`: Python package; add modules as their features are implemented.
 - `tests/`: automated tests that do not depend on remote machines.
 
-The first release targets one central manager, SQLite, persistent workers, and a shared filesystem. 
+The first release targets one central manager, SQLite, persistent workers, and a shared filesystem.
 
-Permanent repository documentation and agent-facing material use English. Temporary user-facing material uses Traditional Chinese. Transfer relevant decisions into permanent English documentation and update references before retiring that draft.
+Permanent repository documentation and agent-facing material use English. Temporary user-facing material uses Traditional Chinese. Transfer relevant decisions into permanent English documentation and update references before retiring a temporary draft.
