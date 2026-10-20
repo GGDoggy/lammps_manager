@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lammps-task-manager"
+version = "0.1.0"
+description = "Central dispatcher for independent LAMMPS simulations"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+lammps-manager = "lammps_manager.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
