@@ -1,6 +1,6 @@
 # Recovery and operations
 
-T006 adds Linux identity reconciliation, durable cancellation, time limits and explicit bounded retries to shared-mode execution. Staged execution remains disabled pending T008. Default tests use fake processes and loopback services. See [tasks.md](../tasks.md) for actual local and real MPI verification; this document does not establish cross-host MPI daemon cleanup.
+T006 adds Linux identity reconciliation, durable cancellation, time limits and explicit bounded retries to shared-mode execution. T008 applies the same process identity checks to staged attempts after a durable launch claim; see [staged results](staged-results.md). Default tests use fake processes and loopback services. See [tasks.md](../tasks.md) for actual local and real MPI verification; this document does not establish cross-host MPI daemon cleanup.
 
 ## Cancellation and retry
 

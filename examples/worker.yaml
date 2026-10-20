@@ -6,6 +6,8 @@ worker:
 manager_endpoint: https://manager.example.invalid:8443
 work_root: /shared/lammps/jobs
 token_file: /etc/lammps-manager/worker.token
+# Allow staged result publication and verification to finish before retrying.
+result_request_timeout_seconds: 300
 execution:
   lammps_path: /opt/lammps/bin/lmp
   mpi_launcher_path: /usr/bin/mpirun

@@ -92,7 +92,7 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
     if store.reservations():
         for row in store.jobs():
             if row['state'] == 'queued' and store.specification(row['job_id']).storage_mode == 'staged':
-                store.record_waiting(row['job_id'], 'Staged execution requires T008 result collection')
+                store.record_waiting(row['job_id'], 'Staged execution requires the polling worker and result collection')
         return ()
     completed = []
     for row in store.jobs():
@@ -100,7 +100,7 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
             continue
         spec = store.specification(row['job_id'])
         if spec.storage_mode == 'staged':
-            store.record_waiting(spec.job_id, 'Staged execution requires T008 result collection')
+            store.record_waiting(spec.job_id, 'Staged execution requires the polling worker and result collection')
             continue
         root = Path(spec.work_directory).resolve()
         if not root.is_relative_to(Path(worker.work_root).resolve()):
@@ -120,13 +120,17 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
     if attempt.state not in {'assigned', 'cancelling'}:
         raise ValueError('Only a newly accepted assigned attempt can execute')
     spec = store.specification(attempt.job_id)
-    if spec.storage_mode == 'staged':
-        raise ValueError('Staged execution requires T008 result collection')
-    root = Path(spec.work_directory).resolve()
+    staged = spec.storage_mode == 'staged'
+    if staged and (not store.launch_claimed(attempt.attempt_id)
+                   or not store.input_transfer(attempt.attempt_id)
+                   or store.input_transfer(attempt.attempt_id)['status'] != 'ready'):
+        raise ValueError('Staged execution requires verified inputs and a durable launch claim')
+    root = Path(attempt.directory) if staged else Path(spec.work_directory).resolve()
     directory = Path(attempt.directory)
     process = None
     try:
-        if directory.exists():
+        collision = (directory / 'work').exists() if staged else directory.exists()
+        if collision:
             store.transition(attempt.attempt_id, 'unknown', reason='Attempt directory already exists')
             return False
         if store.cancellation(attempt.attempt_id):
@@ -134,8 +138,15 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
                              reason=store.cancellation(attempt.attempt_id),
                              termination_evidence='Launch did not start a process')
             return False
-        directory.mkdir(exist_ok=False)
-        shutil.copytree(root / 'inputs', directory / 'work')
+        directory.mkdir(exist_ok=staged)
+        if staged:
+            from .staging import publish_inputs, open_regular
+            limits = dict(max_files=worker.max_input_files, max_file_bytes=worker.max_input_file_bytes,
+                          max_total_bytes=worker.max_input_total_bytes)
+            publish_inputs(directory / 'work', spec.input_manifest,
+                           lambda index: open_regular(root / 'inputs', spec.input_manifest[index].path), limits)
+        else:
+            shutil.copytree(root / 'inputs', directory / 'work')
         work = directory / 'work'
         if hashlib.sha256((work / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
             raise ValueError('Input SHA-256 differs from submitted snapshot')
@@ -212,9 +223,24 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
 
 def inspect_job(store: Store, job_id: str) -> dict[str, object]:
     """Return durable specification, state, attempts and history for inspection."""
-    return {'specification': asdict(store.specification(job_id)), 'state': store.job_state(job_id),
-            'attempts': [{**asdict(a), 'stdout': str(Path(a.directory) / 'stdout'),
-                          'stderr': str(Path(a.directory) / 'stderr'),
-                          'execution_metadata': str(Path(a.directory) / 'execution.json'),
-                          'input_transfer': store.input_transfer(a.attempt_id)}
-                         for a in store.job_attempts(job_id)], 'events': store.events(job_id)}
+    spec = store.specification(job_id)
+    attempts = []
+    for attempt in store.job_attempts(job_id):
+        collection = store.result_collection(attempt.attempt_id)
+        staged = spec.storage_mode == 'staged'
+        delivered = collection is not None and collection['status'] == 'collected'
+        available = {item['path'] for item in collection['manifest']['files']} if (
+            delivered and collection['manifest']) else set()
+        directory = Path(attempt.directory) / 'results' if staged else Path(attempt.directory)
+
+        def artifact(name: str) -> str | None:
+            return str(directory / name) if not staged or delivered and name in available else None
+
+        attempts.append({**asdict(attempt), 'stdout': artifact('stdout'), 'stderr': artifact('stderr'),
+                         'execution_metadata': artifact('execution.json'),
+                         'result_collection': collection or (dict(status='pending',
+                             reason='Results have not been collected') if staged else None),
+                         'results_directory': str(directory) if staged and delivered else None,
+                         'input_transfer': store.input_transfer(attempt.attempt_id)})
+    return {'specification': asdict(spec), 'state': store.job_state(job_id),
+            'attempts': attempts, 'events': store.events(job_id)}

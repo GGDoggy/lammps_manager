@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from threading import Event
 import time
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
@@ -19,7 +20,7 @@ from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
 from .models import specification_from_dict
-from .store import Store
+from .store import Store, TERMINAL
 
 
 class LinuxMonitor:
@@ -106,17 +107,27 @@ class Worker:
             raise
         self.pool = ThreadPoolExecutor(max_workers=1)
         self.future: Future | None = None
+        self.collection_pool = ThreadPoolExecutor(max_workers=1)
+        self.collection_future: Future | None = None
+        self.collection_stop = Event()
         self.monitor = LinuxMonitor()
         self.proof = None
         self.acknowledged: dict[str, dict] = {}
         # Do not send bearer credentials through environment-configured proxies.
         from urllib.request import ProxyHandler
         self.opener = build_opener(ProxyHandler({}), NoRedirect())
+        self.result_opener = build_opener(ProxyHandler({}), NoRedirect())
 
     def close(self) -> None:
-        """Wait for the current process; closing never kills a simulation."""
-        self.pool.shutdown(wait=True)
-        self.lock.close()
+        """Join execution and collection before releasing the journal lock."""
+        self.collection_stop.set()
+        try:
+            self.pool.shutdown(wait=True)
+        finally:
+            try:
+                self.collection_pool.shutdown(wait=True)
+            finally:
+                self.lock.close()
 
     def _execute(self, attempt_id: str) -> None:
         with Store(self.database) as store:
@@ -124,6 +135,9 @@ class Worker:
 
     def tick(self) -> dict:
         """Send one heartbeat, report durable outcomes, and accept at most one job."""
+        if self.collection_future is not None and self.collection_future.done():
+            self.collection_future.result()  # Surface unexpected collection failures.
+            self.collection_future = None
         if self.future is not None and self.future.done():
             self.future.result()  # Surface unexpected executor failures.
             self.future = None
@@ -139,6 +153,12 @@ class Worker:
                 report = {'attempt_id': attempt.attempt_id, 'state': attempt.state,
                           'started': attempt.started_at is not None, 'exit_code': attempt.exit_code,
                           'termination_evidence': attempt.termination_evidence, 'reason': attempt.reason}
+                if self.config.storage_mode == 'staged' and attempt.termination_evidence:
+                    collection = store.result_collection(attempt.attempt_id)
+                    if collection is None:
+                        store.set_result_collection(attempt.attempt_id, 'pending')
+                        collection = store.result_collection(attempt.attempt_id)
+                    report['result_collection'] = {key: collection[key] for key in ('status', 'reason')}
                 transfer = store.input_transfer(attempt.attempt_id)
                 if transfer is not None:
                     report['input_transfer'] = transfer
@@ -195,9 +215,17 @@ class Worker:
                 except ValueError:
                     continue  # Pending assignments are accepted below before cancellation.
                 store.request_cancel(command['attempt_id'], command['reason'])
-                if self.config.storage_mode == 'staged':
+                if self.config.storage_mode == 'staged' and not store.launch_claimed(command['attempt_id']):
                     store.transition(command['attempt_id'], 'cancelled', reason=command['reason'],
-                                     termination_evidence='Staged execution is disabled; process never started')
+                                     termination_evidence='Launch did not start a process')
+        if (self.config.storage_mode == 'staged' and self.collection_future is None
+                and not self.collection_stop.is_set()):
+            # Freeze eligibility after the manager has accepted terminal reports.
+            # A process finishing during this pass must wait for its own poll.
+            eligible = tuple(attempt_id for attempt_id, report in self.acknowledged.items()
+                             if report['state'] in TERMINAL and report['termination_evidence'])
+            if eligible:
+                self.collection_future = self.collection_pool.submit(self._collect_results, eligible)
         if self.future is not None:
             return result
         with Store(self.database) as store:
@@ -206,6 +234,7 @@ class Worker:
                 if self.config.storage_mode == 'staged':
                     for reserved in store.reservations():
                         self._stage(store, reserved.attempt_id)
+                        self._launch_staged(store, reserved.attempt_id, result, snapshot)
                 return result
             for assignment in result['assignments']:
                 spec_data = assignment['specification']
@@ -231,11 +260,13 @@ class Worker:
                         raise ValueError('Unsafe staged runtime directory')
                     with store.scheduling_round():
                         store.submit(spec)
+                        if store.job_state(spec.job_id) == 'failed':
+                            store.retry(spec.job_id)
                         store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
                     if cancelled:
                         store.request_cancel(attempt['attempt_id'], cancelled['reason'])
                         store.transition(attempt['attempt_id'], 'cancelled', reason=cancelled['reason'],
-                            termination_evidence='Staged execution is disabled; process never started')
+                            termination_evidence='Launch did not start a process')
                     else:
                         self._stage(store, attempt['attempt_id'])
                     break
@@ -324,7 +355,113 @@ class Worker:
                                      f'{type(exc).__name__}: {exc}')
             return
         store.set_input_transfer(attempt_id, str(destination), 'ready',
-                                 'Inputs verified; staged execution requires T008 result collection')
+                                 'Inputs verified')
+
+    def _launch_staged(self, store: Store, attempt_id: str, result: dict, snapshot: dict) -> None:
+        """Consume a durable launch right only after resource and input checks."""
+        attempt = store.attempt(attempt_id)
+        transfer = store.input_transfer(attempt_id)
+        if (attempt.state != 'assigned' or not transfer or transfer['status'] != 'ready'
+                or result['paused'] or not result.get('staged_launch_enabled')
+                or result.get('results_protocol') != 1 or store.launch_claimed(attempt_id)):
+            return
+        directory = Path(attempt.directory)
+        root = Path(self.config.work_root).resolve(strict=True)
+        if directory.resolve() != directory or not directory.is_relative_to(root):
+            store.transition(attempt_id, 'unknown', reason='Unsafe staged runtime directory before launch')
+            return
+        r = store.specification(attempt.job_id).resources
+        manager = result['manager_capacity']
+        policy = result['policy']
+        if (not self.config.worker.enabled or not manager['enabled']
+                or r.cpu_slots > min(self.config.worker.cpu_slots, manager['cpu_slots'], snapshot['detected_cpu_slots'])
+                or r.memory_gib > min(self.config.worker.memory_budget_gib, manager['memory_budget_gib'],
+                                      snapshot['detected_memory_gib'])
+                or r.memory_gib + policy['reserve_memory_gib'] > snapshot['available_memory_gib']
+                or (policy['account_external_load'] and snapshot['cpu_utilization_percent'] >=
+                    policy['max_cpu_utilization_percent'])):
+            return
+        if store.claim_launch(attempt_id):
+            self.future = self.pool.submit(self._execute, attempt_id)
+
+    def _collect_results(self, attempt_ids: tuple[str, ...]) -> None:
+        """Retry delivery of terminal journals; never rerun a simulation."""
+        from .results import enumerate_results, open_regular, output_limits
+        from urllib.error import URLError
+        with Store(self.database) as store:
+            for attempt_id in attempt_ids:
+                attempt = store.attempt(attempt_id)
+                if self.collection_stop.is_set():
+                    return
+                if attempt.state not in TERMINAL or not attempt.termination_evidence:
+                    continue
+                collection = store.result_collection(attempt.attempt_id)
+                if collection and collection['status'] == 'collected':
+                    continue
+                try:
+                    manifest = collection['manifest'] if collection else None
+                    if manifest is None:
+                        directory = Path(attempt.directory)
+                        if directory.resolve() != directory:
+                            raise ValueError('Unsafe result runtime directory')
+                        directory.mkdir(parents=True, exist_ok=True)
+                        from .staging import sync_directory
+                        outcome = directory / 'outcome.json'
+                        if not outcome.exists():
+                            # A crash before publication leaves only a hidden
+                            # temporary file; never freeze a partial outcome.
+                            import tempfile
+                            fd, temporary = tempfile.mkstemp(prefix='.outcome-', dir=directory)
+                            try:
+                                with os.fdopen(fd, 'w') as metadata:
+                                    json.dump(asdict(attempt), metadata)
+                                    metadata.flush()
+                                    os.fsync(metadata.fileno())
+                                os.replace(temporary, outcome)
+                                sync_directory(directory)
+                            finally:
+                                Path(temporary).unlink(missing_ok=True)
+                        manifest = enumerate_results(Path(attempt.directory), output_limits(self.config))
+                    if self.collection_stop.is_set():
+                        return
+                    store.set_result_collection(attempt.attempt_id, 'uploading', manifest)
+                    reply = self._result_request(attempt.attempt_id, 'manifest', manifest)
+                    if reply['status'] != 'collected':
+                        for index, item in enumerate(manifest['files']):
+                            if self.collection_stop.is_set():
+                                return
+                            with open_regular(Path(attempt.directory), item['path']) as incoming:
+                                self._result_request(attempt.attempt_id, str(index), incoming, item['size'])
+                    # Always replay commit: publication/DB acknowledgement may
+                    # have survived an earlier lost response.
+                    if self.collection_stop.is_set():
+                        return
+                    self._result_request(attempt.attempt_id, 'commit', {})
+                    store.set_result_collection(attempt.attempt_id, 'collected')
+                except (OSError, ValueError, IncompleteRead, URLError) as exc:
+                    store.set_result_collection(attempt.attempt_id, 'failed',
+                                                reason=f'{type(exc).__name__}: {exc}')
+
+    def _result_request(self, attempt_id: str, operation: str, payload: object,
+                        size: int | None = None) -> dict:
+        data = json.dumps(payload).encode() if size is None else payload
+        request = Request(self.config.manager_endpoint.rstrip('/') + f'/v2/results/{attempt_id}/{operation}',
+                          data=data, method='POST' if size is None else 'PUT',
+                          headers={'X-Worker-ID': self.config.worker.id,
+                                   'Authorization': 'Bearer ' + self.token,
+                                   'Content-Length': str(len(data) if size is None else size),
+                                   'Content-Type': 'application/json' if size is None else 'application/octet-stream'})
+        try:
+            with self.result_opener.open(request, timeout=self.config.result_request_timeout_seconds) as response:
+                return json.load(response)
+        except HTTPError as exc:
+            try:
+                detail = json.loads(exc.read(4096)).get('error', 'Artifact request rejected')
+            except (ValueError, AttributeError):
+                detail = 'Artifact request rejected'
+            finally:
+                exc.close()
+            raise ValueError(f'Result transfer HTTP {exc.code}: {detail}') from None
 
     def run(self) -> None:
         """Poll continuously; transport errors retain reservations and local work."""

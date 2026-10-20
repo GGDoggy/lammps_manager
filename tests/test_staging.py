@@ -239,6 +239,11 @@ class StagedWorkerTests(unittest.TestCase):
     def worker(self) -> Worker:
         worker = Worker(self.worker_config, self.root / 'journal')
         self.addCleanup(worker.close)
+        # Keep T007 transfer tests focused on input preparation; T008 executes
+        # staged jobs with the real launch path in test_results.py.
+        launch = patch.object(worker, '_launch_staged')
+        launch.start()
+        self.addCleanup(launch.stop)
         return worker
 
     def assert_pending(self, worker: Worker, status: str) -> dict:
@@ -256,10 +261,10 @@ class StagedWorkerTests(unittest.TestCase):
             self.assertEqual(len(store.reservations()), 1)
         return transfer
 
-    def test_separate_roots_replay_restart_and_launch_gate(self) -> None:
+    def test_separate_roots_replay_restart_and_input_preparation(self) -> None:
         worker = self.worker()
         result = worker.tick()
-        self.assertFalse(result['staged_launch_enabled'])
+        self.assertTrue(result['staged_launch_enabled'])
         transfer = self.assert_pending(worker, 'ready')
         self.assertTrue(Path(transfer['directory']).is_relative_to(self.worker_root))
         self.assertEqual((Path(transfer['directory']) / 'in.lmp').read_text(), 'input')
@@ -282,7 +287,7 @@ class StagedWorkerTests(unittest.TestCase):
             other = replace(self.spec, job_id='other', work_directory=str(self.manager_root / 'other'))
             store.submit(other)
             self.assertEqual(run_local(store, self.worker_config), ())
-            self.assertIn('T008', store.events('other')[-1]['reason'])
+            self.assertIn('polling worker', store.events('other')[-1]['reason'])
 
     def test_ready_report_resynchronizes_after_heartbeat_expiry(self) -> None:
         worker = self.worker()

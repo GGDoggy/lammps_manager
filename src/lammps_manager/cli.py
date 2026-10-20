@@ -123,7 +123,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                     store.retry(args.job_id)
                     result = inspect_job(store, args.job_id)
                 elif args.command == 'status':
-                    result = store.jobs()
+                    result = [{**job, 'result_collection':
+                               (_collection_summary(inspect_job(store, job['job_id'])['attempts'][-1]['result_collection'])
+                                if store.job_attempts(job['job_id']) else None)} for job in store.jobs()]
                 else:
                     result = inspect_job(store, args.job_id)
             print(json.dumps(result, indent=2))
@@ -132,3 +134,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     parser.print_help()
     return 0
+
+
+def _collection_summary(collection: dict | None) -> dict | None:
+    return {key: collection.get(key) for key in ('status', 'reason')} if collection else None

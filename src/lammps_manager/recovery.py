@@ -76,8 +76,9 @@ def reconcile(store: Store, attempt: Attempt) -> bool:
     """
     if attempt.state in TERMINAL:
         return False
-    if store.specification(attempt.job_id).storage_mode == 'staged':
-        return False  # Input preparation is not an interrupted process launch.
+    if (store.specification(attempt.job_id).storage_mode == 'staged'
+            and not store.launch_claimed(attempt.attempt_id)):
+        return False  # Input preparation has not consumed a launch right.
     try:
         saved = json.loads((Path(attempt.directory) / 'process.json').read_text())
         pid = saved['pid']

@@ -97,3 +97,16 @@ process output, arguments, or real process identities are stored by this API yet
 T005 adds an additive `workers` table, created transactionally when opening a version-1 database. Existing jobs and submission snapshots are unchanged. `worker_records()` reads persisted pause flags and last authenticated metrics; `set_worker()` updates either value transactionally. Registration and authentication remain service responsibilities. Worker-local journals use the same job / attempt store on local durable disk; they are never shared with the manager. See [workers.md](workers.md) for execution and replay semantics.
 
 T006 adds `cancellations`, keyed by attempt ID. `request_cancel()` commits intent and state before delivery; `cancellation()` reads it even after heartbeat expiry. `expire_workers()` changes expired active work to unknown without releasing resources. These runtime operations never rewrite submitted specifications.
+
+## Staged result records
+
+Opening an existing schema-2 database additively creates `launch_claims` and
+`result_collections`, preserving specifications and earlier attempts.
+`claim_launch()` consumes one staged launch right atomically; `launch_claimed()`
+is used by recovery and launch fencing. `set_result_collection()` requires a
+terminal attempt with termination evidence, binds a manifest immutably and
+records delivery independently of resource reservations. A collected record
+cannot regress. The manager alone records delivery after durable publication;
+worker poll diagnostics cannot assert collection. `result_collection()` returns
+the manifest by default; `include_manifest=False` reads only status, reason and
+manifest presence for bounded per-file checks. See [staged results](staged-results.md).

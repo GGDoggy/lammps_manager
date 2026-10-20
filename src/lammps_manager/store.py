@@ -124,6 +124,11 @@ class Store:
                 self._db.execute("CREATE TABLE IF NOT EXISTS input_transfers ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
                                  "directory TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
+                self._db.execute("CREATE TABLE IF NOT EXISTS launch_claims ("
+                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))")
+                self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
+                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                 "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
                 self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
                                  "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
                                  "snapshot TEXT)")
@@ -432,6 +437,50 @@ class Store:
         row = self._db.execute('SELECT * FROM input_transfers WHERE attempt_id=?',
                                (attempt_id,)).fetchone()
         return dict(row) if row else None
+
+    def claim_launch(self, attempt_id: str) -> bool:
+        """Durably consume the staged launch right before executor submission."""
+        with self._transaction():
+            self.attempt(attempt_id)
+            cursor = self._db.execute('INSERT OR IGNORE INTO launch_claims VALUES(?)', (attempt_id,))
+            return cursor.rowcount == 1
+
+    def launch_claimed(self, attempt_id: str) -> bool:
+        return self._db.execute('SELECT 1 FROM launch_claims WHERE attempt_id=?',
+                                (attempt_id,)).fetchone() is not None
+
+    def set_result_collection(self, attempt_id: str, status: str,
+                              manifest: dict | None = None, reason: str | None = None) -> None:
+        """Bind one immutable result manifest; delivery never changes process state."""
+        if status not in {'pending', 'uploading', 'failed', 'collected'}:
+            raise StoreError('Invalid result collection status')
+        with self._transaction():
+            attempt = self.attempt(attempt_id)
+            if attempt.state not in TERMINAL or not attempt.termination_evidence:
+                raise StoreError('Results require confirmed process termination')
+            old = self.result_collection(attempt_id)
+            if old and old['manifest'] is not None:
+                if manifest is not None and manifest != old['manifest']:
+                    raise StoreError('Conflicting result manifest')
+                manifest = old['manifest']
+            if old and old['status'] == 'collected':
+                return
+            self._db.execute('INSERT INTO result_collections VALUES(?,?,?,?) '
+                             'ON CONFLICT(attempt_id) DO UPDATE SET '
+                             'status=excluded.status,manifest=excluded.manifest,reason=excluded.reason',
+                             (attempt_id, status, json.dumps(manifest) if manifest is not None else None, reason))
+
+    def result_collection(self, attempt_id: str, *, include_manifest: bool = True) -> dict | None:
+        """Read collection independently of the process outcome."""
+        columns = '*' if include_manifest else 'attempt_id,status,reason,manifest IS NOT NULL AS has_manifest'
+        row = self._db.execute(f'SELECT {columns} FROM result_collections WHERE attempt_id=?',
+                               (attempt_id,)).fetchone()
+        if row is None:
+            return None
+        result = dict(row)
+        if include_manifest:
+            result['manifest'] = json.loads(result['manifest']) if result['manifest'] is not None else None
+        return result
 
     def reservations(self, worker_id: str | None = None) -> tuple[Reservation, ...]:
         """Read active reservations, including unknown and cancelling attempts."""

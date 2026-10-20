@@ -90,6 +90,18 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaisesRegex(ConfigurationError, 'mpi_args'):
             self.load(worker, 'worker')
 
+    def test_result_request_timeout(self) -> None:
+        worker = yaml.safe_load(Path('examples/worker.yaml').read_text())
+        worker.pop('result_request_timeout_seconds', None)
+        self.assertEqual(self.load(worker, 'worker').result_request_timeout_seconds, 300)
+        worker['result_request_timeout_seconds'] = 42.5
+        self.assertEqual(self.load(worker, 'worker').result_request_timeout_seconds, 42.5)
+        for value in (0, -1, True, '300', float('inf'), float('nan')):
+            with self.subTest(value=value):
+                worker['result_request_timeout_seconds'] = value
+                with self.assertRaisesRegex(ConfigurationError, 'result_request_timeout_seconds'):
+                    self.load(worker, 'worker')
+
     def test_environment_values_allow_empty_strings(self) -> None:
         worker = yaml.safe_load(Path('examples/worker.yaml').read_text())
         environment = {'CUDA_VISIBLE_DEVICES': '', 'SPACES': '  ', 'NORMAL': 'value'}

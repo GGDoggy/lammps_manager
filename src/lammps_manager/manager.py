@@ -67,6 +67,8 @@ class ManagerService:
             self.challenge.write_text(self.proof)
         self.last_schedule = 0.0
         self._poll_lock = threading.Lock()
+        self._result_lock = threading.Lock()
+        self._result_cache: OrderedDict[tuple, tuple] = OrderedDict()
         self.expire_workers()
         self._input_cache_lock = threading.Lock()
         self._input_cache: OrderedDict[tuple[str, str, int, int, int], JobSpecification] = OrderedDict()
@@ -143,6 +145,11 @@ class ManagerService:
                     store.transition(old.attempt_id, state, exit_code=report.get('exit_code'),
                                      reason=report.get('reason'),
                                      termination_evidence=report.get('termination_evidence'))
+                    if 'result_collection' in report and state in TERMINAL:
+                        collection = report['result_collection']
+                        status = collection['status']
+                        if status != 'collected':
+                            store.set_result_collection(old.attempt_id, status, reason=collection.get('reason'))
                 store.set_worker(worker_id, snapshot=asdict(snapshot))
             store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
@@ -168,7 +175,7 @@ class ManagerService:
             policy = self.config.scheduler
             return {'challenge': str(self.challenge), 'assignments': assignments,
                     'protocol': 2, 'storage_mode': self.config.storage.mode,
-                    'staged_launch_enabled': False,
+                    'staged_launch_enabled': True, 'results_protocol': 1,
                     'cancellations': [{'attempt_id': r.attempt_id, 'reason': store.cancellation(r.attempt_id)}
                                       for r in store.reservations(worker_id) if store.cancellation(r.attempt_id)],
                     'paused': store.worker_records()[worker_id]['paused'],
@@ -209,6 +216,46 @@ class ManagerService:
             stream.close()
             raise ValueError('Stored input size differs from snapshot')
         return stream, item.size
+
+    def result_operation(self, worker_id: str, attempt_id: str, operation: str,
+                         payload: dict | None = None, stream: BinaryIO | None = None,
+                         length: int | None = None) -> dict:
+        """Serialize manifest binding, bounded file writes and durable acknowledgement."""
+        from .results import authorize, commit_results, output_limits, upload_file, validate_results
+        with self._result_lock, Store(self.config.manager.database_path) as store:
+            directory = authorize(store, worker_id, attempt_id)
+            limits = output_limits(self.config.storage)
+            if operation == 'manifest':
+                validate_results(payload, limits)
+                previous = store.result_collection(attempt_id)
+                # Preserve the last reported failure during idempotent retries,
+                # so repeated manifest delivery cannot hide a persistent error.
+                failed = previous and previous['status'] == 'failed'
+                store.set_result_collection(attempt_id, 'failed' if failed else 'uploading', payload,
+                                            previous['reason'] if failed else None)
+            collection = store.result_collection(attempt_id, include_manifest=False)
+            if collection is None or not collection['has_manifest']:
+                raise ValueError('Result manifest required')
+            key = (self.config.manager.database_path, attempt_id, *limits.values())
+            files = self._result_cache.get(key)
+            if files is None:
+                files = validate_results(store.result_collection(attempt_id)['manifest'], limits)
+                self._result_cache[key] = files
+                if len(self._result_cache) > 32:
+                    self._result_cache.popitem(last=False)
+            self._result_cache.move_to_end(key)
+            if operation == 'commit':
+                commit_results(directory, files, limits)
+                store.set_result_collection(attempt_id, 'collected')
+            elif operation != 'manifest':
+                index = int(operation)
+                if not 0 <= index < len(files) or length != files[index].size:
+                    raise ValueError('Invalid result file index or length')
+                if collection['status'] == 'collected':
+                    raise ValueError('Result already published; replay commit instead')
+                upload_file(directory, files[index], stream)
+            saved = store.result_collection(attempt_id, include_manifest=False)
+            return {'status': saved['status'], 'reason': saved['reason']}
 
 
 def make_server(service: ManagerService, host: str, port: int, *,
@@ -257,6 +304,9 @@ def make_server(service: ManagerService, host: str, port: int, *,
             finally:
                 stream.close()
 
+        def do_PUT(self) -> None:
+            self.do_POST()
+
         def do_POST(self) -> None:
             self.connection.settimeout(10)
             status = 200
@@ -264,6 +314,32 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 worker_id = self.headers.get('X-Worker-ID', '')
                 if not service.authenticate(worker_id, self.headers.get('Authorization', '')):
                     status, result = 401, {'error': 'Unauthorized worker'}
+                elif self.path.startswith('/v2/results/'):
+                    parts = self.path.split('/')
+                    if len(parts) != 5:
+                        raise ValueError('Invalid result endpoint')
+                    length = int(self.headers.get('Content-Length', '-1'))
+                    operation = parts[4]
+                    if self.headers.get('Transfer-Encoding'):
+                        raise ValueError('Chunked requests are not supported')
+                    if operation in {'manifest', 'commit'}:
+                        if not 0 < length <= 1048576:
+                            raise ValueError('Invalid result request size')
+                        payload = json.loads(self.rfile.read(length))
+                        result = service.result_operation(worker_id, parts[3], operation, payload)
+                    else:
+                        # Limit reads to Content-Length, including the verifier's
+                        # final EOF probe; never read into the next request.
+                        class Body:
+                            remaining = length
+
+                            def read(body, size: int) -> bytes:
+                                data = self.rfile.read(min(size, max(0, body.remaining)))
+                                body.remaining -= len(data)
+                                return data
+
+                        result = service.result_operation(worker_id, parts[3], operation,
+                                                          stream=Body(), length=length)
                 elif self.path != '/v1/poll':
                     status, result = 404, {'error': 'Unknown endpoint'}
                 else:
@@ -276,8 +352,10 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     result = service.poll(worker_id, payload)
             except StorageProtocolError as exc:
                 status, result = 409, {'error': str(exc)}
-            except (ValueError, KeyError, TypeError, OSError):
-                status, result = 400, {'error': 'Invalid poll, incompatible storage protocol, or storage unavailable'}
+            except OSError as exc:
+                status, result = 400, {'error': f'Artifact or journal storage unavailable (errno={exc.errno})'}
+            except (ValueError, KeyError, TypeError):
+                status, result = 400, {'error': 'Invalid poll or artifact request, or incompatible storage protocol'}
             body = json.dumps(result, allow_nan=False).encode()
             self.send_response(status)
             self.send_header('Content-Type', 'application/json')
