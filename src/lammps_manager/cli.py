@@ -1,7 +1,8 @@
-"""Configuration validation and explicit local batch commands."""
+"""Configuration, batches and authenticated manager / worker commands."""
 
 import argparse
 import json
+from pathlib import Path
 import sqlite3
 from collections.abc import Sequence
 from importlib.metadata import PackageNotFoundError, version
@@ -17,7 +18,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         prog="lammps-manager",
         description=(
             "LAMMPS task manager: local batches and configuration validation. "
-            "Remote simulation dispatch is not implemented yet."
+            "Authenticated polling workers support shared-storage execution."
         ),
     )
     try:
@@ -34,7 +35,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     validate.add_argument("--check-local-paths", action="store_true",
                           help="Check paths on this host; never contacts remote workers")
     for name in ('submit', 'run-local', 'status', 'inspect'):
-        command = commands.add_parser(name, help=f'{name} local jobs')
+        command = commands.add_parser(name, help=f'{name} jobs')
         command.add_argument('--config', required=True, help='Manager YAML configuration')
         if name == 'submit':
             command.add_argument('manifest', help='JSON list of source_directory / input_file jobs')
@@ -42,7 +43,59 @@ def main(argv: Sequence[str] | None = None) -> int:
             command.add_argument('--worker-config', required=True)
         elif name == 'inspect':
             command.add_argument('job_id')
+    manager = commands.add_parser('serve', help='Run the authenticated manager API')
+    manager.add_argument('--config', required=True)
+    manager.add_argument('--credentials', required=True, help='JSON worker ID to private token-file path mapping')
+    manager.add_argument('--host', default='127.0.0.1')
+    manager.add_argument('--port', type=int, default=8443)
+    manager.add_argument('--tls-cert')
+    manager.add_argument('--tls-key')
+    worker_command = commands.add_parser('worker', help='Run a persistent polling worker')
+    worker_command.add_argument('--config', required=True, help='Worker YAML configuration')
+    worker_command.add_argument('--state-directory', required=True, help='Durable local worker journal directory')
+    for name in ('pause', 'resume'):
+        control = commands.add_parser(name, help=f'{name} new execution on one worker')
+        control.add_argument('--config', required=True)
+        control.add_argument('worker_id')
     args = parser.parse_args(argv)
+    if args.command in ('serve', 'worker', 'pause', 'resume'):
+        from .manager import ManagerService, make_server
+        from .worker import Worker
+        try:
+            if args.command == 'worker':
+                config = load_config(args.config, 'worker', check_local_paths=True)
+                instance = Worker(config, args.state_directory)
+                try:
+                    instance.run()
+                finally:
+                    instance.close()
+            else:
+                config = load_config(args.config, 'manager', check_local_paths=True)
+                if args.command in ('pause', 'resume'):
+                    if args.worker_id not in {w.id for w in config.workers}:
+                        raise ValueError('Unregistered worker')
+                    with Store(config.manager.database_path) as store:
+                        store.set_worker(args.worker_id, paused=args.command == 'pause')
+                    print(f'{args.worker_id}: {args.command}')
+                else:
+                    credentials = json.loads(Path(args.credentials).read_text())
+                    service = ManagerService(config, credentials)
+                    try:
+                        server = make_server(service, args.host, args.port,
+                                             certfile=args.tls_cert, keyfile=args.tls_key)
+                        try:
+                            print(f'Manager listening on {args.host}:{server.server_port}', flush=True)
+                            server.serve_forever()
+                        finally:
+                            server.server_close()
+                    finally:
+                        service.close()
+        except KeyboardInterrupt:
+            return 130
+        except (ValueError, OSError, sqlite3.Error) as exc:
+            parser.error(str(exc))
+        return 0
+
     if args.command == "validate-config":
         try:
             load_config(args.path, args.kind, check_local_paths=args.check_local_paths)

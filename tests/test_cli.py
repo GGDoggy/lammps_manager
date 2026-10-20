@@ -21,7 +21,7 @@ class CliTests(unittest.TestCase):
                 result = self.run_cli(*args)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("usage: lammps-manager", result.stdout)
-                self.assertIn("Remote simulation dispatch is not implemented yet",
+                self.assertIn("Authenticated polling workers support shared-storage execution",
                               " ".join(result.stdout.split()))
 
     def test_validate_config(self) -> None:

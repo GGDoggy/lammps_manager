@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; the [scheduler API](scheduling.md) is implemented with caller-supplied snapshots; remote execution, monitoring collection and process recovery below remain future behavior, not an available service. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity by itself. Scheduler admission enforces effective quotas within the assignment transaction.
+This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; the [scheduler API](scheduling.md) is implemented with caller-supplied snapshots; the [polling manager and workers](workers.md) implement shared-storage execution, authentication and Linux monitoring. Real multi-host acceptance and process recovery remain pending. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity by itself. Scheduler admission enforces effective quotas within the assignment transaction.
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.
 
@@ -40,7 +40,7 @@ Add modules only with their features:
 | `worker` / `executor` | Monitoring, local durable records, process start / stop, results |
 | `cli` | Submission, status, inspection, cancellation, pause / resume |
 
-Provide CLI operations before considering a Web UI. Validation, submit, run-local, status and inspect commands currently exist.
+Provide CLI operations before considering a Web UI. Validation, submit, run-local, status, inspect, serve, worker, pause and resume commands currently exist.
 
 ## Configuration and state boundaries
 
@@ -83,7 +83,7 @@ A worker can accept a new job only when all conditions hold:
 
 CPU utilization signals temporary load, not an exact free-core count. Running jobs keep their full reservations even during low utilization. Available memory already reflects running processes' actual consumption; do not subtract all running memory reservations from it again.
 
-Rank eligible workers by CPU utilization and remaining quota, with a fixed, testable tie-break rule. The implemented ordering is ascending CPU utilization, descending remaining CPU quota, descending remaining memory quota, then lexicographic worker ID (see [scheduling.md](scheduling.md)). Create the attempt and reservation in a database transaction before dispatch to prevent oversubscription within a round. A worker rechecks local conditions before launching and may reject an assignment for insufficient resources, returning the job to the queue.
+Rank eligible workers by CPU utilization and remaining quota, with a fixed, testable tie-break rule. The implemented ordering is ascending CPU utilization, descending remaining CPU quota, descending remaining memory quota, then lexicographic worker ID (see [scheduling.md](scheduling.md)). Create the attempt and reservation in a database transaction before dispatch to prevent oversubscription within a round. A worker rechecks local conditions before launching. T005 conservatively defers insufficient-resource assignments while retaining their reservations, and rechecks on later polls. Returning rejected work to the queue requires a future rejection / reassignment protocol.
 
 Reject a job exceeding every worker's maximum capacity at submission, or expose an explicit unschedulable reason. Never leave it silently waiting forever.
 
@@ -107,7 +107,7 @@ The stages describe product acceptance; [tasks.md](../tasks.md) defines the impl
 | Stage | Work and acceptance |
 |---|---|
 | 1: Configuration and local batches | Schema, SQLite, generator, CLI, local execution. Submit a batch into separate directories, persist specifications, inspect status, and record success / nonzero exit correctly. First use fake jobs with controlled duration and exit codes, then separately run a small LAMMPS example when available. T001–T003 are implemented locally; real LAMMPS acceptance remains unverified. |
-| 2: Multi-host dispatch | Registration, authentication, heartbeat, monitoring, reservations, scheduling, shared storage, real MPI arguments. Complete a batch on at least two workers; enforce CPU / memory / concurrency limits; pause, stale metrics, and high external load block admission. T004 implements local scheduling decisions with fake-metric verification; T005 and real multi-worker acceptance remain pending. |
+| 2: Multi-host dispatch | Registration, authentication, heartbeat, monitoring, reservations, scheduling, shared storage, real MPI arguments. Complete a batch on at least two workers; enforce CPU / memory / concurrency limits; pause, stale metrics, and high external load block admission. T004 implements local scheduling decisions with fake-metric verification; T005 implements polling, authentication, heartbeats, monitoring and shared execution with local two-worker verification; real multi-worker acceptance remains pending. |
 | 3: Recovery and operations | Idempotency, durable local records, reconciliation, cancellation, time limits, controlled retries, deployment / service restart documentation. Manager / worker restarts, temporary disconnection, duplicate delivery, and MPI cancellation must neither duplicate jobs nor release resources prematurely; failed output remains inspectable. T006 remains pending. |
 | 4: Optional extensions | If needed, staged inputs with checksums and result collection; do not present results as deliverably complete before collection finishes. Then consider Web UI, priorities, fairness, cgroup enforcement, monitoring, and alerts. |
 

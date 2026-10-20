@@ -25,7 +25,7 @@ See [manager.yaml](../examples/manager.yaml). Every nested section rejects unkno
 | `job_defaults` | Positive integers `mpi_ranks=4`, `omp_threads_per_rank=1`, `time_limit_seconds=86400`; positive `memory_gib=8`; nonnegative integer `max_retries=0` |
 | `scheduler` | `policy=fifo_least_loaded` (only supported policy); boolean `account_external_load=true`; `max_cpu_utilization_percent=80` in [0,100]; nonnegative `reserve_memory_gib=4`; positive `metrics_max_age_seconds=30` |
 
-Memory and timing settings accept finite integers or floats except fields explicitly described as integers. Resource CPU slots equal MPI ranks multiplied by OpenMP threads per rank. These values describe reservations, not enforced OS limits. The scheduler API applies these settings to supplied snapshots; network dispatch and monitoring collection are not implemented.
+Memory and timing settings accept finite integers or floats except fields explicitly described as integers. Resource CPU slots equal MPI ranks multiplied by OpenMP threads per rank. These values describe reservations, not enforced OS limits. The scheduler API applies these settings to supplied snapshots; the [polling services](workers.md) supply network dispatch and Linux monitoring.
 
 ## Worker schema
 
@@ -44,3 +44,7 @@ Input paths that normalize to the work directory itself (`.`, `./`, or `././`) a
 `load_config(path, 'manager')` returns a frozen `ManagerConfig`. `create_job_specification(config, job_id=..., work_directory=..., input_file=..., input_sha256=..., resource_overrides=...)` creates a frozen `JobSpecification` with a separately copied, validated `Resources` value. Work directories must be absolute, input files relative within them, and input identifiers 64 hexadecimal SHA-256 characters. The caller supplies the digest; this API does not inspect remote files or verify input contents. The local batch submission and executor calculate and verify actual input identity.
 
 Overrides accept only resource fields. Reloading defaults or mutating the original override mapping cannot alter an existing specification. Job identifiers and input identities are recorded here; uniqueness, persistence, attempts, and runtime state are handled by the SQLite store. Executable settings remain worker configuration. The submit command creates and persists specifications from batch manifests.
+
+## Polling services
+
+The existing worker endpoint, token, heartbeat and execution settings are consumed by the [manager / worker services](workers.md). `serve` receives the credential-file mapping and TLS listener settings as CLI arguments; `worker` requires a durable local `--state-directory`. No new YAML fields or submission resource changes are introduced. Workers execute sequentially, bounded by all admission quotas. Recovery remains T006.

@@ -1,0 +1,216 @@
+"""Sequential persistent Linux worker with polling independent of execution."""
+
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import asdict
+import fcntl
+from http.client import IncompleteRead
+import json
+import os
+from pathlib import Path
+import sys
+import time
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+from .config import WorkerConfig
+from .local import execute_attempt
+from .manager import is_loopback, read_token
+from .models import JobSpecification, Resources
+from .store import Store
+
+
+class LinuxMonitor:
+    """Sample aggregate CPU deltas and MemAvailable from Linux procfs."""
+
+    def __init__(self) -> None:
+        self.previous = self._cpu()
+
+    @staticmethod
+    def _cpu() -> tuple[int, int]:
+        values = [int(v) for v in Path('/proc/stat').read_text().splitlines()[0].split()[1:9]]
+        return sum(values), values[3] + values[4]
+
+    def sample(self, worker: WorkerConfig) -> dict:
+        total, idle = self._cpu()
+        old_total, old_idle = self.previous
+        self.previous = total, idle
+        delta = total - old_total
+        # No measurable interval is not evidence of an idle host.
+        utilization = 100.0 if delta <= 0 else max(0.0, min(100.0, 100 * (1 - (idle - old_idle) / delta)))
+        memory = {line.split(':')[0]: int(line.split()[1]) * 1024 / 2**30
+                  for line in Path('/proc/meminfo').read_text().splitlines()
+                  if line.startswith(('MemTotal:', 'MemAvailable:'))}
+        return {'capacity': asdict(worker.worker),
+                'detected_cpu_slots': len(os.sched_getaffinity(0)),
+                'detected_memory_gib': memory['MemTotal'],
+                'observed_at': time.time(), 'heartbeat_at': time.time(),
+                'cpu_utilization_percent': utilization,
+                'available_memory_gib': memory['MemAvailable']}
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req: Request, fp: object, code: int, msg: str,
+                         headers: object, newurl: str) -> None:
+        raise ValueError('Manager redirects are not permitted')
+
+
+class Worker:
+    """One journal and exclusive OS lock per worker, kept on local durable disk.
+
+    Only newly accepted attempts may start. Existing accepted records are reported
+    after restart but never relaunched; uncertain recovery belongs to T006.
+    """
+
+    def __init__(self, config: WorkerConfig, state_directory: str | Path) -> None:
+        self.config = config
+        endpoint = urlsplit(config.manager_endpoint)
+        if (endpoint.scheme not in {'http', 'https'} or not endpoint.hostname
+                or endpoint.port == 0 or endpoint.path not in ('', '/')
+                or endpoint.query or endpoint.fragment or endpoint.username or endpoint.password):
+            raise ValueError('Manager endpoint must be an HTTP(S) origin')
+        if endpoint.scheme == 'http' and not is_loopback(endpoint.hostname or ''):
+            raise ValueError('Plain HTTP workers require a literal loopback manager')
+        self.token = read_token(config.token_file)
+        state = Path(state_directory).resolve()
+        state.mkdir(parents=True, exist_ok=True)
+        self.lock = (state / 'worker.lock').open('a')
+        try:
+            fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            self.lock.close()
+            raise ValueError('Worker state directory is already locked') from None
+        identity = state / 'identity.json'
+        expected = {'worker_id': config.worker.id, 'manager': config.manager_endpoint,
+                    'work_root': str(Path(config.work_root).resolve())}
+        try:
+            if identity.exists():
+                if json.loads(identity.read_text()) != expected:
+                    raise ValueError('Worker journal identity differs from configuration')
+            else:
+                identity.write_text(json.dumps(expected))
+            self.database = state / 'attempts.sqlite3'
+            with Store(self.database):
+                pass
+        except BaseException:
+            self.lock.close()
+            raise
+        self.pool = ThreadPoolExecutor(max_workers=1)
+        self.future: Future | None = None
+        self.monitor = LinuxMonitor()
+        self.proof = None
+        self.acknowledged: dict[str, dict] = {}
+        # Do not send bearer credentials through environment-configured proxies.
+        from urllib.request import ProxyHandler
+        self.opener = build_opener(ProxyHandler({}), NoRedirect())
+
+    def close(self) -> None:
+        """Wait for the current process; closing never kills a simulation."""
+        self.pool.shutdown(wait=True)
+        self.lock.close()
+
+    def _execute(self, attempt_id: str) -> None:
+        with Store(self.database) as store:
+            execute_attempt(store, self.config, store.attempt(attempt_id))
+
+    def tick(self) -> dict:
+        """Send one heartbeat, report durable outcomes, and accept at most one job."""
+        if self.future is not None and self.future.done():
+            self.future.result()  # Surface unexpected executor failures.
+            self.future = None
+        snapshot = self.monitor.sample(self.config)
+        reports = []
+        with Store(self.database) as store:
+            for job in store.jobs():
+                attempt = store.job_attempts(job['job_id'])[0]
+                report = {'attempt_id': attempt.attempt_id, 'state': attempt.state,
+                          'started': attempt.started_at is not None, 'exit_code': attempt.exit_code,
+                          'termination_evidence': attempt.termination_evidence, 'reason': attempt.reason}
+                if self.acknowledged.get(attempt.attempt_id) != report:
+                    reports.append(report)
+        request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
+                          data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
+                                           'reports': reports}).encode(),
+                          headers={'Content-Type': 'application/json',
+                                   'X-Worker-ID': self.config.worker.id,
+                                   'Authorization': 'Bearer ' + self.token})
+        with self.opener.open(request, timeout=10) as response:
+            result = json.load(response)
+        # The challenge path must itself be contained in the configured root.
+        try:
+            challenge = Path(result['challenge']).resolve(strict=True)
+            root = Path(self.config.work_root).resolve(strict=True)
+            if challenge.parent != root or not challenge.name.startswith('.shared-check-'):
+                raise ValueError('Manager and worker shared roots differ')
+            self.proof = challenge.read_text()
+        except OSError as exc:
+            # Access failure neither acknowledges reports nor authorizes a launch.
+            print(f'Shared storage check deferred: {type(exc).__name__}: {exc}', file=sys.stderr)
+            return result
+        # Challenge-only replies have not processed reports.
+        if 'policy' not in result:
+            return result
+        for report in reports:
+            self.acknowledged[report['attempt_id']] = report
+        if result['paused'] or self.future is not None:
+            return result
+        with Store(self.database) as store:
+            # An accepted but unresolved old attempt blocks all fresh execution.
+            if store.reservations():
+                return result
+            for assignment in result['assignments']:
+                spec_data = assignment['specification']
+                spec = JobSpecification(**{**spec_data, 'resources': Resources(**spec_data['resources'])})
+                attempt = assignment['attempt']
+                if attempt['worker_id'] != self.config.worker.id:
+                    raise ValueError('Assignment identity mismatch')
+                directory = Path(attempt['directory'])
+                try:
+                    job_root = Path(spec.work_directory).resolve(strict=True)
+                except OSError as exc:
+                    # Access failure is not evidence that an attempt has ended.
+                    # Leave it unaccepted and reserved until validation can pass.
+                    print(f'Assignment {attempt["attempt_id"]} deferred: '
+                          f'{type(exc).__name__}: {exc}', file=sys.stderr)
+                    continue
+                if (not job_root.is_relative_to(root) or job_root == root
+                        or directory != job_root / attempt['attempt_id']
+                        or Path(attempt['attempt_id']).name != attempt['attempt_id']):
+                    raise ValueError('Assignment outside shared job directory')
+                if any(j['job_id'] == spec.job_id for j in store.jobs()):
+                    continue
+                policy = result['policy']
+                manager = result['manager_capacity']
+                r = spec.resources
+                if (not self.config.worker.enabled or not manager['enabled']
+                        or r.cpu_slots > min(self.config.worker.cpu_slots, manager['cpu_slots'],
+                                             snapshot['detected_cpu_slots'])
+                        or r.memory_gib > min(self.config.worker.memory_budget_gib,
+                                             manager['memory_budget_gib'], snapshot['detected_memory_gib'])
+                        or r.memory_gib + policy['reserve_memory_gib'] > snapshot['available_memory_gib']
+                        or (policy['account_external_load'] and snapshot['cpu_utilization_percent']
+                            >= policy['max_cpu_utilization_percent'])):
+                    continue  # Keep reservation pending until a later local recheck passes.
+                # Persist acceptance before the executor validates copied inputs,
+                # so pre-launch failures can be durably reported to the manager.
+                with store.scheduling_round():
+                    store.submit(spec)
+                    accepted = store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id,
+                                            str(directory))
+                    can_launch = not directory.exists()
+                    if not can_launch:
+                        store.transition(accepted.attempt_id, 'unknown',
+                                         reason='Attempt directory already exists; launch identity uncertain')
+                if can_launch:
+                    self.future = self.pool.submit(self._execute, accepted.attempt_id)
+                break
+        return result
+
+    def run(self) -> None:
+        """Poll continuously; transport errors retain reservations and local work."""
+        from urllib.error import URLError
+        while True:
+            try:
+                self.tick()
+            except (URLError, TimeoutError, ConnectionError, IncompleteRead) as exc:
+                print(f'Worker poll failed: {type(exc).__name__}', file=sys.stderr)
+            time.sleep(self.config.heartbeat_interval_seconds)

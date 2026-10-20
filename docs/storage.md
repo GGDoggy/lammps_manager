@@ -93,3 +93,7 @@ state, reason, exit code and evidence, so later transitions do not erase earlier
 failure or disconnection explanations. `specification()`, `job_state()`,
 `attempt()`, `jobs()`, `job_attempts(job_id)` and `reservations(worker_id=None)` provide read access. No credentials,
 process output, arguments, or real process identities are stored by this API yet.
+
+## Worker runtime records
+
+T005 adds an additive `workers` table, created transactionally when opening a version-1 database. Existing jobs and submission snapshots are unchanged. `worker_records()` reads persisted pause flags and last authenticated metrics; `set_worker()` updates either value transactionally. Registration and authentication remain service responsibilities. Worker-local journals use the same job / attempt store on local durable disk; they are never shared with the manager. See [workers.md](workers.md) for execution and replay semantics.

@@ -2,7 +2,7 @@
 
 T004 provides a Python API for deterministic scheduling using supplied monitoring
 snapshots. It does not collect metrics, run a background manager, contact workers,
-or launch processes. T005 will supply communication and monitoring. There are no
+or launch processes. T005 supplies [communication and monitoring](workers.md). There are no
 new YAML keys or CLI scheduling commands. The existing explicit `run-local` command
 and low-level `Store.assign()` bypass scheduler admission; use this API for quota
 controlled assignments. Reservations are accounting, not OS resource enforcement.

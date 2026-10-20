@@ -112,6 +112,9 @@ class Store:
                             self._db.execute(statement)
                 elif version != 1:
                     raise StoreError(f'Unsupported database schema version: {version}')
+                self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
+                                 "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
+                                 "snapshot TEXT)")
         except BaseException:
             self._db.close()
             raise
@@ -143,6 +146,30 @@ class Store:
         """Serialize admission reads and assignment writes in one transaction."""
         with self._transaction():
             yield
+
+    def worker_records(self) -> dict[str, dict[str, object]]:
+        """Read durable pause flags and last authenticated monitoring snapshots."""
+        return {row['worker_id']: {'paused': bool(row['paused']),
+                'snapshot': json.loads(row['snapshot']) if row['snapshot'] else None}
+                for row in self._db.execute('SELECT * FROM workers')}
+
+    def set_worker(self, worker_id: str, *, paused: bool | None = None,
+                   snapshot: dict[str, object] | None = None) -> None:
+        """Update runtime worker state without rewriting submission snapshots."""
+        if not isinstance(worker_id, str) or not worker_id.strip() or '\x00' in worker_id:
+            raise StoreError('worker_id must be a nonempty string without NUL')
+        if paused is not None and type(paused) is not bool:
+            raise StoreError('paused must be a boolean')
+        if snapshot is not None and not isinstance(snapshot, dict):
+            raise StoreError('snapshot must be a mapping')
+        with self._transaction():
+            self._db.execute('INSERT OR IGNORE INTO workers(worker_id) VALUES(?)', (worker_id,))
+            if paused is not None:
+                self._db.execute('UPDATE workers SET paused=? WHERE worker_id=?',
+                                 (int(paused), worker_id))
+            if snapshot is not None:
+                self._db.execute('UPDATE workers SET snapshot=? WHERE worker_id=?',
+                                 (json.dumps(snapshot, allow_nan=False), worker_id))
 
     def record_waiting(self, job_id: str, reason: str) -> None:
         """Persist a changed queued waiting reason without growing identical history."""

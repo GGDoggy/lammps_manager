@@ -2,7 +2,7 @@
 
 A central manager dispatches independent LAMMPS simulations according to Linux worker load and resource quotas. See [architecture requirements](docs/architecture.md) for the permanent design reference and planned behavior.
 
-The CLI provides help, version information, and strict manager / worker YAML validation. The Python API creates immutable job specification snapshots and persists jobs, attempts, events, and resource reservations in SQLite. See the [storage API](docs/storage.md) for atomic operations and state transitions. The CLI can submit, execute and inspect sequential [local batches](docs/local-batches.md), with isolated inputs and preserved output. The [scheduler API](docs/scheduling.md) admits queued jobs atomically using supplied worker metrics and resource quotas. Remote workers, monitoring collection and recovery remain planned features. See [configuration documentation](docs/configuration.md) and [examples](examples/manager.yaml).
+The CLI provides help, version information, and strict manager / worker YAML validation. The Python API creates immutable job specification snapshots and persists jobs, attempts, events, and resource reservations in SQLite. See the [storage API](docs/storage.md) for atomic operations and state transitions. The CLI can submit, execute and inspect sequential [local batches](docs/local-batches.md), with isolated inputs and preserved output. The [scheduler API](docs/scheduling.md) admits queued jobs atomically using supplied worker metrics and resource quotas. The [polling manager and workers](docs/workers.md) provide authentication, heartbeats, Linux monitoring, pause / resume and shared-storage execution. Real multi-host acceptance and recovery remain pending. See [configuration documentation](docs/configuration.md) and [examples](examples/manager.yaml).
 
 ## Local development
 
@@ -32,7 +32,7 @@ Installation may download setuptools build tools. Running directly with `PYTHONP
 
 - [AGENTS.md](AGENTS.md): agent development and review rules, including language policy.
 - [docs/workflow.md](docs/workflow.md): workflow, sources, and task template.
-- [tasks.md](tasks.md): task backlog; T001 records configuration validation and job specifications; T002 records SQLite persistence; T003 records local batches; T004 records scheduling and quota admission.
+- [tasks.md](tasks.md): task backlog; T001 records configuration validation and job specifications; T002 records SQLite persistence; T003 records local batches; T004 records scheduling and quota admission; T005 records polling workers and local communication verification.
 - `src/lammps_manager/`: Python package; add modules as their features are implemented.
 - `tests/`: automated tests that do not depend on remote machines.
 

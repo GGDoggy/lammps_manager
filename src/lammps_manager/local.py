@@ -1,4 +1,4 @@
-"""Explicit sequential local batches; no remote worker or scheduling service."""
+"""Batch submission, isolated attempt execution and durable inspection."""
 
 from dataclasses import asdict
 import hashlib
@@ -10,7 +10,7 @@ import subprocess
 from uuid import uuid4
 
 from .config import ManagerConfig, WorkerConfig, create_job_specification
-from .store import Store
+from .store import Attempt, Store
 
 
 def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> tuple[str, ...]:
@@ -68,49 +68,76 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
         attempt_id = uuid4().hex
         directory = root / attempt_id
         attempt = store.assign(spec.job_id, attempt_id, worker.worker.id, str(directory))
-        process = None
-        try:
-            directory.mkdir(exist_ok=False)
-            shutil.copytree(root / 'inputs', directory / 'work')
-            work = directory / 'work'
-            if hashlib.sha256((work / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
-                raise ValueError('Input SHA-256 differs from submitted snapshot')
-            args = [worker.execution.mpi_launcher_path, *worker.execution.mpi_args,
-                    '-np', str(spec.resources.mpi_ranks), worker.execution.lammps_path,
-                    *worker.execution.lammps_args, '-in', spec.input_file]
-            environment = dict(worker.execution.environment)
-            environment['OMP_NUM_THREADS'] = str(spec.resources.omp_threads_per_rank)
-            (directory / 'execution.json').write_text(json.dumps({
-                'argv': args, 'cwd': str(work), 'environment': environment,
-                'stdout': str(directory / 'stdout'), 'stderr': str(directory / 'stderr'),
-            }, indent=2) + '\n')
-            with (directory / 'stdout').open('xb') as stdout, (directory / 'stderr').open('xb') as stderr:
-                process = subprocess.Popen(args, cwd=work, env={**os.environ, **environment},
-                                           stdout=stdout, stderr=stderr, start_new_session=True)
-                store.transition(attempt.attempt_id, 'running')
-                code = process.wait()
-            # A launcher exit alone is insufficient if descendants remain alive.
-            try:
-                os.killpg(process.pid, 0)
-            except ProcessLookupError:
-                store.transition(attempt.attempt_id, 'succeeded' if code == 0 else 'failed',
-                    exit_code=code, reason=None if code == 0 else f'Process exited with code {code}',
-                    termination_evidence='wait() reaped launcher and process group no longer exists')
-                completed.append(spec.job_id)
-            else:
-                store.transition(attempt.attempt_id, 'unknown', reason='Launcher exited but process group remains')
-                break
-        except BaseException as exc:
-            if process is None:
-                store.transition(attempt.attempt_id, 'failed', reason=str(exc) or type(exc).__name__,
-                                 termination_evidence='Launch did not start a process')
-            else:
-                store.transition(attempt.attempt_id, 'unknown', reason=str(exc) or type(exc).__name__)
-            if not isinstance(exc, (OSError, ValueError)):
-                raise
-            if process is not None:
-                break
+        if execute_attempt(store, worker, attempt):
+            completed.append(spec.job_id)
+        elif store.attempt(attempt_id).state == 'unknown':
+            break
     return tuple(completed)
+
+
+def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> bool:
+    """Execute one reserved attempt; callers must durably prevent duplicate starts."""
+    if attempt.state != 'assigned':
+        raise ValueError('Only a newly accepted assigned attempt can execute')
+    spec = store.specification(attempt.job_id)
+    root = Path(spec.work_directory).resolve()
+    directory = Path(attempt.directory)
+    process = None
+    try:
+        if directory.exists():
+            store.transition(attempt.attempt_id, 'unknown', reason='Attempt directory already exists')
+            return False
+        directory.mkdir(exist_ok=False)
+        shutil.copytree(root / 'inputs', directory / 'work')
+        work = directory / 'work'
+        if hashlib.sha256((work / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
+            raise ValueError('Input SHA-256 differs from submitted snapshot')
+        args = [worker.execution.mpi_launcher_path, *worker.execution.mpi_args,
+                '-np', str(spec.resources.mpi_ranks), worker.execution.lammps_path,
+                *worker.execution.lammps_args, '-in', spec.input_file]
+        environment = dict(worker.execution.environment)
+        environment['OMP_NUM_THREADS'] = str(spec.resources.omp_threads_per_rank)
+        (directory / 'execution.json').write_text(json.dumps({
+            'argv': args, 'cwd': str(work), 'environment': environment,
+            'stdout': str(directory / 'stdout'), 'stderr': str(directory / 'stderr'),
+        }, indent=2) + '\n')
+        with (directory / 'stdout').open('xb') as stdout, (directory / 'stderr').open('xb') as stderr:
+            process = subprocess.Popen(args, cwd=work, env={**os.environ, **environment},
+                                       stdout=stdout, stderr=stderr, start_new_session=True)
+            # Record Linux identity for later recovery without interpreting it here.
+            identity = {'pid': process.pid, 'process_group': process.pid,
+                        'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                        'start_ticks': Path(f'/proc/{process.pid}/stat').read_text().rpartition(')')[2].split()[19]}
+            with (directory / 'process.json').open('x') as metadata:
+                json.dump(identity, metadata)
+                metadata.flush()
+                os.fsync(metadata.fileno())
+            store.transition(attempt.attempt_id, 'running')
+            code = process.wait()
+        # A launcher exit alone is insufficient if descendants remain alive.
+        try:
+            os.killpg(process.pid, 0)
+        except ProcessLookupError:
+            store.transition(attempt.attempt_id, 'succeeded' if code == 0 else 'failed',
+                exit_code=code, reason=None if code == 0 else f'Process exited with code {code}',
+                termination_evidence='wait() reaped launcher and process group no longer exists')
+            return True
+        else:
+            store.transition(attempt.attempt_id, 'unknown', reason='Launcher exited but process group remains')
+            return False
+    except BaseException as exc:
+        if process is None and isinstance(exc, FileExistsError):
+            store.transition(attempt.attempt_id, 'unknown', reason='Attempt path collision; launch identity uncertain')
+        elif process is None:
+            store.transition(attempt.attempt_id, 'failed', reason=str(exc) or type(exc).__name__,
+                             termination_evidence='Launch did not start a process')
+        else:
+            store.transition(attempt.attempt_id, 'unknown', reason=str(exc) or type(exc).__name__)
+        if not isinstance(exc, (OSError, ValueError)):
+            raise
+        if process is not None:
+            return False
+    return False
 
 
 def inspect_job(store: Store, job_id: str) -> dict[str, object]:
