@@ -2,6 +2,8 @@
 
 T005 provides a standard-library HTTP(S) manager and sequential Linux workers using the same absolute shared filesystem paths. SQLite databases stay on each host's local durable disk. No additional communication dependency is required. This implementation has local loopback verification with fake executables; real multi-host, MPI and LAMMPS acceptance is still pending. See [architecture.md](architecture.md) for deployment prerequisites and [../tasks.md](../tasks.md) for evidence.
 
+Hosts without a common filesystem cannot use this execution mode. Staged input transfer and durable result collection are planned as T007–T009; see the [architecture plan](architecture.md#planned-operation-without-shared-storage). Separate directories with the same path name, or a one-time copy, do not satisfy the shared-filesystem requirement.
+
 ## Configuration and startup
 
 Use the existing [manager and worker configuration](configuration.md). Create a different unpredictable bearer credential of at least 32 non-whitespace ASCII characters for each worker. Store each credential in a private regular file (mode 0600 or 0400) readable by the service account, on both the manager and its worker. Never commit credentials. A manager-side JSON file maps registered IDs to absolute credential-file paths, for example:

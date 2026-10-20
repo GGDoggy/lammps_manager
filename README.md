@@ -36,6 +36,6 @@ Installation may download setuptools build tools. Running directly with `PYTHONP
 - `src/lammps_manager/`: Python package; add modules as their features are implemented.
 - `tests/`: automated tests that do not depend on remote machines.
 
-The first release targets one central manager, SQLite, persistent workers, and a shared filesystem.
+The current dispatcher requires one central manager, local SQLite, persistent workers, and a shared filesystem. Hosts without shared storage need the planned staged input transfer and result collection (T007–T009 in [tasks.md](tasks.md)); changing paths or setting `mode: staged` does not enable this yet.
 
 Permanent repository documentation and agent-facing material use English. Temporary user-facing material uses Traditional Chinese. Transfer relevant decisions into permanent English documentation and update references before retiring a temporary draft.

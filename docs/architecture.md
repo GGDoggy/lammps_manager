@@ -42,6 +42,18 @@ Add modules only with their features:
 
 Provide CLI operations before considering a Web UI. Validation, submit, run-local, status, inspect, serve, worker, pause and resume commands currently exist.
 
+## Planned operation without shared storage
+
+The current deployment has a manager host and one SSH-accessible LAMMPS host, without a common filesystem. Staged storage is therefore a deployment prerequisite for this environment, scheduled as T007 (inputs), T008 (results), and T009 (real two-host acceptance) in [tasks.md](../tasks.md). These features are planned; configuration still accepts only `mode: shared`. A shared mount is not required by the planned staged design.
+
+Submission will preserve a complete immutable input-tree manifest, including auxiliary files, relative paths, sizes and SHA-256 hashes. Workers will use their own local roots; local execution paths and transfer progress must not rewrite submitted specifications. Authenticate artifact transfers against attempt ownership, stream with explicit size/count limits, reject unsafe paths and file types, and atomically publish only fully verified inputs. Persist acceptance and preserve duplicate-launch fences across transfer retries. Keep simulation files outside poll JSON and retain the existing shared mode for existing jobs.
+
+Collect stdout, stderr, execution/process metadata and generated outputs with verified manifests, temporary uploads, atomic publication and durable acknowledgements. Track process outcome separately from result collection. A confirmed process exit can permit reservation release, while incomplete collection must remain visible and must not be represented as fully delivered success. A failed transfer never authorizes rerunning a simulation or releasing an unresolved process reservation. Retain worker artifacts until acknowledgement; automatic deletion is outside this work.
+
+Prefer extending the existing authenticated HTTPS polling transport for artifacts. Only SSH access has been verified so far; worker-to-manager HTTPS reachability and service topology must be checked before deployment. If the environment permits only SSH, a protected SSH transport needs an explicit design preserving authentication, durable journals and reservation rules. Do not assume an insecure tunnel or silently relax TLS restrictions.
+
+T009 can verify a manager and one remote worker on the available two hosts. V001 still requires two actual workers to establish multi-worker acceptance. T006 process recovery and real MPI cancellation remain separate requirements. This staged-storage work moves ahead of optional extensions because the actual environment cannot use the implemented shared mode.
+
 ## Configuration and state boundaries
 
 Environment differences, resource limits, and policy parameters belong in configuration. Runtime facts belong in SQLite; algorithms and reliability guarantees belong in code. Simulation parameters belong in generated job specifications, rather than all being placed in central configuration.
@@ -109,14 +121,15 @@ The stages describe product acceptance; [tasks.md](../tasks.md) defines the impl
 | 1: Configuration and local batches | Schema, SQLite, generator, CLI, local execution. Submit a batch into separate directories, persist specifications, inspect status, and record success / nonzero exit correctly. First use fake jobs with controlled duration and exit codes, then separately run a small LAMMPS example when available. T001–T003 are implemented locally; real LAMMPS acceptance remains unverified. |
 | 2: Multi-host dispatch | Registration, authentication, heartbeat, monitoring, reservations, scheduling, shared storage, real MPI arguments. Complete a batch on at least two workers; enforce CPU / memory / concurrency limits; pause, stale metrics, and high external load block admission. T004 implements local scheduling decisions with fake-metric verification; T005 implements polling, authentication, heartbeats, monitoring and shared execution with local two-worker verification; real multi-worker acceptance remains pending. |
 | 3: Recovery and operations | Idempotency, durable local records, reconciliation, cancellation, time limits, controlled retries, deployment / service restart documentation. Manager / worker restarts, temporary disconnection, duplicate delivery, and MPI cancellation must neither duplicate jobs nor release resources prematurely; failed output remains inspectable. T006 remains pending. |
-| 4: Optional extensions | If needed, staged inputs with checksums and result collection; do not present results as deliverably complete before collection finishes. Then consider Web UI, priorities, fairness, cgroup enforcement, monitoring, and alerts. |
+| Deployment prerequisite for hosts without shared storage | T007–T009 add staged inputs with checksums, durable result collection and real two-host acceptance. This work is prioritized for the current environment and is not implemented yet. Do not present results as fully delivered before collection finishes. |
+| 4: Optional extensions | Web UI, priorities, fairness, cgroup enforcement, monitoring, and alerts. |
 
 ## Deployment prerequisites
 
 Use the defaults above for planning, but confirm these before deployment and real multi-worker acceptance:
 
 - Worker count, CPU / memory capacity, and whether other users share hosts.
-- A shared absolute path accessible on every node and manager / worker network connectivity.
+- For the implemented shared mode: a shared absolute path accessible on every node. For hosts without shared storage: complete T007–T008 before deployment. Verify manager / worker network connectivity for either mode.
 - LAMMPS / MPI locations and versions, user permissions, and process termination behavior.
 - Representative per-job CPU, memory, and normal execution duration.
 - Permission to run persistent workers; if only SSH is available, revise interfaces as described above.
