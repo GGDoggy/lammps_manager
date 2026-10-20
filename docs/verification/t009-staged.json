@@ -1,0 +1,494 @@
+{
+  "manager_host": "poincare",
+  "worker_host": "allegro",
+  "manager_root": "/tmp/lammps-t009-manager-80jnzgiy",
+  "worker_root": "/tmp/lammps-t009-worker-wsUMz3qp",
+  "endpoint": "https://192.168.50.112:18443",
+  "tls": "verified pinned test CA; IP SAN; no proxy or tunnel",
+  "clock_difference_upper_bound_seconds": 0.010634422302246094,
+  "python_worker": "3.10.12",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+    "src/lammps_manager/local.py": "e4b4b63dbab5d88f1f41e582f2204867b2c5386cec770a1692290f3a8292ef69",
+    "src/lammps_manager/config.py": "a31f616806e216cd42c8d5d119c437ad52184ea4e8edd5ec3b99db8817d73684",
+    "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+    "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+    "src/lammps_manager/store.py": "fc7f5332bc3a6b0c63c5e7449c774e4b7dec4fe26bc2c927eb949e20233b7f22",
+    "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+    "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/worker.py": "d737903e017a7fd3cbd7ba104725b8ef222098c93f48a99fe1a99cea607301cf",
+    "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+    "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+  },
+  "interruptions": [
+    {
+      "phase": "running_disconnect",
+      "state": "unknown",
+      "reservations": [
+        {
+          "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+          "worker_id": "t009",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "phase": "result_upload",
+      "path": "/v2/results/2d568d67637e4022aa9ce52125e7b38d/0",
+      "received_bytes": 8,
+      "action": "close TLS socket before response"
+    }
+  ],
+  "records": [
+    {
+      "mode": "success",
+      "attempt": {
+        "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+        "job_id": "df5b329751e84641ab02eec8936b1132",
+        "worker_id": "t009",
+        "directory": "/tmp/lammps-t009-manager-80jnzgiy/jobs/df5b329751e84641ab02eec8936b1132/2d568d67637e4022aa9ce52125e7b38d",
+        "state": "succeeded",
+        "created_at": "2026-10-20T18:08:32.034Z",
+        "started_at": null,
+        "ended_at": "2026-10-20T18:08:34.673Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "input_manifest": [
+        {
+          "path": "auxiliary.inc",
+          "size": 22,
+          "sha256": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+        },
+        {
+          "path": "in.lmp",
+          "size": 347,
+          "sha256": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286"
+        }
+      ],
+      "collection": {
+        "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+        "status": "collected",
+        "manifest": {
+          "files": [
+            {
+              "path": "execution.json",
+              "size": 568,
+              "sha256": "9be34ef28baa44f4e409f17566c95e160690fd502fc9fc36770b777fa435bb26"
+            },
+            {
+              "path": "outcome.json",
+              "size": 506,
+              "sha256": "3de13f90035b50c6e7a5a1d6a66a5a5d640263c93eea2f5e2e18eb90e512b038"
+            },
+            {
+              "path": "process.json",
+              "size": 188,
+              "sha256": "df2612d30ad9f911e7105274c334950f2d709a5528b2cd2148f933652092a460"
+            },
+            {
+              "path": "stderr",
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "stdout",
+              "size": 2325,
+              "sha256": "30567848be4d46fa135965ad9ed940e17416bba6fecd1314a31992f95d0b18a4"
+            },
+            {
+              "path": "work/auxiliary.inc",
+              "size": 22,
+              "sha256": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+            },
+            {
+              "path": "work/in.lmp",
+              "size": 347,
+              "sha256": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286"
+            },
+            {
+              "path": "work/log.lammps",
+              "size": 2603,
+              "sha256": "ef0bedd176ab2d7ee0c74ba1bcf8145ad67760c6221582f3f1a40f7aa22a7044"
+            },
+            {
+              "path": "work/output.data",
+              "size": 14219,
+              "sha256": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+            }
+          ],
+          "omitted": []
+        },
+        "reason": null
+      },
+      "worker_directory": "/tmp/lammps-t009-worker-wsUMz3qp/work/df5b329751e84641ab02eec8936b1132/2d568d67637e4022aa9ce52125e7b38d",
+      "stdout_bytes": 2325,
+      "stderr_bytes": 0,
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "df5b329751e84641ab02eec8936b1132",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:31.642Z"
+        },
+        {
+          "event_id": 2,
+          "job_id": "df5b329751e84641ab02eec8936b1132",
+          "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:32.034Z"
+        },
+        {
+          "event_id": 3,
+          "job_id": "df5b329751e84641ab02eec8936b1132",
+          "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+          "state": "unknown",
+          "reason": "Worker heartbeat expired",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:33.931Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "df5b329751e84641ab02eec8936b1132",
+          "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:08:34.673Z"
+        }
+      ],
+      "delivery_failure": "RemoteDisconnected: Remote end closed connection without response",
+      "live_members": [],
+      "stdout_excerpt": [
+        "LAMMPS (29 Sep 2021 - Update 2)",
+        "  using 1 OpenMP thread(s) per MPI task",
+        "Created 108 atoms",
+        "  create_atoms CPU = 0.000 seconds",
+        "Loop time of 0.207286 on 2 procs for 5000 steps with 108 atoms",
+        "86.9% CPU use with 2 MPI tasks x 1 OpenMP threads",
+        "MPI task timing breakdown:"
+      ]
+    },
+    {
+      "mode": "failure",
+      "attempt": {
+        "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+        "job_id": "c6350b92bd324c5494216c9dc05892ab",
+        "worker_id": "t009",
+        "directory": "/tmp/lammps-t009-manager-80jnzgiy/jobs/c6350b92bd324c5494216c9dc05892ab/2789e857a3fd4b8e880492d2118b86c5",
+        "state": "failed",
+        "created_at": "2026-10-20T18:08:36.608Z",
+        "started_at": "2026-10-20T18:08:37.031Z",
+        "ended_at": "2026-10-20T18:08:39.540Z",
+        "exit_code": 1,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": "Process exited with code 1"
+      },
+      "input_manifest": [
+        {
+          "path": "auxiliary.inc",
+          "size": 22,
+          "sha256": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+        },
+        {
+          "path": "in.lmp",
+          "size": 359,
+          "sha256": "ffa1fe8f7c77191bed401190a811eeda334e0679f005362a354af08d60b0eb95"
+        }
+      ],
+      "collection": {
+        "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+        "status": "collected",
+        "manifest": {
+          "files": [
+            {
+              "path": "execution.json",
+              "size": 568,
+              "sha256": "08d3bac786c7f33624220ac4f41b5068a9b91771f7036ece75136989955bf155"
+            },
+            {
+              "path": "outcome.json",
+              "size": 527,
+              "sha256": "2f7d7b89667d0154300a596c964189c3205adb5942f329201e026dfa5b0cbb8a"
+            },
+            {
+              "path": "process.json",
+              "size": 188,
+              "sha256": "b696571ea7adb71b10e2573c328ba4242095a35f040f521ee86238e8c0e62856"
+            },
+            {
+              "path": "stderr",
+              "size": 625,
+              "sha256": "8b4bce80888143dfb9feb7aa19713c57eb34d4a56ff28ffa68142e0da0774fef"
+            },
+            {
+              "path": "stdout",
+              "size": 516,
+              "sha256": "413ee7e3aed24abadc9f436c27a2759d43ed2b339af811492ec5e4c96b2eeaf2"
+            },
+            {
+              "path": "work/auxiliary.inc",
+              "size": 22,
+              "sha256": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+            },
+            {
+              "path": "work/in.lmp",
+              "size": 359,
+              "sha256": "ffa1fe8f7c77191bed401190a811eeda334e0679f005362a354af08d60b0eb95"
+            },
+            {
+              "path": "work/log.lammps",
+              "size": 874,
+              "sha256": "3127bf3bb09d81b788ed202e64be6ae5f49c7958fd6eb529b5131b742c1d8eb9"
+            }
+          ],
+          "omitted": []
+        },
+        "reason": null
+      },
+      "worker_directory": "/tmp/lammps-t009-worker-wsUMz3qp/work/c6350b92bd324c5494216c9dc05892ab/2789e857a3fd4b8e880492d2118b86c5",
+      "stdout_bytes": 516,
+      "stderr_bytes": 625,
+      "events": [
+        {
+          "event_id": 5,
+          "job_id": "c6350b92bd324c5494216c9dc05892ab",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:36.139Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "c6350b92bd324c5494216c9dc05892ab",
+          "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:36.608Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "c6350b92bd324c5494216c9dc05892ab",
+          "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:37.031Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "c6350b92bd324c5494216c9dc05892ab",
+          "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+          "state": "unknown",
+          "reason": "Worker heartbeat expired",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:08:38.032Z"
+        },
+        {
+          "event_id": 9,
+          "job_id": "c6350b92bd324c5494216c9dc05892ab",
+          "attempt_id": "2789e857a3fd4b8e880492d2118b86c5",
+          "state": "failed",
+          "reason": "Process exited with code 1",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:08:39.540Z"
+        }
+      ],
+      "delivery_failure": null,
+      "live_members": [],
+      "stdout_excerpt": [
+        "LAMMPS (29 Sep 2021 - Update 2)",
+        "  using 1 OpenMP thread(s) per MPI task",
+        "Created 108 atoms",
+        "  create_atoms CPU = 0.000 seconds",
+        "ERROR: Unknown command: invalid_t009_command (src/input.cpp:274)"
+      ]
+    }
+  ],
+  "remote_audit": {
+    "hostname": "allegro",
+    "python": "3.10.12",
+    "pyyaml": "6.0.3",
+    "mpi": "mpirun.openmpi (OpenRTE) 4.1.2",
+    "lammps": [
+      "",
+      "Large-scale Atomic/Molecular Massively Parallel Simulator - 29 Sep 2021 - Update 2",
+      "",
+      "Usage example: /usr/bin/lmp -var t 300 -echo screen -in in.alloy"
+    ],
+    "records": [
+      {
+        "directory": "/tmp/lammps-t009-worker-wsUMz3qp/work/c6350b92bd324c5494216c9dc05892ab/2789e857a3fd4b8e880492d2118b86c5",
+        "process": {
+          "pid": 108046,
+          "process_group": 108046,
+          "session": 108046,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "20702896",
+          "launched_at": "2026-10-20T18:08:36.947730+00:00"
+        },
+        "live_members": [],
+        "hashes": {
+          "execution.json": "08d3bac786c7f33624220ac4f41b5068a9b91771f7036ece75136989955bf155",
+          "stderr": "8b4bce80888143dfb9feb7aa19713c57eb34d4a56ff28ffa68142e0da0774fef",
+          "outcome.json": "2f7d7b89667d0154300a596c964189c3205adb5942f329201e026dfa5b0cbb8a",
+          "stdout": "413ee7e3aed24abadc9f436c27a2759d43ed2b339af811492ec5e4c96b2eeaf2",
+          "process.json": "b696571ea7adb71b10e2573c328ba4242095a35f040f521ee86238e8c0e62856",
+          "work/in.lmp": "ffa1fe8f7c77191bed401190a811eeda334e0679f005362a354af08d60b0eb95",
+          "work/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b",
+          "work/log.lammps": "3127bf3bb09d81b788ed202e64be6ae5f49c7958fd6eb529b5131b742c1d8eb9",
+          "inputs/in.lmp": "ffa1fe8f7c77191bed401190a811eeda334e0679f005362a354af08d60b0eb95",
+          "inputs/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+        }
+      },
+      {
+        "directory": "/tmp/lammps-t009-worker-wsUMz3qp/work/df5b329751e84641ab02eec8936b1132/2d568d67637e4022aa9ce52125e7b38d",
+        "process": {
+          "pid": 108032,
+          "process_group": 108032,
+          "session": 108032,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "20702471",
+          "launched_at": "2026-10-20T18:08:32.700269+00:00"
+        },
+        "live_members": [],
+        "hashes": {
+          "execution.json": "9be34ef28baa44f4e409f17566c95e160690fd502fc9fc36770b777fa435bb26",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome.json": "3de13f90035b50c6e7a5a1d6a66a5a5d640263c93eea2f5e2e18eb90e512b038",
+          "stdout": "30567848be4d46fa135965ad9ed940e17416bba6fecd1314a31992f95d0b18a4",
+          "process.json": "df2612d30ad9f911e7105274c334950f2d709a5528b2cd2148f933652092a460",
+          "work/in.lmp": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286",
+          "work/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b",
+          "work/log.lammps": "ef0bedd176ab2d7ee0c74ba1bcf8145ad67760c6221582f3f1a40f7aa22a7044",
+          "work/output.data": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c",
+          "inputs/in.lmp": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286",
+          "inputs/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+        }
+      }
+    ],
+    "source_sha256": {
+      "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+      "src/lammps_manager/local.py": "e4b4b63dbab5d88f1f41e582f2204867b2c5386cec770a1692290f3a8292ef69",
+      "src/lammps_manager/config.py": "a31f616806e216cd42c8d5d119c437ad52184ea4e8edd5ec3b99db8817d73684",
+      "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+      "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+      "src/lammps_manager/store.py": "fc7f5332bc3a6b0c63c5e7449c774e4b7dec4fe26bc2c927eb949e20233b7f22",
+      "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+      "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+      "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+      "src/lammps_manager/worker.py": "d737903e017a7fd3cbd7ba104725b8ef222098c93f48a99fe1a99cea607301cf",
+      "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+      "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+      "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+    }
+  },
+  "local_checks": {
+    "jobs": 2,
+    "attempts_per_job": 1,
+    "reservations": 0,
+    "manager_files_verified": true,
+    "worker_files_verified": true,
+    "current_source_matches_both_hosts": true
+  },
+  "verification_date_local": "2026-10-21",
+  "commands": [
+    "python3 /tmp/t009-prepare.py",
+    "python3 /tmp/t009-deploy.py",
+    "PYTHONPATH=src python3 /tmp/t009-manager.py > /tmp/t009-run-third.log 2>&1",
+    "PYTHONPATH=src python3 /tmp/t009-audit.py",
+    "make check > /tmp/t009-make-check-authorized.log 2>&1"
+  ],
+  "limitations": [
+    "One remote worker; V001 two-worker acceptance remains pending.",
+    "No physical power-loss, large-output performance, multi-node MPI, full service restart or new cancellation acceptance.",
+    "A dedicated TLS socket was interrupted on one output upload; no operating-system network settings were changed.",
+    "Clock check bounds observed wall-clock difference; it does not certify ongoing NTP synchronization."
+  ],
+  "cleanup": {
+    "remote_test_processes": [],
+    "preserved_test_roots": [
+      "/tmp/lammps-t009-worker-NkvPDDeX",
+      "/tmp/lammps-t009-worker-B7HiW4zH",
+      "/tmp/lammps-t009-worker-wsUMz3qp"
+    ],
+    "manager_listener_closed": true,
+    "driver_closed": true,
+    "outputs_deleted": false
+  },
+  "running_disconnect_observation": {
+    "command": "tick",
+    "local_time": 1792519712.7306712,
+    "result": {
+      "response": {
+        "expected_transport_error": "<urlopen error [Errno 111] Connection refused>"
+      },
+      "records": [
+        {
+          "attempt": {
+            "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+            "job_id": "df5b329751e84641ab02eec8936b1132",
+            "worker_id": "t009",
+            "directory": "/tmp/lammps-t009-worker-wsUMz3qp/work/df5b329751e84641ab02eec8936b1132/2d568d67637e4022aa9ce52125e7b38d",
+            "state": "running",
+            "created_at": "2026-10-20T18:08:32.035Z",
+            "started_at": "2026-10-20T18:08:32.702Z",
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          },
+          "hashes": {
+            "execution.json": "9be34ef28baa44f4e409f17566c95e160690fd502fc9fc36770b777fa435bb26",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "process.json": "df2612d30ad9f911e7105274c334950f2d709a5528b2cd2148f933652092a460",
+            "work/in.lmp": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286",
+            "work/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b",
+            "inputs/in.lmp": "3ec54b37f0281d35bcd84c001ff88c9b354a185d42f0c45182e75f4b63b55286",
+            "inputs/auxiliary.inc": "71ea32e552792b18f891f2d2309395fce35567233515e285bf12cecd8eaf514b"
+          },
+          "live_members": [
+            [
+              108032,
+              108032
+            ]
+          ],
+          "claimed": true,
+          "collection": null
+        }
+      ],
+      "hostname": "allegro",
+      "time": 1792519712.7205386,
+      "python": "3.10.12",
+      "reservations": [
+        {
+          "attempt_id": "2d568d67637e4022aa9ce52125e7b38d",
+          "worker_id": "t009",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    }
+  }
+}

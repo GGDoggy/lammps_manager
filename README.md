@@ -36,6 +36,6 @@ Installation may download setuptools build tools. Running directly with `PYTHONP
 - `src/lammps_manager/`: Python package; add modules as their features are implemented.
 - `tests/`: automated tests that do not depend on remote machines.
 
-Execution requires one central manager, local SQLite and persistent workers. Shared mode uses a common filesystem; staged mode transfers immutable inputs and collects verified results between distinct local roots. Real two-host acceptance remains T009 in [tasks.md](tasks.md).
+Execution requires one central manager, local SQLite and persistent workers. Shared mode uses a common filesystem; staged mode transfers immutable inputs and collects verified results between distinct local roots. [T009 two-host acceptance](docs/verification/t009-staged.md) verified staged dispatch to one remote worker with real MPI / LAMMPS. V001 acceptance with two workers remains pending.
 
 Permanent repository documentation and agent-facing material use English. Temporary user-facing material uses Traditional Chinese. Transfer relevant decisions into permanent English documentation and update references before retiring a temporary draft.

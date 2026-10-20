@@ -1,6 +1,6 @@
 # Staged execution and durable results
 
-T008 enables polling-worker execution without shared storage. Configure staged mode on both peers as described in [staged inputs](staged-inputs.md). Existing shared snapshots and commands retain their behavior; `run-local` continues to defer staged jobs. Real hosts and MPI / LAMMPS acceptance remain T009.
+T008 enables polling-worker execution without shared storage. Configure staged mode on both peers as described in [staged inputs](staged-inputs.md). Existing shared snapshots and commands retain their behavior; `run-local` continues to defer staged jobs. [T009](verification/t009-staged.md) verifies one remote worker with real MPI / LAMMPS, distinct roots, successful/failed jobs and interrupted-upload replay.
 
 ## Process and delivery states
 
