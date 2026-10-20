@@ -1,6 +1,6 @@
 # T009: Real two-host staged dispatch
 
-Verified on 2026-10-21 (Asia/Taipei). The manager ran on poincare and one worker ran on allegro. This completes T009, not V001's requirement for two actual workers. Machine-readable evidence, manifests, process identities, versions, event histories and hashes are in [t009-staged.json](t009-staged.json).
+Verified on 2026-10-21 (Asia/Taipei). The manager ran on poincare and one worker ran on allegro. This completes T009. The later [V001 verification](v001-two-workers.md) separately satisfies the two-worker shared-storage requirement. Machine-readable evidence, manifests, process identities, versions, event histories and hashes are in [t009-staged.json](t009-staged.json).
 
 ## Environment and isolation
 

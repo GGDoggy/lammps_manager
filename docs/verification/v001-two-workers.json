@@ -1,0 +1,1101 @@
+{
+  "date_local": "2026-10-21",
+  "manager_host": "mozzarella",
+  "worker_hosts": [
+    "mozzarella",
+    "allegro"
+  ],
+  "roots": {
+    "mozzarella": "/tmp/lammps-v001-mozzarella-I9rVloa1",
+    "allegro": "/tmp/lammps-v001-allegro-jAX0yXba"
+  },
+  "shared_root": "/mnt/data/lammps-v001-o0xDecbM",
+  "endpoint": "https://192.168.50.136:18444",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+    "src/lammps_manager/local.py": "e4b4b63dbab5d88f1f41e582f2204867b2c5386cec770a1692290f3a8292ef69",
+    "src/lammps_manager/config.py": "a31f616806e216cd42c8d5d119c437ad52184ea4e8edd5ec3b99db8817d73684",
+    "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+    "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+    "src/lammps_manager/store.py": "fc7f5332bc3a6b0c63c5e7449c774e4b7dec4fe26bc2c927eb949e20233b7f22",
+    "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+    "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/worker.py": "d737903e017a7fd3cbd7ba104725b8ef222098c93f48a99fe1a99cea607301cf",
+    "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+    "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+  },
+  "config": {
+    "job_defaults": {
+      "memory_gib": 0.2,
+      "mpi_ranks": 2,
+      "omp_threads_per_rank": 2,
+      "time_limit_seconds": 60
+    },
+    "manager": {
+      "database_path": "/tmp/lammps-v001-mozzarella-I9rVloa1/manager.sqlite",
+      "heartbeat_timeout_seconds": 30,
+      "schedule_interval_seconds": 0.001
+    },
+    "scheduler": {
+      "account_external_load": false,
+      "reserve_memory_gib": 0.1
+    },
+    "storage": {
+      "work_root": "/mnt/data/lammps-v001-o0xDecbM"
+    },
+    "workers": [
+      {
+        "cpu_slots": 4,
+        "id": "mozzarella",
+        "max_concurrent_jobs": 1,
+        "memory_budget_gib": 0.3
+      },
+      {
+        "cpu_slots": 4,
+        "id": "allegro",
+        "max_concurrent_jobs": 1,
+        "memory_budget_gib": 0.3
+      }
+    ]
+  },
+  "shared_marker_bidirectional": true,
+  "paused_admission_snapshot": {
+    "hostname": "mozzarella",
+    "time": 1792520470.851,
+    "jobs": [
+      {
+        "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.817Z"
+      },
+      {
+        "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.829Z"
+      },
+      {
+        "job_id": "9c50c94843954deebf4b895aef82018b",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.839Z"
+      },
+      {
+        "job_id": "f5dde7cea69046d38339fd017e33927d",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.850Z"
+      }
+    ],
+    "reservations": [],
+    "workers": {
+      "mozzarella": {
+        "paused": true,
+        "snapshot": {
+          "capacity": {
+            "id": "mozzarella",
+            "cpu_slots": 4,
+            "memory_budget_gib": 0.3,
+            "max_concurrent_jobs": 1,
+            "enabled": true,
+            "labels": []
+          },
+          "detected_cpu_slots": 20,
+          "detected_memory_gib": 31.085899353027344,
+          "observed_at": 1792520470.0368257,
+          "heartbeat_at": 1792520470.0406091,
+          "cpu_utilization_percent": 80.38461538461539,
+          "available_memory_gib": 21.563255310058594,
+          "online": true,
+          "paused": false
+        }
+      },
+      "allegro": {
+        "paused": true,
+        "snapshot": {
+          "capacity": {
+            "id": "allegro",
+            "cpu_slots": 4,
+            "memory_budget_gib": 0.3,
+            "max_concurrent_jobs": 1,
+            "enabled": true,
+            "labels": []
+          },
+          "detected_cpu_slots": 16,
+          "detected_memory_gib": 31.154197692871094,
+          "observed_at": 1792520470.467143,
+          "heartbeat_at": 1792520470.478751,
+          "cpu_utilization_percent": 1.9230769230769273,
+          "available_memory_gib": 26.71782684326172,
+          "online": true,
+          "paused": false
+        }
+      }
+    }
+  },
+  "quota_snapshot": {
+    "hostname": "mozzarella",
+    "time": 1792520470.919612,
+    "jobs": [
+      {
+        "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+        "state": "assigned",
+        "created_at": "2026-10-20T18:21:10.817Z"
+      },
+      {
+        "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+        "state": "assigned",
+        "created_at": "2026-10-20T18:21:10.829Z"
+      },
+      {
+        "job_id": "9c50c94843954deebf4b895aef82018b",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.839Z"
+      },
+      {
+        "job_id": "f5dde7cea69046d38339fd017e33927d",
+        "state": "queued",
+        "created_at": "2026-10-20T18:21:10.850Z"
+      }
+    ],
+    "reservations": [
+      {
+        "attempt_id": "246a4187fc73464694dfeb01391e735b",
+        "worker_id": "allegro",
+        "cpu_slots": 4,
+        "memory_gib": 0.2
+      },
+      {
+        "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+        "worker_id": "mozzarella",
+        "cpu_slots": 4,
+        "memory_gib": 0.2
+      }
+    ],
+    "workers": {
+      "mozzarella": {
+        "paused": false,
+        "snapshot": {
+          "capacity": {
+            "id": "mozzarella",
+            "cpu_slots": 4,
+            "memory_budget_gib": 0.3,
+            "max_concurrent_jobs": 1,
+            "enabled": true,
+            "labels": []
+          },
+          "detected_cpu_slots": 20,
+          "detected_memory_gib": 31.085899353027344,
+          "observed_at": 1792520470.8983002,
+          "heartbeat_at": 1792520470.9019454,
+          "cpu_utilization_percent": 88.50574712643679,
+          "available_memory_gib": 21.499771118164062,
+          "online": true,
+          "paused": false
+        }
+      },
+      "allegro": {
+        "paused": false,
+        "snapshot": {
+          "capacity": {
+            "id": "allegro",
+            "cpu_slots": 4,
+            "memory_budget_gib": 0.3,
+            "max_concurrent_jobs": 1,
+            "enabled": true,
+            "labels": []
+          },
+          "detected_cpu_slots": 16,
+          "detected_memory_gib": 31.154197692871094,
+          "observed_at": 1792520470.8654633,
+          "heartbeat_at": 1792520470.8769088,
+          "cpu_utilization_percent": 5.3291536050156685,
+          "available_memory_gib": 26.71759796142578,
+          "online": true,
+          "paused": false
+        }
+      }
+    }
+  },
+  "audit": [
+    {
+      "attempt": {
+        "attempt_id": "246a4187fc73464694dfeb01391e735b",
+        "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+        "worker_id": "allegro",
+        "directory": "/mnt/data/lammps-v001-o0xDecbM/a157f3cba3c14fb7bf6cd9b772e1801e/246a4187fc73464694dfeb01391e735b",
+        "state": "succeeded",
+        "created_at": "2026-10-20T18:21:10.903Z",
+        "started_at": "2026-10-20T18:21:12.700Z",
+        "ended_at": "2026-10-20T18:21:12.701Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.817Z"
+        },
+        {
+          "event_id": 5,
+          "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"paused\", \"mozzarella\": \"paused\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.859Z"
+        },
+        {
+          "event_id": 9,
+          "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+          "attempt_id": "246a4187fc73464694dfeb01391e735b",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.904Z"
+        },
+        {
+          "event_id": 16,
+          "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+          "attempt_id": "246a4187fc73464694dfeb01391e735b",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:12.701Z"
+        },
+        {
+          "event_id": 17,
+          "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+          "attempt_id": "246a4187fc73464694dfeb01391e735b",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:21:12.701Z"
+        }
+      ],
+      "hashes": {
+        "execution.json": "20b9709685473b8bcf9c569f0f5db16291122449bc3930f89024421a11b02cdd",
+        "stdout": "ad52d0b4d0866dcc0f45836c6fa8202a07c1cee8188eeeaf53e6730f89425d5a",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process.json": "2f1ee740200f9e224f91b047d7b32ac404a6cf3155adc3b760c4df85a46d3418",
+        "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+        "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+        "work/log.lammps": "80fe819bc918d5720890934736101bac3a62b85bd2d7e24165357174643ce503",
+        "work/output.data": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+      },
+      "stdout_excerpt": [
+        "LAMMPS (29 Sep 2021 - Update 2)",
+        "Created 108 atoms",
+        "Loop time of 0.178119 on 4 procs for 5000 steps with 108 atoms",
+        "93.2% CPU use with 2 MPI tasks x 2 OpenMP threads"
+      ]
+    },
+    {
+      "attempt": {
+        "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+        "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+        "worker_id": "mozzarella",
+        "directory": "/mnt/data/lammps-v001-o0xDecbM/2f0fbfa34fa64036b8fc68f47ab46f21/77fa1c30371742d4bcab197c440b0d35",
+        "state": "succeeded",
+        "created_at": "2026-10-20T18:21:10.904Z",
+        "started_at": "2026-10-20T18:21:12.632Z",
+        "ended_at": "2026-10-20T18:21:12.632Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "events": [
+        {
+          "event_id": 2,
+          "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.829Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"paused\", \"mozzarella\": \"paused\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.859Z"
+        },
+        {
+          "event_id": 10,
+          "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+          "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.904Z"
+        },
+        {
+          "event_id": 13,
+          "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+          "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:12.632Z"
+        },
+        {
+          "event_id": 14,
+          "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+          "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:21:12.632Z"
+        }
+      ],
+      "hashes": {
+        "execution.json": "fe43c626fa1f775016efbaccd4a4203b642f7eb6bcbcc9294244d8f40a3e2f07",
+        "stdout": "743bde74032beebc281d8db34bd2c161be781fb63438a62f0e8f6cef932a0197",
+        "stderr": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b",
+        "process.json": "a5addf2c774fb8965a98f045b79f6e0ebc824f12119cf38d29b0c51320887320",
+        "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+        "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+        "work/log.lammps": "21272762d068f7be2c3f3c9ae9db41ab0cc41e08a13b3475b893ef8422bbaff4",
+        "work/output.data": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+      },
+      "stdout_excerpt": [
+        "LAMMPS (2 Apr 2025)",
+        "Created 108 atoms",
+        "Loop time of 0.294182 on 4 procs for 5000 steps with 108 atoms",
+        "175.7% CPU use with 2 MPI tasks x 2 OpenMP threads"
+      ]
+    },
+    {
+      "attempt": {
+        "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+        "job_id": "9c50c94843954deebf4b895aef82018b",
+        "worker_id": "mozzarella",
+        "directory": "/mnt/data/lammps-v001-o0xDecbM/9c50c94843954deebf4b895aef82018b/ebbe6b71352445dea87f90cfa6d6d9d3",
+        "state": "succeeded",
+        "created_at": "2026-10-20T18:21:12.634Z",
+        "started_at": "2026-10-20T18:21:13.010Z",
+        "ended_at": "2026-10-20T18:24:32.368Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "events": [
+        {
+          "event_id": 3,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.839Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"paused\", \"mozzarella\": \"paused\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.859Z"
+        },
+        {
+          "event_id": 11,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"cpu_quota\", \"mozzarella\": \"cpu_quota\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.904Z"
+        },
+        {
+          "event_id": 15,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:12.634Z"
+        },
+        {
+          "event_id": 19,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:13.010Z"
+        },
+        {
+          "event_id": 21,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "state": "unknown",
+          "reason": "Worker heartbeat expired",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:43.024Z"
+        },
+        {
+          "event_id": 22,
+          "job_id": "9c50c94843954deebf4b895aef82018b",
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:24:32.368Z"
+        }
+      ],
+      "hashes": {
+        "execution.json": "aa9d715e41243a3930ae54edf49b5781b8e6b4c0b082f046b10b0a6e39067a87",
+        "stdout": "2b08f45b71e73a71d7c863e801c8e67ee4bacf2303003befee368add45bfe817",
+        "stderr": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b",
+        "process.json": "21c7b1101bba4361a29ec351c3a9f620dcf33b14ec59d78ea8292d78d790d580",
+        "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+        "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+        "work/log.lammps": "98ad4455203f60b99073ecb6690d5e53bbb786678d185d172c4683283940829a",
+        "work/output.data": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+      },
+      "stdout_excerpt": [
+        "LAMMPS (2 Apr 2025)",
+        "Created 108 atoms",
+        "Loop time of 0.284856 on 4 procs for 5000 steps with 108 atoms",
+        "180.4% CPU use with 2 MPI tasks x 2 OpenMP threads"
+      ]
+    },
+    {
+      "attempt": {
+        "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+        "job_id": "f5dde7cea69046d38339fd017e33927d",
+        "worker_id": "allegro",
+        "directory": "/mnt/data/lammps-v001-o0xDecbM/f5dde7cea69046d38339fd017e33927d/902c9ccff49042f28186463ac0d3f866",
+        "state": "succeeded",
+        "created_at": "2026-10-20T18:21:12.702Z",
+        "started_at": null,
+        "ended_at": "2026-10-20T18:24:32.423Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "events": [
+        {
+          "event_id": 4,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.850Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"paused\", \"mozzarella\": \"paused\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.859Z"
+        },
+        {
+          "event_id": 12,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"status\": \"waiting\", \"workers\": {\"allegro\": \"cpu_quota\", \"mozzarella\": \"cpu_quota\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:10.904Z"
+        },
+        {
+          "event_id": 18,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:12.703Z"
+        },
+        {
+          "event_id": 20,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+          "state": "unknown",
+          "reason": "Worker heartbeat expired",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-20T18:21:42.715Z"
+        },
+        {
+          "event_id": 23,
+          "job_id": "f5dde7cea69046d38339fd017e33927d",
+          "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-20T18:24:32.424Z"
+        }
+      ],
+      "hashes": {
+        "execution.json": "3bca89f8bf1ff677785aa195de062fee23b5d7171510b0e889d19ead70a76fd5",
+        "stdout": "df7c248ad7589420f52e27b7021a9517fbd6813a9f7eb227edc452afcde3c1b7",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "process.json": "cabb530ebaca5e1b2c872e0af6c84ea308e177e14bbacb114468549a061e7111",
+        "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+        "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+        "work/log.lammps": "f9c3039e5797a08f3c88a99c1aafb2731bd8a3222b388f71ce8bf51e47719682",
+        "work/output.data": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+      },
+      "stdout_excerpt": [
+        "LAMMPS (29 Sep 2021 - Update 2)",
+        "Created 108 atoms",
+        "Loop time of 0.200826 on 4 procs for 5000 steps with 108 atoms",
+        "95.1% CPU use with 2 MPI tasks x 2 OpenMP threads"
+      ]
+    }
+  ],
+  "worker_observations": {
+    "mozzarella": {
+      "response": {
+        "challenge": "/mnt/data/lammps-v001-o0xDecbM/.shared-check-0a130bbd3f2d4b5eb58a49778f7d998f",
+        "assignments": [],
+        "protocol": 2,
+        "storage_mode": "shared",
+        "staged_launch_enabled": true,
+        "results_protocol": 1,
+        "cancellations": [],
+        "paused": false,
+        "policy": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": false,
+          "max_cpu_utilization_percent": 80,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 30
+        },
+        "manager_capacity": {
+          "id": "mozzarella",
+          "cpu_slots": 4,
+          "memory_budget_gib": 0.3,
+          "max_concurrent_jobs": 1,
+          "enabled": true,
+          "labels": []
+        }
+      },
+      "records": [
+        {
+          "attempt": {
+            "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+            "job_id": "2f0fbfa34fa64036b8fc68f47ab46f21",
+            "worker_id": "mozzarella",
+            "directory": "/mnt/data/lammps-v001-o0xDecbM/2f0fbfa34fa64036b8fc68f47ab46f21/77fa1c30371742d4bcab197c440b0d35",
+            "state": "succeeded",
+            "created_at": "2026-10-20T18:21:10.908Z",
+            "started_at": "2026-10-20T18:21:10.931Z",
+            "ended_at": "2026-10-20T18:21:11.891Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "hashes": {
+            "execution.json": "fe43c626fa1f775016efbaccd4a4203b642f7eb6bcbcc9294244d8f40a3e2f07",
+            "stdout": "743bde74032beebc281d8db34bd2c161be781fb63438a62f0e8f6cef932a0197",
+            "stderr": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b",
+            "process.json": "a5addf2c774fb8965a98f045b79f6e0ebc824f12119cf38d29b0c51320887320",
+            "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+            "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+            "work/log.lammps": "21272762d068f7be2c3f3c9ae9db41ab0cc41e08a13b3475b893ef8422bbaff4",
+            "work/output.data": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+          },
+          "live_members": [],
+          "claimed": false,
+          "collection": null
+        },
+        {
+          "attempt": {
+            "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+            "job_id": "9c50c94843954deebf4b895aef82018b",
+            "worker_id": "mozzarella",
+            "directory": "/mnt/data/lammps-v001-o0xDecbM/9c50c94843954deebf4b895aef82018b/ebbe6b71352445dea87f90cfa6d6d9d3",
+            "state": "succeeded",
+            "created_at": "2026-10-20T18:21:12.639Z",
+            "started_at": "2026-10-20T18:21:12.662Z",
+            "ended_at": "2026-10-20T18:21:58.041Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "hashes": {
+            "execution.json": "aa9d715e41243a3930ae54edf49b5781b8e6b4c0b082f046b10b0a6e39067a87",
+            "stdout": "2b08f45b71e73a71d7c863e801c8e67ee4bacf2303003befee368add45bfe817",
+            "stderr": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b",
+            "process.json": "21c7b1101bba4361a29ec351c3a9f620dcf33b14ec59d78ea8292d78d790d580",
+            "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+            "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+            "work/log.lammps": "98ad4455203f60b99073ecb6690d5e53bbb786678d185d172c4683283940829a",
+            "work/output.data": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+          },
+          "live_members": [],
+          "claimed": false,
+          "collection": null
+        }
+      ],
+      "hostname": "mozzarella",
+      "time": 1792520672.694865,
+      "python": "3.10.12",
+      "reservations": []
+    },
+    "allegro": {
+      "response": {
+        "challenge": "/mnt/data/lammps-v001-o0xDecbM/.shared-check-0a130bbd3f2d4b5eb58a49778f7d998f",
+        "assignments": [],
+        "protocol": 2,
+        "storage_mode": "shared",
+        "staged_launch_enabled": true,
+        "results_protocol": 1,
+        "cancellations": [],
+        "paused": false,
+        "policy": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": false,
+          "max_cpu_utilization_percent": 80,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 30
+        },
+        "manager_capacity": {
+          "id": "allegro",
+          "cpu_slots": 4,
+          "memory_budget_gib": 0.3,
+          "max_concurrent_jobs": 1,
+          "enabled": true,
+          "labels": []
+        }
+      },
+      "records": [
+        {
+          "attempt": {
+            "attempt_id": "246a4187fc73464694dfeb01391e735b",
+            "job_id": "a157f3cba3c14fb7bf6cd9b772e1801e",
+            "worker_id": "allegro",
+            "directory": "/mnt/data/lammps-v001-o0xDecbM/a157f3cba3c14fb7bf6cd9b772e1801e/246a4187fc73464694dfeb01391e735b",
+            "state": "succeeded",
+            "created_at": "2026-10-20T18:21:11.926Z",
+            "started_at": "2026-10-20T18:21:11.953Z",
+            "ended_at": "2026-10-20T18:21:12.593Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "hashes": {
+            "execution.json": "20b9709685473b8bcf9c569f0f5db16291122449bc3930f89024421a11b02cdd",
+            "stdout": "ad52d0b4d0866dcc0f45836c6fa8202a07c1cee8188eeeaf53e6730f89425d5a",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "process.json": "2f1ee740200f9e224f91b047d7b32ac404a6cf3155adc3b760c4df85a46d3418",
+            "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+            "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+            "work/log.lammps": "80fe819bc918d5720890934736101bac3a62b85bd2d7e24165357174643ce503",
+            "work/output.data": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+          },
+          "live_members": [],
+          "claimed": false,
+          "collection": null
+        },
+        {
+          "attempt": {
+            "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+            "job_id": "f5dde7cea69046d38339fd017e33927d",
+            "worker_id": "allegro",
+            "directory": "/mnt/data/lammps-v001-o0xDecbM/f5dde7cea69046d38339fd017e33927d/902c9ccff49042f28186463ac0d3f866",
+            "state": "succeeded",
+            "created_at": "2026-10-20T18:21:12.710Z",
+            "started_at": "2026-10-20T18:21:12.751Z",
+            "ended_at": "2026-10-20T18:21:13.290Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "hashes": {
+            "execution.json": "3bca89f8bf1ff677785aa195de062fee23b5d7171510b0e889d19ead70a76fd5",
+            "stdout": "df7c248ad7589420f52e27b7021a9517fbd6813a9f7eb227edc452afcde3c1b7",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "process.json": "cabb530ebaca5e1b2c872e0af6c84ea308e177e14bbacb114468549a061e7111",
+            "work/auxiliary.inc": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f",
+            "work/in.lmp": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2",
+            "work/log.lammps": "f9c3039e5797a08f3c88a99c1aafb2731bd8a3222b388f71ce8bf51e47719682",
+            "work/output.data": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+          },
+          "live_members": [],
+          "claimed": false,
+          "collection": null
+        }
+      ],
+      "hostname": "allegro",
+      "time": 1792520672.7716851,
+      "python": "3.10.12",
+      "reservations": []
+    }
+  },
+  "pre_replay_terminal_audit": {
+    "mozzarella": {
+      "hostname": "mozzarella",
+      "records": [
+        {
+          "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+          "state": "succeeded",
+          "process": {
+            "pid": 97469,
+            "process_group": 97469,
+            "session": 97469,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "16959581",
+            "launched_at": "2026-10-20T18:21:10.927478+00:00"
+          },
+          "live_members": []
+        },
+        {
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "state": "succeeded",
+          "process": {
+            "pid": 97487,
+            "process_group": 97487,
+            "session": 97487,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "16959754",
+            "launched_at": "2026-10-20T18:21:12.658866+00:00"
+          },
+          "live_members": []
+        }
+      ]
+    },
+    "allegro": {
+      "hostname": "allegro",
+      "records": [
+        {
+          "attempt_id": "246a4187fc73464694dfeb01391e735b",
+          "state": "succeeded",
+          "process": {
+            "pid": 113108,
+            "process_group": 113108,
+            "session": 113108,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "20778396",
+            "launched_at": "2026-10-20T18:21:11.950259+00:00"
+          },
+          "live_members": []
+        },
+        {
+          "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+          "state": "succeeded",
+          "process": {
+            "pid": 113118,
+            "process_group": 113118,
+            "session": 113118,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "20778476",
+            "launched_at": "2026-10-20T18:21:12.748190+00:00"
+          },
+          "live_members": []
+        }
+      ]
+    }
+  },
+  "final_audit": {
+    "mozzarella": {
+      "hostname": "mozzarella",
+      "python": "3.10.12",
+      "pyyaml": "6.0.3",
+      "mpi": "mpirun.openmpi (OpenRTE) 4.1.2",
+      "lammps": [
+        "",
+        "Large-scale Atomic/Molecular Massively Parallel Simulator - 2 Apr 2025",
+        "",
+        "Usage example: /usr/local/bin/lmp -var t 300 -echo screen -in in.alloy"
+      ],
+      "lammps_path": "/usr/local/bin/lmp",
+      "source_sha256": {
+        "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+        "src/lammps_manager/local.py": "e4b4b63dbab5d88f1f41e582f2204867b2c5386cec770a1692290f3a8292ef69",
+        "src/lammps_manager/config.py": "a31f616806e216cd42c8d5d119c437ad52184ea4e8edd5ec3b99db8817d73684",
+        "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+        "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+        "src/lammps_manager/store.py": "fc7f5332bc3a6b0c63c5e7449c774e4b7dec4fe26bc2c927eb949e20233b7f22",
+        "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+        "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+        "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+        "src/lammps_manager/worker.py": "d737903e017a7fd3cbd7ba104725b8ef222098c93f48a99fe1a99cea607301cf",
+        "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+        "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+        "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+      },
+      "attempts": [
+        {
+          "attempt_id": "77fa1c30371742d4bcab197c440b0d35",
+          "process": {
+            "pid": 97469,
+            "process_group": 97469,
+            "session": 97469,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "16959581",
+            "launched_at": "2026-10-20T18:21:10.927478+00:00"
+          },
+          "live_members": [],
+          "files": {
+            "execution.json": {
+              "size": 572,
+              "sha256": "fe43c626fa1f775016efbaccd4a4203b642f7eb6bcbcc9294244d8f40a3e2f07"
+            },
+            "stdout": {
+              "size": 2500,
+              "sha256": "743bde74032beebc281d8db34bd2c161be781fb63438a62f0e8f6cef932a0197"
+            },
+            "stderr": {
+              "size": 256,
+              "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+            },
+            "process.json": {
+              "size": 185,
+              "sha256": "a5addf2c774fb8965a98f045b79f6e0ebc824f12119cf38d29b0c51320887320"
+            },
+            "work/auxiliary.inc": {
+              "size": 22,
+              "sha256": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f"
+            },
+            "work/in.lmp": {
+              "size": 346,
+              "sha256": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2"
+            },
+            "work/log.lammps": {
+              "size": 2777,
+              "sha256": "21272762d068f7be2c3f3c9ae9db41ab0cc41e08a13b3475b893ef8422bbaff4"
+            },
+            "work/output.data": {
+              "size": 14230,
+              "sha256": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+            }
+          }
+        },
+        {
+          "attempt_id": "ebbe6b71352445dea87f90cfa6d6d9d3",
+          "process": {
+            "pid": 97487,
+            "process_group": 97487,
+            "session": 97487,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "16959754",
+            "launched_at": "2026-10-20T18:21:12.658866+00:00"
+          },
+          "live_members": [],
+          "files": {
+            "execution.json": {
+              "size": 572,
+              "sha256": "aa9d715e41243a3930ae54edf49b5781b8e6b4c0b082f046b10b0a6e39067a87"
+            },
+            "stdout": {
+              "size": 2500,
+              "sha256": "2b08f45b71e73a71d7c863e801c8e67ee4bacf2303003befee368add45bfe817"
+            },
+            "stderr": {
+              "size": 256,
+              "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+            },
+            "process.json": {
+              "size": 185,
+              "sha256": "21c7b1101bba4361a29ec351c3a9f620dcf33b14ec59d78ea8292d78d790d580"
+            },
+            "work/auxiliary.inc": {
+              "size": 22,
+              "sha256": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f"
+            },
+            "work/in.lmp": {
+              "size": 346,
+              "sha256": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2"
+            },
+            "work/log.lammps": {
+              "size": 2777,
+              "sha256": "98ad4455203f60b99073ecb6690d5e53bbb786678d185d172c4683283940829a"
+            },
+            "work/output.data": {
+              "size": 14230,
+              "sha256": "cc79350beda6693bd581166aac2ed8f521556e7ca8b892f91354a0305311f8ea"
+            }
+          }
+        }
+      ],
+      "test_processes": [],
+      "time": 1792520705.2336028,
+      "network_mounts": [
+        "192.168.50.103:/data_parmesan /mnt/data nfs4 rw,relatime,vers=4.1,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.136,local_lock=none,addr=192.168.50.103 0 0"
+      ]
+    },
+    "allegro": {
+      "hostname": "allegro",
+      "python": "3.10.12",
+      "pyyaml": "6.0.3",
+      "mpi": "mpirun.openmpi (OpenRTE) 4.1.2",
+      "lammps": [
+        "",
+        "Large-scale Atomic/Molecular Massively Parallel Simulator - 29 Sep 2021 - Update 2",
+        "",
+        "Usage example: /usr/bin/lmp -var t 300 -echo screen -in in.alloy"
+      ],
+      "lammps_path": "/usr/bin/lmp",
+      "source_sha256": {
+        "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+        "src/lammps_manager/local.py": "e4b4b63dbab5d88f1f41e582f2204867b2c5386cec770a1692290f3a8292ef69",
+        "src/lammps_manager/config.py": "a31f616806e216cd42c8d5d119c437ad52184ea4e8edd5ec3b99db8817d73684",
+        "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+        "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+        "src/lammps_manager/store.py": "fc7f5332bc3a6b0c63c5e7449c774e4b7dec4fe26bc2c927eb949e20233b7f22",
+        "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+        "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+        "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+        "src/lammps_manager/worker.py": "d737903e017a7fd3cbd7ba104725b8ef222098c93f48a99fe1a99cea607301cf",
+        "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+        "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+        "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+      },
+      "attempts": [
+        {
+          "attempt_id": "246a4187fc73464694dfeb01391e735b",
+          "process": {
+            "pid": 113108,
+            "process_group": 113108,
+            "session": 113108,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "20778396",
+            "launched_at": "2026-10-20T18:21:11.950259+00:00"
+          },
+          "live_members": [],
+          "files": {
+            "execution.json": {
+              "size": 566,
+              "sha256": "20b9709685473b8bcf9c569f0f5db16291122449bc3930f89024421a11b02cdd"
+            },
+            "stdout": {
+              "size": 2325,
+              "sha256": "ad52d0b4d0866dcc0f45836c6fa8202a07c1cee8188eeeaf53e6730f89425d5a"
+            },
+            "stderr": {
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "process.json": {
+              "size": 188,
+              "sha256": "2f1ee740200f9e224f91b047d7b32ac404a6cf3155adc3b760c4df85a46d3418"
+            },
+            "work/auxiliary.inc": {
+              "size": 22,
+              "sha256": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f"
+            },
+            "work/in.lmp": {
+              "size": 346,
+              "sha256": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2"
+            },
+            "work/log.lammps": {
+              "size": 2602,
+              "sha256": "80fe819bc918d5720890934736101bac3a62b85bd2d7e24165357174643ce503"
+            },
+            "work/output.data": {
+              "size": 14219,
+              "sha256": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+            }
+          }
+        },
+        {
+          "attempt_id": "902c9ccff49042f28186463ac0d3f866",
+          "process": {
+            "pid": 113118,
+            "process_group": 113118,
+            "session": 113118,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "20778476",
+            "launched_at": "2026-10-20T18:21:12.748190+00:00"
+          },
+          "live_members": [],
+          "files": {
+            "execution.json": {
+              "size": 566,
+              "sha256": "3bca89f8bf1ff677785aa195de062fee23b5d7171510b0e889d19ead70a76fd5"
+            },
+            "stdout": {
+              "size": 2325,
+              "sha256": "df7c248ad7589420f52e27b7021a9517fbd6813a9f7eb227edc452afcde3c1b7"
+            },
+            "stderr": {
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "process.json": {
+              "size": 188,
+              "sha256": "cabb530ebaca5e1b2c872e0af6c84ea308e177e14bbacb114468549a061e7111"
+            },
+            "work/auxiliary.inc": {
+              "size": 22,
+              "sha256": "615755a6505d6e0fa00861c4137cb0a81daa0eebce835ebca788ffa90301924f"
+            },
+            "work/in.lmp": {
+              "size": 346,
+              "sha256": "7eda827bd6c6071f6912abd00cfda97924e82449d3737a4f4419a2ddc71dfbc2"
+            },
+            "work/log.lammps": {
+              "size": 2602,
+              "sha256": "f9c3039e5797a08f3c88a99c1aafb2731bd8a3222b388f71ce8bf51e47719682"
+            },
+            "work/output.data": {
+              "size": 14219,
+              "sha256": "3a560f916ea555498ea44989988c9851f6f712d58f4d2ebe8abbb46d19e47f2c"
+            }
+          }
+        }
+      ],
+      "test_processes": [],
+      "time": 1792520706.2906265,
+      "network_mounts": [
+        "192.168.50.103:/data_parmesan /mnt/data nfs4 rw,relatime,vers=4.1,rsize=524288,wsize=524288,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.79,local_lock=none,addr=192.168.50.103 0 0"
+      ]
+    }
+  },
+  "cleanup": {
+    "manager_listener_closed": true,
+    "remote_test_processes": [],
+    "outputs_deleted": false,
+    "final_reservations": 0
+  },
+  "limitations": [
+    "Small batch on two physical workers, not multi-node MPI.",
+    "CPU/memory quotas are reservation accounting, not OS enforcement or peak-memory measurements.",
+    "Real high-external-load/stale-metric exclusion, physical power loss and performance under large transfers were not verified by this run.",
+    "A 45-second test-driver observation timed out; all four original simulations later had succeeded journals and no live sessions before reports were replayed. No simulations were resubmitted."
+  ],
+  "commands": [
+    "python3 /tmp/v001-run.py > /tmp/v001-two-workers-second.log 2>&1",
+    "python3 /tmp/v001-resume.py > /tmp/v001-two-workers-replay.log 2>&1",
+    "python3 /tmp/v001-audit.py",
+    "make check > /tmp/v001-final-check-authorized.log 2>&1"
+  ]
+}
