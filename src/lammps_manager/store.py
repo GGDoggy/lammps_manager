@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from datetime import datetime
 import json
 import math
 import re
@@ -58,7 +59,7 @@ CREATE TABLE jobs (
 );
 CREATE TABLE attempts (
     attempt_id TEXT PRIMARY KEY,
-    job_id TEXT NOT NULL UNIQUE REFERENCES jobs(job_id),
+    job_id TEXT NOT NULL REFERENCES jobs(job_id),
     worker_id TEXT NOT NULL,
     directory TEXT NOT NULL UNIQUE,
     state TEXT NOT NULL CHECK(state IN
@@ -86,7 +87,7 @@ CREATE TABLE events (
     termination_evidence TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 """
 
 
@@ -95,13 +96,14 @@ class Store:
 
     Public writes commit atomically. Replays must carry identical identities and
     result values. A terminal transition requires caller-supplied termination
-    evidence; the store cannot verify a remote process. Retries are not supported.
+    evidence; the store cannot verify a remote process. Retries require explicit authorization.
     """
 
     def __init__(self, path: str | Path) -> None:
         self._db = sqlite3.connect(str(path), isolation_level=None, timeout=5)
         self._db.row_factory = sqlite3.Row
-        self._db.execute('PRAGMA foreign_keys = ON')
+        # Version-1 attempts had a UNIQUE job_id; rebuild without rewriting snapshots.
+        self._db.execute('PRAGMA foreign_keys = OFF')
         try:
             with self._transaction():
                 version = self._db.execute('PRAGMA user_version').fetchone()[0]
@@ -110,7 +112,14 @@ class Store:
                     for statement in SCHEMA.split(';'):
                         if statement.strip():
                             self._db.execute(statement)
-                elif version != 1:
+                elif version == 1:
+                    definition = SCHEMA.split('CREATE TABLE attempts (', 1)[1].split(';', 1)[0]
+                    self._db.execute('CREATE TABLE attempts_v2 (' + definition)
+                    self._db.execute('INSERT INTO attempts_v2 SELECT * FROM attempts')
+                    self._db.execute('DROP TABLE attempts')
+                    self._db.execute('ALTER TABLE attempts_v2 RENAME TO attempts')
+                    self._db.execute('PRAGMA user_version = 2')
+                elif version != 2:
                     raise StoreError(f'Unsupported database schema version: {version}')
                 self._db.execute("CREATE TABLE IF NOT EXISTS input_transfers ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
@@ -118,6 +127,12 @@ class Store:
                 self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
                                  "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
                                  "snapshot TEXT)")
+                self._db.execute('CREATE TABLE IF NOT EXISTS cancellations ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                 'reason TEXT NOT NULL)')
+                if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
+                    raise StoreError('Database foreign key check failed')
+            self._db.execute('PRAGMA foreign_keys = ON')
         except BaseException:
             self._db.close()
             raise
@@ -346,6 +361,54 @@ class Store:
                 self._db.execute('DELETE FROM reservations WHERE attempt_id=?', (attempt_id,))
             self._event(old.job_id, attempt_id, state, reason, exit_code, termination_evidence)
         return self.attempt(attempt_id)
+
+    def request_cancel(self, attempt_id: str, reason: str = 'Cancellation requested') -> None:
+        """Persist intent before delivery; completion still requires process evidence."""
+        if not isinstance(reason, str) or not reason.strip() or '\x00' in reason:
+            raise StoreError('Cancellation reason must be nonempty without NUL')
+        with self._transaction():
+            attempt = self.attempt(attempt_id)
+            if attempt.state in TERMINAL:
+                return
+            self._db.execute('INSERT OR IGNORE INTO cancellations VALUES(?,?)', (attempt_id, reason))
+            if attempt.state != 'cancelling':
+                self.transition(attempt_id, 'cancelling', reason=reason)
+
+    def cancellation(self, attempt_id: str) -> str | None:
+        """Read durable cancellation intent, including after an unknown transition."""
+        row = self._db.execute('SELECT reason FROM cancellations WHERE attempt_id=?',
+                               (attempt_id,)).fetchone()
+        return row['reason'] if row else None
+
+    def retry(self, job_id: str) -> None:
+        """Explicitly queue a confirmed failure within the submitted retry budget."""
+        with self._transaction():
+            attempts = self.job_attempts(job_id)
+            if self.job_state(job_id) != 'failed' or not attempts:
+                raise StoreError('Retry requires a failed job')
+            if not attempts[-1].termination_evidence:
+                raise StoreError('Retry requires confirmed termination')
+            if len(attempts) > self.specification(job_id).resources.max_retries:
+                raise StoreError('Submitted max_retries budget exhausted')
+            if any(a.attempt_id in {r.attempt_id for r in self.reservations()} for a in attempts):
+                raise StoreError('Retry blocked by unresolved reservation')
+            self._db.execute("UPDATE jobs SET state='queued' WHERE job_id=?", (job_id,))
+            self._event(job_id, None, 'queued', 'Explicit retry requested')
+
+    def expire_workers(self, now: float, timeout: float) -> None:
+        """Mark disconnected work unknown, retaining every reservation."""
+        with self._transaction():
+            records = self.worker_records()
+            for reservation in self.reservations():
+                record = records.get(reservation.worker_id)
+                snapshot = record['snapshot'] if record else None
+                attempt = self.attempt(reservation.attempt_id)
+                observed = (snapshot['heartbeat_at'] if snapshot else datetime.fromisoformat(
+                    attempt.created_at.replace('Z', '+00:00')).timestamp())
+                if now - observed <= timeout:
+                    continue
+                if attempt.state in {'assigned', 'running', 'cancelling'}:
+                    self.transition(attempt.attempt_id, 'unknown', reason='Worker heartbeat expired')
 
     def set_input_transfer(self, attempt_id: str, directory: str, status: str,
                            reason: str | None = None) -> None:

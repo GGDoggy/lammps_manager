@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; the [scheduler API](scheduling.md) is implemented with caller-supplied snapshots; the [polling manager and workers](workers.md) implement shared-storage execution, authentication and Linux monitoring. Real multi-host acceptance and process recovery remain pending. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity by itself. Scheduler admission enforces effective quotas within the assignment transaction.
+This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; the [scheduler API](scheduling.md) is implemented with caller-supplied snapshots; the [polling manager and workers](workers.md) implement shared-storage execution, authentication and Linux monitoring. Linux [process recovery and operations](recovery.md) are implemented with conservative identity checks; real multi-host acceptance remains pending. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity by itself. Scheduler admission enforces effective quotas within the assignment transaction.
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.
 
@@ -40,7 +40,7 @@ Add modules only with their features:
 | `worker` / `executor` | Monitoring, local durable records, process start / stop, results |
 | `cli` | Submission, status, inspection, cancellation, pause / resume |
 
-Provide CLI operations before considering a Web UI. Validation, submit, run-local, status, inspect, serve, worker, pause and resume commands currently exist.
+Provide CLI operations before considering a Web UI. Validation, submit, run-local, status, inspect, serve, worker, pause, resume, cancel and retry commands currently exist.
 
 ## Planned operation without shared storage
 
@@ -52,7 +52,7 @@ Collect stdout, stderr, execution/process metadata and generated outputs with ve
 
 Prefer extending the existing authenticated HTTPS polling transport for artifacts. Only SSH access has been verified so far; worker-to-manager HTTPS reachability and service topology must be checked before deployment. If the environment permits only SSH, a protected SSH transport needs an explicit design preserving authentication, durable journals and reservation rules. Do not assume an insecure tunnel or silently relax TLS restrictions.
 
-T009 can verify a manager and one remote worker on the available two hosts. V001 still requires two actual workers to establish multi-worker acceptance. T006 process recovery and real MPI cancellation remain separate requirements. This staged-storage work moves ahead of optional extensions because the actual environment cannot use the implemented shared mode.
+T009 can verify a manager and one remote worker on the available two hosts. V001 still requires two actual workers to establish multi-worker acceptance. T006 recovery and cancellation are described in [recovery.md](recovery.md); their verification remains separate from staged dispatch. This staged-storage work moves ahead of optional extensions because the actual environment cannot use the implemented shared mode.
 
 ## Configuration and state boundaries
 
@@ -120,7 +120,7 @@ The stages describe product acceptance; [tasks.md](../tasks.md) defines the impl
 |---|---|
 | 1: Configuration and local batches | Schema, SQLite, generator, CLI, local execution. Submit a batch into separate directories, persist specifications, inspect status, and record success / nonzero exit correctly. First use fake jobs with controlled duration and exit codes, then separately run a small LAMMPS example when available. T001–T003 are implemented locally; real LAMMPS acceptance remains unverified. |
 | 2: Multi-host dispatch | Registration, authentication, heartbeat, monitoring, reservations, scheduling, shared storage, real MPI arguments. Complete a batch on at least two workers; enforce CPU / memory / concurrency limits; pause, stale metrics, and high external load block admission. T004 implements local scheduling decisions with fake-metric verification; T005 implements polling, authentication, heartbeats, monitoring and shared execution with local two-worker verification; real multi-worker acceptance remains pending. |
-| 3: Recovery and operations | Idempotency, durable local records, reconciliation, cancellation, time limits, controlled retries, deployment / service restart documentation. Manager / worker restarts, temporary disconnection, duplicate delivery, and MPI cancellation must neither duplicate jobs nor release resources prematurely; failed output remains inspectable. T006 remains pending. |
+| 3: Recovery and operations | Idempotency, durable local records, reconciliation, cancellation, time limits, controlled retries, deployment / service restart documentation. Manager / worker restarts, temporary disconnection, duplicate delivery, and MPI cancellation must neither duplicate jobs nor release resources prematurely; failed output remains inspectable. T006 implements conservative Linux reconciliation, cancellation, time limits and explicit bounded retries; see [recovery.md](recovery.md) and the verification record. |
 | Deployment prerequisite for hosts without shared storage | T007–T009 add staged inputs with checksums, durable result collection and real two-host acceptance. T007 input preparation is implemented locally; T008 result collection and T009 remote acceptance remain pending, so staged launches are disabled. Do not present results as fully delivered before collection finishes. |
 | 4: Optional extensions | Web UI, priorities, fairness, cgroup enforcement, monitoring, and alerts. |
 

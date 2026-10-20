@@ -61,7 +61,7 @@ class Worker:
     """One journal and exclusive OS lock per worker, kept on local durable disk.
 
     Only newly accepted attempts may start. Existing accepted records are reported
-    after restart but never relaunched; uncertain recovery belongs to T006.
+    after restart and reconciled against Linux process identities, never relaunched.
     """
 
     def __init__(self, config: WorkerConfig, state_directory: str | Path) -> None:
@@ -127,11 +127,15 @@ class Worker:
         if self.future is not None and self.future.done():
             self.future.result()  # Surface unexpected executor failures.
             self.future = None
+        if self.future is None:
+            from .recovery import reconcile
+            with Store(self.database) as store:
+                for reservation in store.reservations():
+                    reconcile(store, store.attempt(reservation.attempt_id))
         snapshot = self.monitor.sample(self.config)
         reports = []
         with Store(self.database) as store:
-            for job in store.jobs():
-                attempt = store.job_attempts(job['job_id'])[0]
+            for attempt in (a for job in store.jobs() for a in store.job_attempts(job['job_id'])):
                 report = {'attempt_id': attempt.attempt_id, 'state': attempt.state,
                           'started': attempt.started_at is not None, 'exit_code': attempt.exit_code,
                           'termination_evidence': attempt.termination_evidence, 'reason': attempt.reason}
@@ -178,7 +182,23 @@ class Worker:
             return result
         for report in reports:
             self.acknowledged[report['attempt_id']] = report
-        if result['paused'] or self.future is not None:
+        # Expiry can invalidate a previously acknowledged report while the
+        # journal stays unchanged. Re-read and resend it on the next poll,
+        # including while an executor is active or staged inputs are ready.
+        for assignment in result['assignments']:
+            if assignment['attempt']['state'] == 'unknown':
+                self.acknowledged.pop(assignment['attempt']['attempt_id'], None)
+        with Store(self.database) as store:
+            for command in result.get('cancellations', []):
+                try:
+                    store.attempt(command['attempt_id'])
+                except ValueError:
+                    continue  # Pending assignments are accepted below before cancellation.
+                store.request_cancel(command['attempt_id'], command['reason'])
+                if self.config.storage_mode == 'staged':
+                    store.transition(command['attempt_id'], 'cancelled', reason=command['reason'],
+                                     termination_evidence='Staged execution is disabled; process never started')
+        if self.future is not None:
             return result
         with Store(self.database) as store:
             # An accepted but unresolved old attempt blocks all fresh execution.
@@ -196,7 +216,11 @@ class Worker:
                 if attempt['worker_id'] != self.config.worker.id:
                     raise ValueError('Assignment identity mismatch')
                 directory = Path(attempt['directory'])
+                cancelled = next((c for c in result.get('cancellations', [])
+                                  if c['attempt_id'] == attempt['attempt_id']), None)
                 if spec.storage_mode == 'staged':
+                    if result['paused'] and not cancelled:
+                        continue
                     from .staging import safe_path
                     for identifier in (spec.job_id, attempt['attempt_id']):
                         if len(safe_path(identifier).parts) != 1:
@@ -208,7 +232,12 @@ class Worker:
                     with store.scheduling_round():
                         store.submit(spec)
                         store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
-                    self._stage(store, attempt['attempt_id'])
+                    if cancelled:
+                        store.request_cancel(attempt['attempt_id'], cancelled['reason'])
+                        store.transition(attempt['attempt_id'], 'cancelled', reason=cancelled['reason'],
+                            termination_evidence='Staged execution is disabled; process never started')
+                    else:
+                        self._stage(store, attempt['attempt_id'])
                     break
                 try:
                     job_root = Path(spec.work_directory).resolve(strict=True)
@@ -222,12 +251,15 @@ class Worker:
                         or directory != job_root / attempt['attempt_id']
                         or Path(attempt['attempt_id']).name != attempt['attempt_id']):
                     raise ValueError('Assignment outside shared job directory')
-                if any(j['job_id'] == spec.job_id for j in store.jobs()):
+                if any(a.attempt_id == attempt['attempt_id']
+                       for j in store.jobs() for a in store.job_attempts(j['job_id'])):
+                    continue
+                if result['paused'] and not cancelled:
                     continue
                 policy = result['policy']
                 manager = result['manager_capacity']
                 r = spec.resources
-                if (not self.config.worker.enabled or not manager['enabled']
+                if not cancelled and (not self.config.worker.enabled or not manager['enabled']
                         or r.cpu_slots > min(self.config.worker.cpu_slots, manager['cpu_slots'],
                                              snapshot['detected_cpu_slots'])
                         or r.memory_gib > min(self.config.worker.memory_budget_gib,
@@ -240,13 +272,19 @@ class Worker:
                 # so pre-launch failures can be durably reported to the manager.
                 with store.scheduling_round():
                     store.submit(spec)
+                    if store.job_state(spec.job_id) == 'failed':
+                        store.retry(spec.job_id)
                     accepted = store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id,
                                             str(directory))
                     can_launch = not directory.exists()
                     if not can_launch:
                         store.transition(accepted.attempt_id, 'unknown',
                                          reason='Attempt directory already exists; launch identity uncertain')
-                if can_launch:
+                if cancelled and can_launch:
+                    store.request_cancel(accepted.attempt_id, cancelled['reason'])
+                    store.transition(accepted.attempt_id, 'cancelled', reason=cancelled['reason'],
+                                     termination_evidence='Launch did not start a process')
+                elif can_launch:
                     self.future = self.pool.submit(self._execute, accepted.attempt_id)
                 break
         return result

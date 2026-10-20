@@ -43,8 +43,7 @@ running, unknown and terminal jobs are skipped. Running two invocations cannot
 assign the same job twice; an assignment conflict terminates the losing invocation.
 Use one local executor at a time. This is not capacity-aware scheduling: worker
 CPU / memory limits, enabled flags, external load and concurrency policies are not
-enforced. Time limits, cancellation, automatic retries and restart reconciliation
-remain T004–T006 work; `max_retries` and time limits do not activate those features.
+enforced. T006 adds [time limits, cancellation, conservative restart reconciliation and explicit bounded retry](recovery.md); automatic simulation retries remain disabled.
 
 Each job has this layout under `storage.work_root`:
 
@@ -52,6 +51,7 @@ Each job has this layout under `storage.work_root`:
 JOB_ID/
   inputs/                  # copied submission inputs
   ATTEMPT_ID/
+    process.json           # Linux launch identity and timestamp
     execution.json         # argv, cwd, explicit environment overrides, output paths
     stdout
     stderr
@@ -79,9 +79,7 @@ execution becomes `unknown` and retains reservations. The current invocation the
 stops starting jobs; subsequent jobs remain queued, and completed job IDs are
 still returned. Interrupts continue to propagate to the caller. Failures confirmed
 to occur before launch allow the batch to continue. This stop applies to the
-current invocation only; it is not restart reconciliation. A crash can leave assigned
-or running state; repeating `run-local` never launches that attempt again. There
-is no recovery or manual-resolution CLI yet. Group existence checking is a local
+current invocation. On a later invocation, unresolved attempts are reconciled before new work. Positively identified live local processes remain monitored for time limits, cancellation and termination; identity uncertainty stops monitoring and retains reservations. Remaining reservations block new local launches. Repeating `run-local` never launches an accepted attempt again. See [recovery.md](recovery.md) for missing-identity and lost-exit-code handling. Group existence checking is a local
 safety check, not proof of real MPI descendant cleanup across hosts or daemons.
 Inspect exposes specification, attempts, artifact paths and event history; artifacts
 may be absent when preparation failed before opening output files.

@@ -171,7 +171,7 @@ class SnapshotTests(unittest.TestCase):
             store.submit(spec)
         with sqlite3.connect(database) as connection:
             self.assertEqual(connection.execute('SELECT specification FROM jobs').fetchone()[0], serialized)
-            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 1)
+            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 2)
 
     def test_staged_yaml_settings(self) -> None:
         import yaml
@@ -283,6 +283,35 @@ class StagedWorkerTests(unittest.TestCase):
             store.submit(other)
             self.assertEqual(run_local(store, self.worker_config), ())
             self.assertIn('T008', store.events('other')[-1]['reason'])
+
+    def test_ready_report_resynchronizes_after_heartbeat_expiry(self) -> None:
+        worker = self.worker()
+        worker.tick()
+        worker.tick()  # Acknowledge the unchanged assigned/ready report.
+        with Store(self.config.manager.database_path) as store:
+            attempt, = store.job_attempts(self.job_id)
+            reservations = store.reservations()
+            snapshot = store.worker_records()['a']['snapshot']
+            store.set_worker('a', snapshot={**snapshot, 'heartbeat_at': 0})
+        self.service.expire_workers()
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.job_state(self.job_id), 'unknown')
+        # Ready input publication must survive resynchronization without a download.
+        with patch('lammps_manager.staging.publish_inputs') as publish, patch.object(
+                worker.opener, 'open', wraps=worker.opener.open) as poll:
+            worker.tick()
+            worker.tick()
+            worker.tick()
+        publish.assert_not_called()
+        reports = [json.loads(call.args[0].data)['reports'] for call in poll.call_args_list]
+        self.assertEqual(reports[0], [])
+        self.assertEqual([r['attempt_id'] for r in reports[1]], [attempt.attempt_id])
+        self.assertEqual(reports[2], [])  # Resume suppression after resynchronizing.
+        self.assert_pending(worker, 'ready')
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual([a.attempt_id for a in store.job_attempts(self.job_id)], [attempt.attempt_id])
+            self.assertEqual(store.reservations(), reservations)
+        self.assertFalse(list(self.worker_root.rglob('process.json')))
 
     def test_missing_and_corrupt_inputs_retry_without_release(self) -> None:
         worker = self.worker()

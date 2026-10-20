@@ -34,14 +34,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     validate.add_argument("path")
     validate.add_argument("--check-local-paths", action="store_true",
                           help="Check paths on this host; never contacts remote workers")
-    for name in ('submit', 'run-local', 'status', 'inspect'):
+    for name in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry'):
         command = commands.add_parser(name, help=f'{name} jobs')
         command.add_argument('--config', required=True, help='Manager YAML configuration')
         if name == 'submit':
             command.add_argument('manifest', help='JSON list of source_directory / input_file jobs')
         elif name == 'run-local':
             command.add_argument('--worker-config', required=True)
-        elif name == 'inspect':
+        elif name in ('inspect', 'cancel', 'retry'):
             command.add_argument('job_id')
     manager = commands.add_parser('serve', help='Run the authenticated manager API')
     manager.add_argument('--config', required=True)
@@ -104,7 +104,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Configuration valid (" + ("local paths checked" if args.check_local_paths
               else "structure only; deployment paths not checked") + ").")
         return 0
-    if args.command in ('submit', 'run-local', 'status', 'inspect'):
+    if args.command in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry'):
         try:
             config = load_config(args.config, 'manager')
             with Store(config.manager.database_path) as store:
@@ -113,6 +113,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 elif args.command == 'run-local':
                     worker = load_config(args.worker_config, 'worker')
                     result = run_local(store, worker)
+                elif args.command == 'cancel':
+                    attempts = store.job_attempts(args.job_id)
+                    if not attempts:
+                        raise ValueError('Cancellation requires an assigned job')
+                    store.request_cancel(attempts[-1].attempt_id)
+                    result = inspect_job(store, args.job_id)
+                elif args.command == 'retry':
+                    store.retry(args.job_id)
+                    result = inspect_job(store, args.job_id)
                 elif args.command == 'status':
                     result = store.jobs()
                 else:

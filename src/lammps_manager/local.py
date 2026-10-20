@@ -7,6 +7,9 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import time
+from threading import Event
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from .config import ManagerConfig, WorkerConfig, create_job_specification
@@ -76,6 +79,21 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
 
 def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
     """Execute queued snapshots once, sequentially, retaining uncertain reservations."""
+    from .recovery import reconcile
+    while True:
+        monitoring = False
+        for reservation in store.reservations(worker.worker.id):
+            previous = store.attempt(reservation.attempt_id)
+            if reconcile(store, previous):
+                monitoring = True
+        if not monitoring:
+            break
+        Event().wait(.05)
+    if store.reservations():
+        for row in store.jobs():
+            if row['state'] == 'queued' and store.specification(row['job_id']).storage_mode == 'staged':
+                store.record_waiting(row['job_id'], 'Staged execution requires T008 result collection')
+        return ()
     completed = []
     for row in store.jobs():
         if row['state'] != 'queued':
@@ -99,7 +117,7 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
 
 def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> bool:
     """Execute one reserved attempt; callers must durably prevent duplicate starts."""
-    if attempt.state != 'assigned':
+    if attempt.state not in {'assigned', 'cancelling'}:
         raise ValueError('Only a newly accepted assigned attempt can execute')
     spec = store.specification(attempt.job_id)
     if spec.storage_mode == 'staged':
@@ -110,6 +128,11 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
     try:
         if directory.exists():
             store.transition(attempt.attempt_id, 'unknown', reason='Attempt directory already exists')
+            return False
+        if store.cancellation(attempt.attempt_id):
+            store.transition(attempt.attempt_id, 'cancelled',
+                             reason=store.cancellation(attempt.attempt_id),
+                             termination_evidence='Launch did not start a process')
             return False
         directory.mkdir(exist_ok=False)
         shutil.copytree(root / 'inputs', directory / 'work')
@@ -126,25 +149,48 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
             'stdout': str(directory / 'stdout'), 'stderr': str(directory / 'stderr'),
         }, indent=2) + '\n')
         with (directory / 'stdout').open('xb') as stdout, (directory / 'stderr').open('xb') as stderr:
+            launched_at = datetime.now(timezone.utc).isoformat()
             process = subprocess.Popen(args, cwd=work, env={**os.environ, **environment},
                                        stdout=stdout, stderr=stderr, start_new_session=True)
-            # Record Linux identity for later recovery without interpreting it here.
-            identity = {'pid': process.pid, 'process_group': process.pid,
-                        'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
-                        'start_ticks': Path(f'/proc/{process.pid}/stat').read_text().rpartition(')')[2].split()[19]}
+            from .recovery import process_identity
+            identity = {**process_identity(process.pid), 'launched_at': launched_at}
             with (directory / 'process.json').open('x') as metadata:
                 json.dump(identity, metadata)
                 metadata.flush()
                 os.fsync(metadata.fileno())
-            store.transition(attempt.attempt_id, 'running')
+            from .staging import sync_directory
+            sync_directory(directory)
+            if store.attempt(attempt.attempt_id).state != 'cancelling':
+                store.transition(attempt.attempt_id, 'running')
+            deadline = time.monotonic() + spec.resources.time_limit_seconds
+            while process.poll() is None:
+                if time.monotonic() >= deadline and not store.cancellation(attempt.attempt_id):
+                    store.request_cancel(attempt.attempt_id, 'Time limit exceeded')
+                if store.cancellation(attempt.attempt_id):
+                    from .recovery import terminate_group
+                    terminate_group(process.pid)
+                    process.wait(timeout=2)
+                    break
+                Event().wait(.02)
             code = process.wait()
         # A launcher exit alone is insufficient if descendants remain alive.
         try:
+            from .recovery import session_members
+            if store.cancellation(attempt.attempt_id) and not session_members(process.pid):
+                raise ProcessLookupError
             os.killpg(process.pid, 0)
+            if session_members(process.pid):
+                # A different MPI rank group may outlive its launcher group.
+                raise ValueError('Launch session still contains live processes')
         except ProcessLookupError:
-            store.transition(attempt.attempt_id, 'succeeded' if code == 0 else 'failed',
-                exit_code=code, reason=None if code == 0 else f'Process exited with code {code}',
-                termination_evidence='wait() reaped launcher and process group no longer exists')
+            from .recovery import session_members
+            if session_members(process.pid):
+                store.transition(attempt.attempt_id, 'unknown', reason='MPI session remains alive')
+                return False
+            cancel = store.cancellation(attempt.attempt_id)
+            store.transition(attempt.attempt_id, 'cancelled' if cancel else ('succeeded' if code == 0 else 'failed'),
+                exit_code=code, reason=cancel or (None if code == 0 else f'Process exited with code {code}'),
+                termination_evidence='wait() reaped launcher; no live launch-session processes remain')
             return True
         else:
             store.transition(attempt.attempt_id, 'unknown', reason='Launcher exited but process group remains')

@@ -67,8 +67,14 @@ class ManagerService:
             self.challenge.write_text(self.proof)
         self.last_schedule = 0.0
         self._poll_lock = threading.Lock()
+        self.expire_workers()
         self._input_cache_lock = threading.Lock()
         self._input_cache: OrderedDict[tuple[str, str, int, int, int], JobSpecification] = OrderedDict()
+
+    def expire_workers(self) -> None:
+        """Run at startup and periodically even while all workers are disconnected."""
+        with self._poll_lock, Store(self.config.manager.database_path) as store:
+            store.expire_workers(time.time(), self.config.manager.heartbeat_timeout_seconds)
 
     def close(self) -> None:
         self.challenge.unlink(missing_ok=True)
@@ -118,17 +124,27 @@ class ManagerService:
                                                  transfer['status'], transfer.get('reason'))
                     old = store.attempt(report['attempt_id'])
                     state = report['state']
-                    if state not in {'assigned', 'running', 'unknown', *TERMINAL}:
+                    if state not in {'assigned', 'running', 'cancelling', 'unknown', *TERMINAL}:
                         raise ValueError('Unsupported worker state')
+                    if store.cancellation(old.attempt_id) and state not in TERMINAL:
+                        continue  # A stale report cannot undo durable cancellation intent.
                     if state == 'assigned':
+                        if old.state == 'unknown':
+                            store.transition(old.attempt_id, 'assigned')
+                        continue
+                    if old.state == state and state not in TERMINAL:
                         continue
                     # A short execution may finish between consecutive polls.
-                    if old.state == 'assigned' and state in {'succeeded', 'failed'} and report.get('started'):
-                        store.transition(old.attempt_id, 'running')
+                    if old.state == 'assigned' and state in TERMINAL and report.get('started'):
+                        old = store.transition(old.attempt_id, 'running')
+                    # Worker timeouts may finish without a cancelling poll.
+                    if old.state == 'running' and state == 'cancelled':
+                        store.transition(old.attempt_id, 'cancelling', reason=report.get('reason'))
                     store.transition(old.attempt_id, state, exit_code=report.get('exit_code'),
                                      reason=report.get('reason'),
                                      termination_evidence=report.get('termination_evidence'))
                 store.set_worker(worker_id, snapshot=asdict(snapshot))
+            store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
                 snapshots = []
                 for saved_id, record in store.worker_records().items():
@@ -142,7 +158,7 @@ class ManagerService:
             assignments = []
             for reservation in store.reservations(worker_id):
                 attempt = store.attempt(reservation.attempt_id)
-                if attempt.state == 'assigned':
+                if attempt.state in {'assigned', 'unknown', 'cancelling'}:
                     specification = asdict(store.specification(attempt.job_id))
                     if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':
                         # Legacy shared workers accept only the original specification keys.
@@ -153,6 +169,8 @@ class ManagerService:
             return {'challenge': str(self.challenge), 'assignments': assignments,
                     'protocol': 2, 'storage_mode': self.config.storage.mode,
                     'staged_launch_enabled': False,
+                    'cancellations': [{'attempt_id': r.attempt_id, 'reason': store.cancellation(r.attempt_id)}
+                                      for r in store.reservations(worker_id) if store.cancellation(r.attempt_id)],
                     'paused': store.worker_records()[worker_id]['paused'],
                     'policy': asdict(policy),
                     'manager_capacity': asdict(next(w for w in self.config.workers if w.id == worker_id))}
@@ -275,6 +293,9 @@ def make_server(service: ManagerService, host: str, port: int, *,
     class BoundedServer(ThreadingHTTPServer):
         # Join in-flight handlers on close before service storage is cleaned up.
         daemon_threads = False
+
+        def service_actions(self) -> None:
+            service.expire_workers()
 
         def get_request(self) -> tuple:
             connection, address = super().get_request()

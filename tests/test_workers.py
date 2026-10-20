@@ -205,7 +205,7 @@ class WorkerTests(unittest.TestCase):
         self.assertIsNone(restarted.future)
         self.assertFalse(Path(assignment['attempt']['directory']).exists())
         with Store(self.config.manager.database_path) as store:
-            self.assertEqual(store.job_state(ids[0]), 'assigned')
+            self.assertEqual(store.job_state(ids[0]), 'unknown')
             self.assertEqual(len(store.reservations()), 1)
 
     def test_foreign_reports_rejected(self) -> None:

@@ -1,0 +1,171 @@
+{
+  "hostname": "allegro",
+  "python": "3.10.12",
+  "root": "/tmp/lammps-t006-ChP3OE5w",
+  "source_sha256": {
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "src/lammps_manager/cli.py": "82d7e70856757cdb98c5ac62abbfb41394d1d81d975dcf63d81c85ab57acbd2a",
+    "src/lammps_manager/config.py": "c023bdca2d27fe0806615a427f090fb988cc826171dddfd7ee50a643dd2e26e3",
+    "src/lammps_manager/local.py": "160a1fcb34dfa3ea12b4602e2eeac45ab764571bbeeffc0ea1c7b306793dd4bc",
+    "src/lammps_manager/manager.py": "d22e54d2a64628153ece0fa5869e5829a4d2da9c8a8a7931176dfdcde7645243",
+    "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+    "src/lammps_manager/recovery.py": "5862b8e9526fbbe9249f7516ec86847c1e9ba78fbf98655c6dbb8233f4537dfb",
+    "src/lammps_manager/scheduler.py": "0a7500572e060b0ada2bc80b218acee598be1f55ef63f35f1581d27106958b1c",
+    "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+    "src/lammps_manager/store.py": "6f73ad695f2d063d700ec5d64b3f0777725e4dbd2ca9102afb404554fef55a02",
+    "src/lammps_manager/worker.py": "4f7a2c8677726f3d4e4e0e63c2a2b7d005afd98f0ed2fdbf634880fdac01428b"
+  },
+  "records": [
+    {
+      "mode": "cancel",
+      "attempt": "613dbf883b2449d0a4959a7362e2e798",
+      "state": "cancelled",
+      "reason": "Cancellation requested",
+      "exit_code": 1,
+      "observed_session_members": [
+        [
+          94919,
+          94919
+        ],
+        [
+          94923,
+          94923
+        ],
+        [
+          94924,
+          94924
+        ]
+      ],
+      "remaining_members": [],
+      "directory": "/tmp/lammps-t006-ChP3OE5w/cancel/613dbf883b2449d0a4959a7362e2e798",
+      "stdout_bytes": 1113,
+      "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+      "events": [
+        {
+          "state": "queued",
+          "reason": null
+        },
+        {
+          "state": "assigned",
+          "reason": null
+        },
+        {
+          "state": "running",
+          "reason": null
+        },
+        {
+          "state": "cancelling",
+          "reason": "Cancellation requested"
+        },
+        {
+          "state": "cancelled",
+          "reason": "Cancellation requested"
+        }
+      ],
+      "artifacts": {
+        "execution.json": {
+          "bytes": 425,
+          "sha256": "3e384240699fd21da1173fbc044de9db565bbf5773f8837fc1569af01b68661b"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1113,
+          "sha256": "488f72a31bb77c3666355e246c228a07221a588db3272efa7e4bba4d59fb6f05"
+        },
+        "process.json": {
+          "bytes": 185,
+          "sha256": "17ef2da617732e06f7aa4638f3fbd523e3d5f52baea6a8179d4587f9c4e0e9fa"
+        },
+        "work/in.lmp": {
+          "bytes": 309,
+          "sha256": "eab62ebf34bd268a0ccd7fbcced27e91a475a5d7d35dfb8806585b6f230a57de"
+        },
+        "work/log.lammps": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "reservations": 0,
+      "current_live_members": []
+    },
+    {
+      "mode": "timeout",
+      "attempt": "f74002833bc14272a3a7ec92026a5f85",
+      "state": "cancelled",
+      "reason": "Time limit exceeded",
+      "exit_code": 1,
+      "observed_session_members": [
+        [
+          94930,
+          94930
+        ],
+        [
+          94934,
+          94934
+        ],
+        [
+          94935,
+          94935
+        ]
+      ],
+      "remaining_members": [],
+      "directory": "/tmp/lammps-t006-ChP3OE5w/timeout/f74002833bc14272a3a7ec92026a5f85",
+      "stdout_bytes": 1113,
+      "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+      "events": [
+        {
+          "state": "queued",
+          "reason": null
+        },
+        {
+          "state": "assigned",
+          "reason": null
+        },
+        {
+          "state": "running",
+          "reason": null
+        },
+        {
+          "state": "cancelling",
+          "reason": "Time limit exceeded"
+        },
+        {
+          "state": "cancelled",
+          "reason": "Time limit exceeded"
+        }
+      ],
+      "artifacts": {
+        "execution.json": {
+          "bytes": 428,
+          "sha256": "3c87ba0da1fcf6ac1418a4ea32db53ae5f68607e675d1163f876e37cb4b393f3"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1113,
+          "sha256": "488f72a31bb77c3666355e246c228a07221a588db3272efa7e4bba4d59fb6f05"
+        },
+        "process.json": {
+          "bytes": 185,
+          "sha256": "954f5da203b76f355a5a576f1f55e451eedc1deec4b831a0739f01be38a12d03"
+        },
+        "work/in.lmp": {
+          "bytes": 309,
+          "sha256": "eab62ebf34bd268a0ccd7fbcced27e91a475a5d7d35dfb8806585b6f230a57de"
+        },
+        "work/log.lammps": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "reservations": 0,
+      "current_live_members": []
+    }
+  ]
+}
