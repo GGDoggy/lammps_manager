@@ -41,3 +41,5 @@ Execution requires one central manager, local SQLite and persistent workers. Sha
 Permanent repository documentation and agent-facing material use English. Temporary user-facing material uses Traditional Chinese. Transfer relevant decisions into permanent English documentation and update references before retiring a temporary draft.
 
 Real-host acceptance records: [local CLI batches (V008)](docs/verification/v008-local-batches.md), [one-worker concurrency (V003)](docs/verification/v003-concurrency.md), [per-CPU admission (V004)](docs/verification/v004-cpu-admission.md), and [OS restarts / TLS interruption (V005)](docs/verification/v005-restart-transport.md). Explicit external [harnesses](tools/verification/README.md) are retained outside default tests; these checks do not establish production deployment, large-transfer performance or power-loss durability.
+
+[Continuation contracts (T017)](docs/continuation.md) validate a restricted statistical ideal-ABP recipe on a fingerprinted LAMMPS build, with a fail-closed capability API and explicit scientific comparison drivers. Exact continuation, other models/layouts and automatic splitting remain unavailable.

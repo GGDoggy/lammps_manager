@@ -24,3 +24,15 @@ V003 and V005 need free loopback ports 18448/18449. The drivers generate a priva
 Each successful driver writes `vNNN.json`. Database samples are also persisted incrementally to aid investigation if a driver fails. Do not blindly rerun a failed driver or resubmit its jobs: inspect original job/attempt/journal/process records first. Driver `finally` blocks stop owned services; actual simulations remain bounded by their persisted time limit. If a worker cannot reconcile surviving execution, retain reservations and investigate original process identity; do not treat service shutdown as proof of MPI termination.
 
 The final read-only audit checks original source hashes, every SQLite reservation table, recorded MPI sessions, test-root processes and closed listeners. Recorded evidence and limitations live in `docs/verification/v008-local-batches.md`, `v003-concurrency.md`, `v004-cpu-admission.md` and `v005-restart-transport.md`. Default `make check` does not rerun these external tests.
+
+## T017 continuation comparisons
+
+`continuation_acceptance.py` and `abp_acceptance.py` are standalone standard-library
+drivers (neither imports `real_acceptance.py`). See [the contract and invocations](../../docs/continuation.md)
+and [scientific evidence](../../docs/verification/t017-continuation.md). Both create
+fresh roots, bound each singleton LAMMPS process to 30 seconds and retain raw data.
+On Ctrl+C or a failed wait, the shared execution helper kills the owned process
+group and reaps its direct child before propagating the interruption; output is retained.
+The NVE driver performs a strict exact comparison; the ABP driver freezes pilot /
+confirmatory protocol and sample count before testing equivalence. A passing raw
+report does not self-authorize production splitting or other stochastic models.
