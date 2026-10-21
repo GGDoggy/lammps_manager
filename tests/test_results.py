@@ -318,7 +318,12 @@ class ResultTests(unittest.TestCase):
                     self.tick(worker)
                 with Store(worker.database) as store:
                     self.assertEqual(len(store.job_attempts(self.job_id)), 1)
-                    self.assertTrue((Path(store.attempt(attempt_id).directory) / 'work/generated').exists())
+                if worker.cleanup_future:
+                    worker.cleanup_future.result(timeout=5)
+                worker._cleanup_results()
+                with Store(worker.database) as store:
+                    self.assertEqual(store.cleanup_record(attempt_id)['status'], 'cleaned')
+                    self.assertFalse(Path(store.attempt(attempt_id).directory).exists())
 
     def test_lost_ack_restart_replays_without_execution(self) -> None:
         self.configure_process()

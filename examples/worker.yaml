@@ -8,6 +8,8 @@ work_root: /shared/lammps/jobs
 token_file: /etc/lammps-manager/worker.token
 # Allow staged result publication and verification to finish before retrying.
 result_request_timeout_seconds: 300
+# Staged mode only: reclaim owned worker files after durable result acknowledgement.
+cleanup_staged_files: true
 execution:
   lammps_path: /opt/lammps/bin/lmp
   mpi_launcher_path: /usr/bin/mpirun

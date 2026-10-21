@@ -131,6 +131,9 @@ class Store:
                 self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
                                  "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
+                self._db.execute("CREATE TABLE IF NOT EXISTS staged_cleanup ("
+                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                 "identity TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
                 self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
                                  "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
                                  "snapshot TEXT)")
@@ -510,6 +513,55 @@ class Store:
         if include_manifest:
             result['manifest'] = json.loads(result['manifest']) if result['manifest'] is not None else None
         return result
+
+    def cleanup_record(self, attempt_id: str) -> dict | None:
+        """Read the retained worker directory identity and cleanup tombstone."""
+        row = self._db.execute('SELECT * FROM staged_cleanup WHERE attempt_id=?',
+                               (attempt_id,)).fetchone()
+        return None if row is None else {**dict(row), 'identity': json.loads(row['identity'])}
+
+    def own_staged_directory(self, attempt_id: str, identity: list) -> None:
+        """Bind directory ownership once, before worker files are created."""
+        if (len(identity) != 3 or any(not isinstance(pair, list) or len(pair) != 2
+                or any(type(value) is not int or value < 0 for value in pair)
+                for pair in identity)):
+            raise StoreError('Invalid staged directory identity')
+        with self._transaction():
+            attempt = self.attempt(attempt_id)
+            if self.specification(attempt.job_id).storage_mode != 'staged':
+                raise StoreError('Cleanup ownership requires staged storage')
+            old = self.cleanup_record(attempt_id)
+            if old and old['identity'] != identity:
+                raise StoreError('Staged directory identity changed')
+            self._db.execute('INSERT OR IGNORE INTO staged_cleanup VALUES(?,?,?,NULL)',
+                             (attempt_id, json.dumps(identity), 'retained'))
+
+    def cleanup_candidates(self, after: int = 0, limit: int = 32) -> tuple[tuple[int, str], ...]:
+        """Select bounded eligible work; callers rotate the cursor to avoid starvation."""
+        return tuple((row[0], row[1]) for row in self._db.execute(
+            "SELECT c.rowid,c.attempt_id FROM staged_cleanup c "
+            "JOIN result_collections r ON r.attempt_id=c.attempt_id "
+            "JOIN attempts a ON a.attempt_id=c.attempt_id "
+            "WHERE r.status='collected' AND r.manifest IS NOT NULL "
+            "AND a.state IN ('succeeded','failed','cancelled') "
+            "AND a.termination_evidence IS NOT NULL AND c.status!='cleaned' "
+            "AND c.rowid>? ORDER BY c.rowid LIMIT ?", (after, limit)))
+
+    def set_cleanup(self, attempt_id: str, status: str, reason: str | None = None) -> None:
+        """Cleanup never changes process outcome, collection or launch fences."""
+        if status not in {'deleting', 'failed', 'cleaned'}:
+            raise StoreError('Invalid cleanup status')
+        with self._transaction():
+            attempt = self.attempt(attempt_id)
+            collection = self.result_collection(attempt_id)
+            record = self.cleanup_record(attempt_id)
+            if (attempt.state not in TERMINAL or not attempt.termination_evidence
+                    or not collection or collection['status'] != 'collected'
+                    or collection['manifest'] is None or record is None):
+                raise StoreError('Cleanup requires owned files and durable result acknowledgement')
+            if record['status'] != 'cleaned':
+                self._db.execute('UPDATE staged_cleanup SET status=?,reason=? WHERE attempt_id=?',
+                                 (status, reason, attempt_id))
 
     def reservations(self, worker_id: str | None = None) -> tuple[Reservation, ...]:
         """Read active reservations, including unknown and cancelling attempts."""

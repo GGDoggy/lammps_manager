@@ -92,6 +92,7 @@ class WorkerConfig:
     max_output_file_bytes: int = 1073741824
     max_output_total_bytes: int = 10737418240
     result_request_timeout_seconds: float = 300
+    cleanup_staged_files: bool = True
 
 
 class StrictLoader(yaml.SafeLoader):

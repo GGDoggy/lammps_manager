@@ -446,7 +446,8 @@ class ConcurrentStagedTests(unittest.TestCase):
                 attempt, = store.job_attempts(job)
                 local, = journal.job_attempts(job)
                 self.assertEqual(attempt.state, 'succeeded')
-                self.assertEqual((Path(local.directory) / 'work/count').read_text(), 'one')
+                self.assertTrue(journal.launch_claimed(local.attempt_id))
+                self.assertIsNotNone(journal.cleanup_record(local.attempt_id))
                 self.assertEqual((Path(attempt.directory) / 'results/work/count').read_text(), 'one')
                 self.assertIn('isolated output', (Path(attempt.directory) / 'results/stdout').read_text())
 

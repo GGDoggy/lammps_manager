@@ -58,6 +58,18 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             load_config('/missing/config.yaml', 'worker')
 
+    def test_staged_cleanup_setting(self):
+        worker = yaml.safe_load(Path('examples/worker.yaml').read_text())
+        worker.pop('cleanup_staged_files', None)
+        self.assertTrue(self.load(worker, 'worker').cleanup_staged_files)
+        for enabled in (True, False):
+            worker['cleanup_staged_files'] = enabled
+            self.assertEqual(self.load(worker, 'worker').cleanup_staged_files, enabled)
+        for invalid in (0, 1, 'false', None):
+            worker['cleanup_staged_files'] = invalid
+            with self.assertRaisesRegex(ConfigurationError, 'cleanup_staged_files'):
+                self.load(worker, 'worker')
+
     def test_snapshot_and_cpu_slots(self):
         config = self.load(self.manager)
         overrides = {'mpi_ranks': 3, 'omp_threads_per_rank': 2}

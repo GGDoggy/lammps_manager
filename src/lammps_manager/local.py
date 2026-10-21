@@ -241,6 +241,7 @@ def inspect_job(store: Store, job_id: str) -> dict[str, object]:
                          'result_collection': collection or (dict(status='pending',
                              reason='Results have not been collected') if staged else None),
                          'results_directory': str(directory) if staged and delivered else None,
-                         'input_transfer': store.input_transfer(attempt.attempt_id)})
+                         'input_transfer': store.input_transfer(attempt.attempt_id),
+                         'worker_cleanup': store.cleanup_record(attempt.attempt_id)})
     return {'specification': asdict(spec), 'state': store.job_state(job_id),
             'attempts': attempts, 'events': store.events(job_id)}

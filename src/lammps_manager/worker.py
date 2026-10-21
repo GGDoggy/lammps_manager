@@ -136,6 +136,9 @@ class Worker:
         self.collection_pool = ThreadPoolExecutor(max_workers=1)
         self.collection_future: Future | None = None
         self.collection_stop = Event()
+        self.cleanup_pool = ThreadPoolExecutor(max_workers=1)
+        self.cleanup_future: Future | None = None
+        self.cleanup_cursor = 0
         self.monitor = LinuxMonitor()
         self.proof = None
         self.acknowledged: dict[str, dict] = {}
@@ -153,7 +156,10 @@ class Worker:
             try:
                 self.collection_pool.shutdown(wait=True)
             finally:
-                self.lock.close()
+                try:
+                    self.cleanup_pool.shutdown(wait=True)
+                finally:
+                    self.lock.close()
 
     def _execute(self, attempt_id: str) -> None:
         with Store(self.database) as store:
@@ -161,6 +167,9 @@ class Worker:
 
     def tick(self) -> dict:
         """Send one heartbeat, report durable outcomes, and accept eligible concurrent jobs."""
+        if self.cleanup_future is not None and self.cleanup_future.done():
+            self.cleanup_future.result()
+            self.cleanup_future = None
         if self.collection_future is not None and self.collection_future.done():
             self.collection_future.result()  # Surface unexpected collection failures.
             self.collection_future = None
@@ -180,6 +189,9 @@ class Worker:
                                 if store.attempt(r.attempt_id).started_at is not None}
         snapshot = self.monitor.sample(self.config)
         self.sample_started = reflected_starts
+        if (self.config.storage_mode == 'staged' and self.config.cleanup_staged_files
+                and self.cleanup_future is None and not self.collection_stop.is_set()):
+            self.cleanup_future = self.cleanup_pool.submit(self._cleanup_results)
         reports = []
         with Store(self.database) as store:
             for attempt in (a for job in store.jobs() for a in store.job_attempts(job['job_id'])):
@@ -299,6 +311,7 @@ class Worker:
                             store.retry(spec.job_id)
                         store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
                     if cancelled:
+                        self._prepare_staged_directory(store, attempt['attempt_id'])
                         store.request_cancel(attempt['attempt_id'], cancelled['reason'])
                         store.transition(attempt['attempt_id'], 'cancelled', reason=cancelled['reason'],
                             termination_evidence='Launch did not start a process')
@@ -343,6 +356,18 @@ class Worker:
             result['local_cpu_admission'] = self.cpu_admission
         return result
 
+    def _prepare_staged_directory(self, store: Store, attempt_id: str) -> bool:
+        """Defer filesystem failures without losing acceptance or stopping polls."""
+        from .cleanup import prepare_directory
+        try:
+            prepare_directory(store, attempt_id, Path(self.config.work_root).resolve(strict=True))
+        except (OSError, ValueError) as exc:
+            destination = Path(store.attempt(attempt_id).directory) / 'inputs'
+            store.set_input_transfer(attempt_id, str(destination), 'failed',
+                                     f'{type(exc).__name__}: {exc}')
+            return False
+        return True
+
     def _stage(self, store: Store, attempt_id: str) -> None:
         """Retry input transfer independently of process acceptance; never launch."""
         from .staging import publish_inputs
@@ -351,6 +376,8 @@ class Worker:
             return
         previous = store.input_transfer(attempt_id)
         if previous and previous['status'] == 'ready':
+            return
+        if not self._prepare_staged_directory(store, attempt_id):
             return
         destination = Path(attempt.directory) / 'inputs'
         store.set_input_transfer(attempt_id, str(destination), 'downloading')
@@ -514,11 +541,31 @@ class Worker:
                     # have survived an earlier lost response.
                     if self.collection_stop.is_set():
                         return
-                    self._result_request(attempt.attempt_id, 'commit', {})
+                    acknowledgement = self._result_request(attempt.attempt_id, 'commit', {})
+                    if acknowledgement.get('status') != 'collected':
+                        raise ValueError('Manager did not acknowledge durable result publication')
                     store.set_result_collection(attempt.attempt_id, 'collected')
                 except (OSError, ValueError, IncompleteRead, URLError) as exc:
                     store.set_result_collection(attempt.attempt_id, 'failed',
                                                 reason=f'{type(exc).__name__}: {exc}')
+
+    def _cleanup_results(self) -> None:
+        """One bounded filesystem pass, independent of polling and result uploads."""
+        from .cleanup import cleanup_attempt
+        root = Path(self.config.work_root).resolve()
+        protected = (self.database.parent, Path(self.config.token_file))
+        with Store(self.database) as store:
+            rows = store.cleanup_candidates(self.cleanup_cursor)
+            if not rows:
+                self.cleanup_cursor = 0
+                rows = store.cleanup_candidates()
+            for cursor, attempt_id in rows:
+                if self.collection_stop.is_set():
+                    return
+                manager_directory = Path(store.specification(store.attempt(attempt_id).job_id).work_directory)
+                cleanup_attempt(store, attempt_id, root, protected,
+                                manager_directory=manager_directory)
+                self.cleanup_cursor = cursor
 
     def _result_request(self, attempt_id: str, operation: str, payload: object,
                         size: int | None = None) -> dict:

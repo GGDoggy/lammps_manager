@@ -1,0 +1,1109 @@
+{
+  "manager_host": "poincare",
+  "worker_host": "allegro",
+  "worker_boot": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "manager_root": "/tmp/lammps-v002-manager-_pyhd1kt",
+  "worker_root": "/tmp/lammps-v002-worker-rAIN1ZQz",
+  "endpoint": "https://192.168.50.112:18445",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+    "src/lammps_manager/local.py": "f6618858f5b30dd1d6f36055078aef1a33adc8f8bad84816392216b94b84a199",
+    "src/lammps_manager/config.py": "b35c62854fc828c306872747f59aad7544a9202101740cef7768cb38cc8d5f4c",
+    "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+    "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+    "src/lammps_manager/store.py": "8f186823aaa3c96f0bfaa975a7c21f5fd2d51306919ef706a413d2d5bb4b63ba",
+    "src/lammps_manager/scheduler.py": "247f84ac352b064c34170d09c11c93d2636f04b8e7591fe257e5a0453f4bc03b",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/worker.py": "b9c5e5fbb75a9870eea7432bfc7b2c98fc8235bafe1b6882f457fbae56ee5f9b",
+    "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+    "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1"
+  },
+  "cases": [
+    {
+      "mode": "success",
+      "manager_attempt": {
+        "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+        "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+        "worker_id": "v002",
+        "directory": "/tmp/lammps-v002-manager-_pyhd1kt/jobs/e914d8b37f0144e6bb10bbb34eb48359/ee430b49c0e64f43b40427fd4101c54d",
+        "state": "succeeded",
+        "created_at": "2026-10-21T01:44:00.249Z",
+        "started_at": "2026-10-21T01:44:01.065Z",
+        "ended_at": "2026-10-21T01:44:01.065Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      },
+      "collection": {
+        "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+        "status": "collected",
+        "manifest": {
+          "files": [
+            {
+              "path": "execution.json",
+              "size": 568,
+              "sha256": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356"
+            },
+            {
+              "path": "outcome.json",
+              "size": 506,
+              "sha256": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369"
+            },
+            {
+              "path": "process.json",
+              "size": 188,
+              "sha256": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306"
+            },
+            {
+              "path": "stderr",
+              "size": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": "stdout",
+              "size": 2326,
+              "sha256": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0"
+            },
+            {
+              "path": "work/auxiliary.inc",
+              "size": 22,
+              "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+            },
+            {
+              "path": "work/in.lmp",
+              "size": 346,
+              "sha256": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053"
+            },
+            {
+              "path": "work/log.lammps",
+              "size": 2603,
+              "sha256": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849"
+            },
+            {
+              "path": "work/output.data",
+              "size": 14215,
+              "sha256": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c"
+            }
+          ],
+          "omitted": []
+        },
+        "reason": null
+      },
+      "worker_before": {
+        "attempt": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/e914d8b37f0144e6bb10bbb34eb48359/ee430b49c0e64f43b40427fd4101c54d",
+          "state": "succeeded",
+          "created_at": "2026-10-21T01:44:00.241Z",
+          "started_at": "2026-10-21T01:44:00.461Z",
+          "ended_at": "2026-10-21T01:44:00.960Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null
+        },
+        "exists": true,
+        "cleanup": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267142
+            ],
+            [
+              66306,
+              267143
+            ]
+          ],
+          "status": "retained",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 568,
+                "sha256": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356"
+              },
+              {
+                "path": "outcome.json",
+                "size": 506,
+                "sha256": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306"
+              },
+              {
+                "path": "stderr",
+                "size": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "path": "stdout",
+                "size": 2326,
+                "sha256": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0"
+              },
+              {
+                "path": "work/auxiliary.inc",
+                "size": 22,
+                "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 346,
+                "sha256": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 2603,
+                "sha256": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849"
+              },
+              {
+                "path": "work/output.data",
+                "size": 14215,
+                "sha256": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "claimed": true,
+        "process": {
+          "pid": 126296,
+          "process_group": 126296,
+          "session": 126296,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "23435247",
+          "launched_at": "2026-10-21T01:44:00.457275+00:00"
+        },
+        "hashes": {
+          "execution.json": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome.json": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369",
+          "stdout": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0",
+          "process.json": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306",
+          "work/in.lmp": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053",
+          "work/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9",
+          "work/log.lammps": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849",
+          "work/output.data": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c",
+          "inputs/in.lmp": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053",
+          "inputs/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+        }
+      },
+      "worker_after": {
+        "attempt": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/e914d8b37f0144e6bb10bbb34eb48359/ee430b49c0e64f43b40427fd4101c54d",
+          "state": "succeeded",
+          "created_at": "2026-10-21T01:44:00.241Z",
+          "started_at": "2026-10-21T01:44:00.461Z",
+          "ended_at": "2026-10-21T01:44:00.960Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null
+        },
+        "exists": false,
+        "cleanup": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267142
+            ],
+            [
+              66306,
+              267143
+            ]
+          ],
+          "status": "cleaned",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 568,
+                "sha256": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356"
+              },
+              {
+                "path": "outcome.json",
+                "size": 506,
+                "sha256": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306"
+              },
+              {
+                "path": "stderr",
+                "size": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "path": "stdout",
+                "size": 2326,
+                "sha256": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0"
+              },
+              {
+                "path": "work/auxiliary.inc",
+                "size": 22,
+                "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 346,
+                "sha256": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 2603,
+                "sha256": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849"
+              },
+              {
+                "path": "work/output.data",
+                "size": 14215,
+                "sha256": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "claimed": true,
+        "process": null,
+        "hashes": {}
+      },
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:43:59.849Z"
+        },
+        {
+          "event_id": 2,
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:00.250Z"
+        },
+        {
+          "event_id": 3,
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:01.065Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+          "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T01:44:01.065Z"
+        }
+      ]
+    },
+    {
+      "mode": "failure",
+      "manager_attempt": {
+        "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+        "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+        "worker_id": "v002",
+        "directory": "/tmp/lammps-v002-manager-_pyhd1kt/jobs/73ee1ee8d6564b0e8d15dfd8430a9743/90196a84d53f4b038568ef41807bcc33",
+        "state": "failed",
+        "created_at": "2026-10-21T01:44:01.989Z",
+        "started_at": "2026-10-21T01:44:03.731Z",
+        "ended_at": "2026-10-21T01:44:03.732Z",
+        "exit_code": 1,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": "Process exited with code 1"
+      },
+      "collection": {
+        "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+        "status": "collected",
+        "manifest": {
+          "files": [
+            {
+              "path": "execution.json",
+              "size": 568,
+              "sha256": "94900f2ad9bdcccb2df421d4698e81a45a3fb28cafed9ebef08bdbc7ffb5bd0f"
+            },
+            {
+              "path": "outcome.json",
+              "size": 527,
+              "sha256": "341e505ba9cebc89fc98b997af434de29b4009eb5ba3fbc494219c71dba4da23"
+            },
+            {
+              "path": "process.json",
+              "size": 188,
+              "sha256": "4aca53d68146dd49c3e4b50461bacde915ccc328edd51868fe5340e31e8cec1e"
+            },
+            {
+              "path": "stderr",
+              "size": 625,
+              "sha256": "821e54b7571b242ba7d512db8ad449d4a220b00d832db92b0bbed4c55fd5020f"
+            },
+            {
+              "path": "stdout",
+              "size": 516,
+              "sha256": "519804e7b5965f4386c3b8009ae1fd29bdb6962f692f97bae43bed4b0d94785c"
+            },
+            {
+              "path": "work/auxiliary.inc",
+              "size": 22,
+              "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+            },
+            {
+              "path": "work/in.lmp",
+              "size": 358,
+              "sha256": "9ef03fbf3f952311c230e72c465628b90fd811c2f36fcb492fc1f85f6d290709"
+            },
+            {
+              "path": "work/log.lammps",
+              "size": 873,
+              "sha256": "9a9136ca83ff9ddef8d81b645f220d66a2d808cbea6b874079ed311d0e771069"
+            }
+          ],
+          "omitted": []
+        },
+        "reason": null
+      },
+      "worker_before": {
+        "attempt": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/73ee1ee8d6564b0e8d15dfd8430a9743/90196a84d53f4b038568ef41807bcc33",
+          "state": "failed",
+          "created_at": "2026-10-21T01:44:01.983Z",
+          "started_at": "2026-10-21T01:44:02.150Z",
+          "ended_at": "2026-10-21T01:44:03.634Z",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": "Process exited with code 1"
+        },
+        "exists": true,
+        "cleanup": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267143
+            ],
+            [
+              66306,
+              267144
+            ]
+          ],
+          "status": "retained",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 568,
+                "sha256": "94900f2ad9bdcccb2df421d4698e81a45a3fb28cafed9ebef08bdbc7ffb5bd0f"
+              },
+              {
+                "path": "outcome.json",
+                "size": 527,
+                "sha256": "341e505ba9cebc89fc98b997af434de29b4009eb5ba3fbc494219c71dba4da23"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "4aca53d68146dd49c3e4b50461bacde915ccc328edd51868fe5340e31e8cec1e"
+              },
+              {
+                "path": "stderr",
+                "size": 625,
+                "sha256": "821e54b7571b242ba7d512db8ad449d4a220b00d832db92b0bbed4c55fd5020f"
+              },
+              {
+                "path": "stdout",
+                "size": 516,
+                "sha256": "519804e7b5965f4386c3b8009ae1fd29bdb6962f692f97bae43bed4b0d94785c"
+              },
+              {
+                "path": "work/auxiliary.inc",
+                "size": 22,
+                "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 358,
+                "sha256": "9ef03fbf3f952311c230e72c465628b90fd811c2f36fcb492fc1f85f6d290709"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 873,
+                "sha256": "9a9136ca83ff9ddef8d81b645f220d66a2d808cbea6b874079ed311d0e771069"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "claimed": true,
+        "process": {
+          "pid": 126313,
+          "process_group": 126313,
+          "session": 126313,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "23435416",
+          "launched_at": "2026-10-21T01:44:02.146806+00:00"
+        },
+        "hashes": {
+          "execution.json": "94900f2ad9bdcccb2df421d4698e81a45a3fb28cafed9ebef08bdbc7ffb5bd0f",
+          "stderr": "821e54b7571b242ba7d512db8ad449d4a220b00d832db92b0bbed4c55fd5020f",
+          "outcome.json": "341e505ba9cebc89fc98b997af434de29b4009eb5ba3fbc494219c71dba4da23",
+          "stdout": "519804e7b5965f4386c3b8009ae1fd29bdb6962f692f97bae43bed4b0d94785c",
+          "process.json": "4aca53d68146dd49c3e4b50461bacde915ccc328edd51868fe5340e31e8cec1e",
+          "work/in.lmp": "9ef03fbf3f952311c230e72c465628b90fd811c2f36fcb492fc1f85f6d290709",
+          "work/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9",
+          "work/log.lammps": "9a9136ca83ff9ddef8d81b645f220d66a2d808cbea6b874079ed311d0e771069",
+          "inputs/in.lmp": "9ef03fbf3f952311c230e72c465628b90fd811c2f36fcb492fc1f85f6d290709",
+          "inputs/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+        }
+      },
+      "worker_after": {
+        "attempt": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/73ee1ee8d6564b0e8d15dfd8430a9743/90196a84d53f4b038568ef41807bcc33",
+          "state": "failed",
+          "created_at": "2026-10-21T01:44:01.983Z",
+          "started_at": "2026-10-21T01:44:02.150Z",
+          "ended_at": "2026-10-21T01:44:03.634Z",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": "Process exited with code 1"
+        },
+        "exists": false,
+        "cleanup": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267143
+            ],
+            [
+              66306,
+              267144
+            ]
+          ],
+          "status": "cleaned",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 568,
+                "sha256": "94900f2ad9bdcccb2df421d4698e81a45a3fb28cafed9ebef08bdbc7ffb5bd0f"
+              },
+              {
+                "path": "outcome.json",
+                "size": 527,
+                "sha256": "341e505ba9cebc89fc98b997af434de29b4009eb5ba3fbc494219c71dba4da23"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "4aca53d68146dd49c3e4b50461bacde915ccc328edd51868fe5340e31e8cec1e"
+              },
+              {
+                "path": "stderr",
+                "size": 625,
+                "sha256": "821e54b7571b242ba7d512db8ad449d4a220b00d832db92b0bbed4c55fd5020f"
+              },
+              {
+                "path": "stdout",
+                "size": 516,
+                "sha256": "519804e7b5965f4386c3b8009ae1fd29bdb6962f692f97bae43bed4b0d94785c"
+              },
+              {
+                "path": "work/auxiliary.inc",
+                "size": 22,
+                "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 358,
+                "sha256": "9ef03fbf3f952311c230e72c465628b90fd811c2f36fcb492fc1f85f6d290709"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 873,
+                "sha256": "9a9136ca83ff9ddef8d81b645f220d66a2d808cbea6b874079ed311d0e771069"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "claimed": true,
+        "process": null,
+        "hashes": {}
+      },
+      "events": [
+        {
+          "event_id": 5,
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:01.646Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:01.989Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:03.732Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "73ee1ee8d6564b0e8d15dfd8430a9743",
+          "attempt_id": "90196a84d53f4b038568ef41807bcc33",
+          "state": "failed",
+          "reason": "Process exited with code 1",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T01:44:03.732Z"
+        }
+      ]
+    },
+    {
+      "mode": "cancelled",
+      "manager_attempt": {
+        "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+        "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+        "worker_id": "v002",
+        "directory": "/tmp/lammps-v002-manager-_pyhd1kt/jobs/3873e1388a764bc2a2bde85eb9dbc720/e771e8df220549eeba9b54b24a98a68d",
+        "state": "cancelled",
+        "created_at": "2026-10-21T01:44:05.770Z",
+        "started_at": null,
+        "ended_at": "2026-10-21T01:44:05.945Z",
+        "exit_code": null,
+        "termination_evidence": "Launch did not start a process",
+        "reason": "V002 prelaunch cancellation"
+      },
+      "collection": {
+        "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+        "status": "collected",
+        "manifest": {
+          "files": [
+            {
+              "path": "outcome.json",
+              "size": 479,
+              "sha256": "11111a4ccdf2300294d2ac389b032d233003bcb411a6d33dfe8d218241c389b5"
+            }
+          ],
+          "omitted": [
+            {
+              "path": "stdout",
+              "reason": "Artifact unavailable: file missing"
+            },
+            {
+              "path": "stderr",
+              "reason": "Artifact unavailable: file missing"
+            },
+            {
+              "path": "execution.json",
+              "reason": "Artifact unavailable: file missing"
+            },
+            {
+              "path": "process.json",
+              "reason": "Artifact unavailable: file missing"
+            },
+            {
+              "path": "work",
+              "reason": "Artifact unavailable: work directory missing"
+            }
+          ]
+        },
+        "reason": null
+      },
+      "worker_before": {
+        "attempt": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/3873e1388a764bc2a2bde85eb9dbc720/e771e8df220549eeba9b54b24a98a68d",
+          "state": "cancelled",
+          "created_at": "2026-10-21T01:44:05.765Z",
+          "started_at": null,
+          "ended_at": "2026-10-21T01:44:05.896Z",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "reason": "V002 prelaunch cancellation"
+        },
+        "exists": true,
+        "cleanup": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267144
+            ],
+            [
+              66306,
+              267145
+            ]
+          ],
+          "status": "retained",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "outcome.json",
+                "size": 479,
+                "sha256": "11111a4ccdf2300294d2ac389b032d233003bcb411a6d33dfe8d218241c389b5"
+              }
+            ],
+            "omitted": [
+              {
+                "path": "stdout",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "stderr",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "execution.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "process.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "work",
+                "reason": "Artifact unavailable: work directory missing"
+              }
+            ]
+          },
+          "reason": null
+        },
+        "claimed": false,
+        "process": null,
+        "hashes": {
+          "outcome.json": "11111a4ccdf2300294d2ac389b032d233003bcb411a6d33dfe8d218241c389b5",
+          "inputs/in.lmp": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053",
+          "inputs/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+        }
+      },
+      "worker_after": {
+        "attempt": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "worker_id": "v002",
+          "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/3873e1388a764bc2a2bde85eb9dbc720/e771e8df220549eeba9b54b24a98a68d",
+          "state": "cancelled",
+          "created_at": "2026-10-21T01:44:05.765Z",
+          "started_at": null,
+          "ended_at": "2026-10-21T01:44:05.896Z",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "reason": "V002 prelaunch cancellation"
+        },
+        "exists": false,
+        "cleanup": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "identity": [
+            [
+              66306,
+              267072
+            ],
+            [
+              66306,
+              267144
+            ],
+            [
+              66306,
+              267145
+            ]
+          ],
+          "status": "cleaned",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "outcome.json",
+                "size": 479,
+                "sha256": "11111a4ccdf2300294d2ac389b032d233003bcb411a6d33dfe8d218241c389b5"
+              }
+            ],
+            "omitted": [
+              {
+                "path": "stdout",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "stderr",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "execution.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "process.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "work",
+                "reason": "Artifact unavailable: work directory missing"
+              }
+            ]
+          },
+          "reason": null
+        },
+        "claimed": false,
+        "process": null,
+        "hashes": {}
+      },
+      "events": [
+        {
+          "event_id": 9,
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:05.459Z"
+        },
+        {
+          "event_id": 10,
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:05.771Z"
+        },
+        {
+          "event_id": 11,
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "state": "cancelling",
+          "reason": "V002 prelaunch cancellation",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T01:44:05.863Z"
+        },
+        {
+          "event_id": 12,
+          "job_id": "3873e1388a764bc2a2bde85eb9dbc720",
+          "attempt_id": "e771e8df220549eeba9b54b24a98a68d",
+          "state": "cancelled",
+          "reason": "V002 prelaunch cancellation",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "created_at": "2026-10-21T01:44:05.945Z"
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "sessions": [
+      {
+        "identity": {
+          "pid": 126296,
+          "process_group": 126296,
+          "session": 126296,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "23435247",
+          "launched_at": "2026-10-21T01:44:00.457275+00:00"
+        },
+        "members": []
+      },
+      {
+        "identity": {
+          "pid": 126313,
+          "process_group": 126313,
+          "session": 126313,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "23435416",
+          "launched_at": "2026-10-21T01:44:02.146806+00:00"
+        },
+        "members": []
+      }
+    ],
+    "processes_under_root": [],
+    "dedicated_manager_port": {
+      "address": "192.168.50.112",
+      "port": 18445,
+      "connect_ex": 111,
+      "listener_closed": true
+    }
+  },
+  "limitations": [
+    "One remote worker; two MPI ranks per execution; 108 atoms / 1000 steps for success.",
+    "External CPU admission explicitly disabled; memory and reservation quotas remain active.",
+    "No physical power-loss, multi-node MPI, large-transfer or production-deployment verification.",
+    "Initial final-audit script failed; this read-only audit resumed original completed records without resubmission."
+  ],
+  "acknowledgement_loss_observations": [
+    {
+      "command": "lost_ack",
+      "time": 1792547041.4673483,
+      "result": {
+        "records": [
+          {
+            "attempt": {
+              "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+              "job_id": "e914d8b37f0144e6bb10bbb34eb48359",
+              "worker_id": "v002",
+              "directory": "/tmp/lammps-v002-worker-rAIN1ZQz/work/e914d8b37f0144e6bb10bbb34eb48359/ee430b49c0e64f43b40427fd4101c54d",
+              "state": "succeeded",
+              "created_at": "2026-10-21T01:44:00.241Z",
+              "started_at": "2026-10-21T01:44:00.461Z",
+              "ended_at": "2026-10-21T01:44:00.960Z",
+              "exit_code": 0,
+              "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+              "reason": null
+            },
+            "exists": true,
+            "cleanup": {
+              "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+              "identity": [
+                [
+                  66306,
+                  267072
+                ],
+                [
+                  66306,
+                  267142
+                ],
+                [
+                  66306,
+                  267143
+                ]
+              ],
+              "status": "retained",
+              "reason": null
+            },
+            "collection": {
+              "attempt_id": "ee430b49c0e64f43b40427fd4101c54d",
+              "status": "failed",
+              "manifest": {
+                "files": [
+                  {
+                    "path": "execution.json",
+                    "size": 568,
+                    "sha256": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356"
+                  },
+                  {
+                    "path": "outcome.json",
+                    "size": 506,
+                    "sha256": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369"
+                  },
+                  {
+                    "path": "process.json",
+                    "size": 188,
+                    "sha256": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306"
+                  },
+                  {
+                    "path": "stderr",
+                    "size": 0,
+                    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                    "path": "stdout",
+                    "size": 2326,
+                    "sha256": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0"
+                  },
+                  {
+                    "path": "work/auxiliary.inc",
+                    "size": 22,
+                    "sha256": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+                  },
+                  {
+                    "path": "work/in.lmp",
+                    "size": 346,
+                    "sha256": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053"
+                  },
+                  {
+                    "path": "work/log.lammps",
+                    "size": 2603,
+                    "sha256": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849"
+                  },
+                  {
+                    "path": "work/output.data",
+                    "size": 14215,
+                    "sha256": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c"
+                  }
+                ],
+                "omitted": []
+              },
+              "reason": "ConnectionError: V002 injected lost commit response"
+            },
+            "claimed": true,
+            "process": {
+              "pid": 126296,
+              "process_group": 126296,
+              "session": 126296,
+              "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+              "start_ticks": "23435247",
+              "launched_at": "2026-10-21T01:44:00.457275+00:00"
+            },
+            "hashes": {
+              "execution.json": "2174d73c6a98a7161a363490e3739a2c7b88233ed99cca83e80c2aee48b31356",
+              "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "outcome.json": "67ec47bc4345283ef7e0ffe02afbd760e8aa07df605c8d8e879c236600b38369",
+              "stdout": "d51678983804bfc8a75cac8c3382632ca66846a716a0545ee7e080200f62b5c0",
+              "process.json": "0816719aed2030f1b3bf52ec58cab212bc252b7b4c85648240fdfbabf4bf8306",
+              "work/in.lmp": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053",
+              "work/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9",
+              "work/log.lammps": "93197dcfb49dd9c7fccc89c727af90c12566b4044bf6b96cc31893aac0281849",
+              "work/output.data": "e71a6506bb072ef3caf26081aa8990e0570c9f9692113b745b6524c4de22cd9c",
+              "inputs/in.lmp": "37c668f529c35cf4fa50d5ab0607337c28c04b256a139de70659a59595300053",
+              "inputs/auxiliary.inc": "8bfea1406bc3ce0fdd7f95d1833151795f5a46ad03e16673bea091526225cff9"
+            }
+          }
+        ],
+        "reservations": [],
+        "host": "allegro",
+        "boot": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "time": 1792547041.447691
+      }
+    }
+  ],
+  "worker_reconstruction_commands": [
+    {
+      "command": "restart_disabled",
+      "time": 1792547039.846524
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547041.5530233
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547041.5969024
+    },
+    {
+      "command": "restart_disabled",
+      "time": 1792547041.6424205
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547045.3130875
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547045.3822227
+    },
+    {
+      "command": "restart_disabled",
+      "time": 1792547045.4544802
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547046.051527
+    },
+    {
+      "command": "restart_enabled",
+      "time": 1792547046.1009555
+    }
+  ],
+  "versions": {
+    "open_mpi": "4.1.2",
+    "lammps": "29 Sep 2021 Update 2",
+    "pyyaml": "6.0.3"
+  },
+  "transport": {
+    "tls_certificate_verification": true,
+    "certificate_ip_san": "192.168.50.112",
+    "explicit_trust": "SSL_CERT_FILE",
+    "ssh_host_key": "previously recorded host key",
+    "proxy": false,
+    "redirects": false
+  }
+}

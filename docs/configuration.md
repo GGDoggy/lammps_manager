@@ -72,3 +72,7 @@ Aggregate CPU utilization remains telemetry and a worker ranking input only.
 Upgrade managers and workers together: older metrics lacking per-CPU data fail
 closed under the enabled policy, even with a positive minimum. There is no
 fallback to host-average admission. Older managers do not enforce these settings.
+
+## Worker staged cleanup (T012)
+
+Worker top-level `cleanup_staged_files` is a strict boolean (default `true`). It enables bounded background reclamation of worker-owned staged attempt files only after confirmed process termination and durable manager result acknowledgement. Shared mode, manager results and retained worker journal/launch fences are unaffected. Set it to `false` and restart to retain staged files; reenable to resume pending cleanup. Existing trees without durable ownership records remain retained. Configuration changes do not rewrite submission snapshots. See [eligibility, restart, safety and diagnostics](staged-results.md#worker-staged-cleanup-t012).
