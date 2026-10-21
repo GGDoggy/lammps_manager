@@ -247,7 +247,7 @@ class StagedWorkerTests(unittest.TestCase):
         return worker
 
     def assert_pending(self, worker: Worker, status: str) -> dict:
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
             attempt, = journal.job_attempts(self.job_id)
             transfer = journal.input_transfer(attempt.attempt_id)

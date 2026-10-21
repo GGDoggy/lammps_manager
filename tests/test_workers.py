@@ -202,7 +202,7 @@ class WorkerTests(unittest.TestCase):
         restarted.tick()
         replay = restarted.tick()
         self.assertEqual(replay['assignments'][0]['attempt']['attempt_id'], assignment['attempt']['attempt_id'])
-        self.assertIsNone(restarted.future)
+        self.assertFalse(restarted.futures)
         self.assertFalse(Path(assignment['attempt']['directory']).exists())
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'unknown')
@@ -259,7 +259,7 @@ class WorkerTests(unittest.TestCase):
         with patch.object(worker.opener, 'open', side_effect=lower_limit):
             result = worker.tick()
         self.assertTrue(result['assignments'])
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
             self.assertEqual(journal.jobs(), ())
         with Store(self.config.manager.database_path) as store:
@@ -267,7 +267,7 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(len(store.reservations()), 1)
         worker.config = original_config
         worker.tick()
-        self.assertIsNotNone(worker.future)
+        self.assertTrue(worker.futures)
 
     def test_heartbeats_continue_during_execution_and_pause(self) -> None:
         self.program.write_text(self.program.read_text().replace('time.sleep(.08)', 'time.sleep(.4)'))
@@ -291,7 +291,7 @@ class WorkerTests(unittest.TestCase):
         with Store(self.config.manager.database_path) as store:
             self.assertGreater(store.worker_records()['a']['snapshot']['heartbeat_at'], before)
             self.assertEqual(len(store.reservations()), 1)
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'succeeded')
@@ -306,7 +306,7 @@ class WorkerTests(unittest.TestCase):
         with patch.object(worker.opener, 'open', side_effect=URLError('temporary disconnection')):
             with self.assertRaises(URLError):
                 worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations()), 1)
@@ -318,7 +318,7 @@ class WorkerTests(unittest.TestCase):
         with patch.object(self.service, 'poll', side_effect=replay):
             worker.tick()
             worker.tick()
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         directory = Path(assignment['attempt']['directory'])
         self.assertEqual((directory / 'work/invocations').read_text(), 'launch\n')
         with Store(self.config.manager.database_path) as store:
@@ -338,7 +338,7 @@ class WorkerTests(unittest.TestCase):
             return result
         with patch.object(self.service, 'poll', side_effect=collide):
             assignment = worker.tick()['assignments'][0]
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         worker.tick()
         directory = Path(assignment['attempt']['directory'])
         self.assertEqual((directory / 'prior-output').read_text(), 'preserve')
@@ -355,7 +355,7 @@ class WorkerTests(unittest.TestCase):
             spec = store.specification(ids[0])
         (Path(spec.work_directory) / 'inputs/in.lmp').write_text('7')
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         with Store(worker.database) as journal:
             failed = journal.job_attempts(ids[0])[0]
             self.assertEqual(failed.state, 'failed')
@@ -368,7 +368,7 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations('a')), 1)
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual([store.job_state(job) for job in ids], ['failed', 'succeeded'])
@@ -409,7 +409,7 @@ class WorkerTests(unittest.TestCase):
                     self.assertEqual(store.job_state(ids[0]), 'running')
                     self.assertEqual(len(store.reservations()), 1)
                 self.assertEqual(worker.acknowledged, {})
-                worker.future.result(timeout=3)
+                next(iter(worker.futures.values())).result(timeout=3)
             else:
                 raise KeyboardInterrupt
 
@@ -462,13 +462,13 @@ class WorkerTests(unittest.TestCase):
                     self.assertEqual(len(store.reservations()), 1)
                 with Store(worker.database) as journal:
                     self.assertEqual(len(journal.reservations()), 1)
-                worker.future.result(timeout=3)
+                next(iter(worker.futures.values())).result(timeout=3)
             elif sleeps == 2:
                 # Restored shared storage permits result delivery and the next launch.
                 with Store(self.config.manager.database_path) as store:
                     self.assertEqual(store.job_state(ids[0]), 'succeeded')
                     self.assertEqual(store.job_state(ids[1]), 'assigned')
-                worker.future.result(timeout=3)
+                next(iter(worker.futures.values())).result(timeout=3)
             else:
                 raise KeyboardInterrupt
 
@@ -508,14 +508,14 @@ class WorkerTests(unittest.TestCase):
         with patch.object(Path, 'read_text', unreadable), patch('sys.stderr'):
             result = worker.tick()
         self.assertTrue(result['assignments'])
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
             self.assertEqual(journal.jobs(), ())
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations()), 1)
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'succeeded')
@@ -545,7 +545,7 @@ class WorkerTests(unittest.TestCase):
             assignment = worker.tick()['assignments'][0]
             worker.tick()
         self.assertIn('FileNotFoundError', str(errors.write.call_args_list))
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
             self.assertEqual(journal.jobs(), ())
         with Store(self.config.manager.database_path) as store:
@@ -553,9 +553,9 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(len(store.reservations()), 1)
         unavailable.rename(job_root)
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual([store.job_state(job) for job in ids], ['succeeded', 'succeeded'])
@@ -579,14 +579,14 @@ class WorkerTests(unittest.TestCase):
         with patch.object(Path, 'resolve', resolve), patch('sys.stderr') as errors:
             worker.tick()
         self.assertIn('PermissionError', str(errors.write.call_args_list))
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
             self.assertEqual(journal.jobs(), ())
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations()), 1)
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'succeeded')

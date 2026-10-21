@@ -321,14 +321,14 @@ class RecoveryWorkerTests(unittest.TestCase):
                 self.assertEqual(store.job_state(job), 'running')
                 self.assertEqual(len(store.job_attempts(job)), 1)
                 self.assertEqual(store.reservations(), reservations)
-            self.assertFalse(worker.future.done())
+            self.assertFalse(next(iter(worker.futures.values())).done())
             self.assertEqual((Path(attempt.directory) / 'work/invocations').read_text(), 'launch\n')
         finally:
             with Store(worker.database) as store:
                 for reservation in store.reservations():
                     store.request_cancel(reservation.attempt_id)
-            if worker.future is not None:
-                worker.future.result(timeout=6)
+            if worker.futures:
+                next(iter(worker.futures.values())).result(timeout=6)
 
     def test_timeout_completion_without_running_poll(self) -> None:
         self._timeout_between_polls(report_running=False)
@@ -359,7 +359,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(job), 'running' if report_running else 'assigned')
             self.assertEqual(len(store.reservations()), 1)
-        worker.future.result(timeout=6)
+        next(iter(worker.futures.values())).result(timeout=6)
         with Store(worker.database) as store:
             attempt, = store.job_attempts(job)
             self.assertEqual(attempt.state, 'cancelled')
@@ -416,7 +416,7 @@ class RecoveryWorkerTests(unittest.TestCase):
             store.request_cancel(attempt.attempt_id)
             self.assertEqual(len(store.reservations()), 1)
         worker.tick()
-        worker.future.result(timeout=6)
+        next(iter(worker.futures.values())).result(timeout=6)
         worker.acknowledged.clear()
         worker.tick()
         worker.acknowledged.clear()
@@ -433,7 +433,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         worker = self.worker()
         worker.tick()
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             first = store.job_attempts(job)[0]
@@ -446,7 +446,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)['state'], 'queued')
         worker.acknowledged.clear()  # Old failed report can replay after retry was queued.
         worker.tick()
-        worker.future.result(timeout=3)
+        next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             attempts = store.job_attempts(job)
@@ -475,7 +475,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         sample = worker.monitor.sample(worker.config)
         with patch.object(worker.monitor, 'sample', return_value={**sample, 'available_memory_gib': 0}):
             worker.tick()
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(job), 'cancelled')
@@ -518,7 +518,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         worker.lock.close()
         worker = self.worker()
         worker.tick()
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(len(store.reservations()), 1)
             self.assertIn(store.job_state(job), {'unknown', 'cancelling'})
@@ -542,7 +542,7 @@ os._exit(0)
         self.assertEqual(result.returncode, 0)
         worker = self.worker()
         worker.tick()
-        self.assertIsNone(worker.future)
+        self.assertFalse(worker.futures)
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
             worker.tick()

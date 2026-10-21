@@ -38,8 +38,8 @@ class ResultTests(unittest.TestCase):
     def finish_process(self, worker: Worker) -> str:
         self.tick(worker)  # Prepare inputs.
         self.tick(worker)  # Consume durable launch claim.
-        self.assertIsNotNone(worker.future)
-        worker.future.result(timeout=10)
+        self.assertTrue(worker.futures)
+        next(iter(worker.futures.values())).result(timeout=10)
         with Store(worker.database) as store:
             attempt, = store.job_attempts(self.job_id)
             self.assertIsNotNone(attempt.termination_evidence)
@@ -179,8 +179,8 @@ class ResultTests(unittest.TestCase):
                     store.submit(second_spec)
                 worker.tick()  # Accept and stage while earlier commit is blocked.
                 worker.tick()  # Execute using the independent process executor.
-                self.assertIsNotNone(worker.future)
-                worker.future.result(timeout=5)
+                self.assertTrue(worker.futures)
+                next(iter(worker.futures.values())).result(timeout=5)
                 worker.tick()
                 with Store(self.config.manager.database_path) as store:
                     self.assertEqual(store.job_state('next-job'), 'succeeded')
@@ -725,7 +725,7 @@ class ResultTests(unittest.TestCase):
             attempt, = store.job_attempts(self.job_id)
             (Path(attempt.directory) / 'inputs/potential').write_text('tampered')
         self.tick(worker)
-        worker.future.result(timeout=5)
+        next(iter(worker.futures.values())).result(timeout=5)
         self.tick(worker)
         with Store(self.config.manager.database_path) as store:
             final = store.attempt(attempt.attempt_id)
@@ -766,7 +766,7 @@ class ResultTests(unittest.TestCase):
 
             with patch.object(self.service, '_poll', side_effect=old_manager):
                 self.tick(worker)
-            self.assertIsNone(worker.future)
+            self.assertFalse(worker.futures)
             with Store(worker.database) as store:
                 attempt, = store.job_attempts(self.job_id)
                 self.assertEqual(attempt.state, 'assigned')

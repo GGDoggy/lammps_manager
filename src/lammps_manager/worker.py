@@ -1,9 +1,10 @@
-"""Sequential persistent Linux worker with polling independent of execution."""
+"""Concurrent persistent Linux worker with polling independent of execution."""
 
 from typing import BinaryIO
 
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import asdict
+from datetime import datetime
 import fcntl
 from http.client import IncompleteRead
 import json
@@ -19,7 +20,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
-from .models import specification_from_dict
+from .models import Resources, specification_from_dict
 from .store import Store, TERMINAL
 
 
@@ -105,8 +106,9 @@ class Worker:
         except BaseException:
             self.lock.close()
             raise
-        self.pool = ThreadPoolExecutor(max_workers=1)
-        self.future: Future | None = None
+        self.pool = ThreadPoolExecutor(max_workers=config.worker.max_concurrent_jobs)
+        self.futures: dict[str, Future[None]] = {}
+        self.sample_started: set[str] = set()
         self.collection_pool = ThreadPoolExecutor(max_workers=1)
         self.collection_future: Future | None = None
         self.collection_stop = Event()
@@ -134,19 +136,26 @@ class Worker:
             execute_attempt(store, self.config, store.attempt(attempt_id))
 
     def tick(self) -> dict:
-        """Send one heartbeat, report durable outcomes, and accept at most one job."""
+        """Send one heartbeat, report durable outcomes, and accept eligible concurrent jobs."""
         if self.collection_future is not None and self.collection_future.done():
             self.collection_future.result()  # Surface unexpected collection failures.
             self.collection_future = None
-        if self.future is not None and self.future.done():
-            self.future.result()  # Surface unexpected executor failures.
-            self.future = None
-        if self.future is None:
-            from .recovery import reconcile
-            with Store(self.database) as store:
-                for reservation in store.reservations():
+        for attempt_id, future in tuple(self.futures.items()):
+            if future.done():
+                future.result()  # Surface unexpected executor failures.
+                del self.futures[attempt_id]
+        from .recovery import reconcile
+        with Store(self.database) as store:
+            for reservation in store.reservations():
+                if reservation.attempt_id not in self.futures:
                     reconcile(store, store.attempt(reservation.attempt_id))
+        # Snapshot the starts before sampling. A start racing with the sample
+        # must still consume pending memory, including sub-millisecond starts.
+        with Store(self.database) as store:
+            reflected_starts = {r.attempt_id for r in store.reservations()
+                                if store.attempt(r.attempt_id).started_at is not None}
         snapshot = self.monitor.sample(self.config)
+        self.sample_started = reflected_starts
         reports = []
         with Store(self.database) as store:
             for attempt in (a for job in store.jobs() for a in store.job_attempts(job['job_id'])):
@@ -226,16 +235,12 @@ class Worker:
                              if report['state'] in TERMINAL and report['termination_evidence'])
             if eligible:
                 self.collection_future = self.collection_pool.submit(self._collect_results, eligible)
-        if self.future is not None:
-            return result
         with Store(self.database) as store:
-            # An accepted but unresolved old attempt blocks all fresh execution.
-            if store.reservations():
-                if self.config.storage_mode == 'staged':
-                    for reserved in store.reservations():
+            if self.config.storage_mode == 'staged':
+                for reserved in store.reservations():
+                    if reserved.attempt_id not in self.futures:
                         self._stage(store, reserved.attempt_id)
                         self._launch_staged(store, reserved.attempt_id, result, snapshot)
-                return result
             for assignment in result['assignments']:
                 spec_data = assignment['specification']
                 spec = specification_from_dict(spec_data)
@@ -244,6 +249,12 @@ class Worker:
                 attempt = assignment['attempt']
                 if attempt['worker_id'] != self.config.worker.id:
                     raise ValueError('Assignment identity mismatch')
+                try:
+                    store.attempt(attempt['attempt_id'])
+                except ValueError:
+                    pass
+                else:
+                    continue  # Existing journals are reconciled above, never reaccepted.
                 directory = Path(attempt['directory'])
                 cancelled = next((c for c in result.get('cancellations', [])
                                   if c['attempt_id'] == attempt['attempt_id']), None)
@@ -269,7 +280,7 @@ class Worker:
                             termination_evidence='Launch did not start a process')
                     else:
                         self._stage(store, attempt['attempt_id'])
-                    break
+                    continue
                 try:
                     job_root = Path(spec.work_directory).resolve(strict=True)
                 except OSError as exc:
@@ -282,23 +293,10 @@ class Worker:
                         or directory != job_root / attempt['attempt_id']
                         or Path(attempt['attempt_id']).name != attempt['attempt_id']):
                     raise ValueError('Assignment outside shared job directory')
-                if any(a.attempt_id == attempt['attempt_id']
-                       for j in store.jobs() for a in store.job_attempts(j['job_id'])):
-                    continue
                 if result['paused'] and not cancelled:
                     continue
-                policy = result['policy']
-                manager = result['manager_capacity']
-                r = spec.resources
-                if not cancelled and (not self.config.worker.enabled or not manager['enabled']
-                        or r.cpu_slots > min(self.config.worker.cpu_slots, manager['cpu_slots'],
-                                             snapshot['detected_cpu_slots'])
-                        or r.memory_gib > min(self.config.worker.memory_budget_gib,
-                                             manager['memory_budget_gib'], snapshot['detected_memory_gib'])
-                        or r.memory_gib + policy['reserve_memory_gib'] > snapshot['available_memory_gib']
-                        or (policy['account_external_load'] and snapshot['cpu_utilization_percent']
-                            >= policy['max_cpu_utilization_percent'])):
-                    continue  # Keep reservation pending until a later local recheck passes.
+                if not cancelled and not self._can_launch(store, spec.resources, result, snapshot):
+                    continue  # Keep the manager reservation pending for a later poll.
                 # Persist acceptance before the executor validates copied inputs,
                 # so pre-launch failures can be durably reported to the manager.
                 with store.scheduling_round():
@@ -316,8 +314,7 @@ class Worker:
                     store.transition(accepted.attempt_id, 'cancelled', reason=cancelled['reason'],
                                      termination_evidence='Launch did not start a process')
                 elif can_launch:
-                    self.future = self.pool.submit(self._execute, accepted.attempt_id)
-                break
+                    self.futures[accepted.attempt_id] = self.pool.submit(self._execute, accepted.attempt_id)
         return result
 
     def _stage(self, store: Store, attempt_id: str) -> None:
@@ -371,18 +368,56 @@ class Worker:
             store.transition(attempt_id, 'unknown', reason='Unsafe staged runtime directory before launch')
             return
         r = store.specification(attempt.job_id).resources
-        manager = result['manager_capacity']
-        policy = result['policy']
-        if (not self.config.worker.enabled or not manager['enabled']
-                or r.cpu_slots > min(self.config.worker.cpu_slots, manager['cpu_slots'], snapshot['detected_cpu_slots'])
-                or r.memory_gib > min(self.config.worker.memory_budget_gib, manager['memory_budget_gib'],
-                                      snapshot['detected_memory_gib'])
-                or r.memory_gib + policy['reserve_memory_gib'] > snapshot['available_memory_gib']
-                or (policy['account_external_load'] and snapshot['cpu_utilization_percent'] >=
-                    policy['max_cpu_utilization_percent'])):
+        if not self._can_launch(store, r, result, snapshot, attempt_id):
             return
         if store.claim_launch(attempt_id):
-            self.future = self.pool.submit(self._execute, attempt_id)
+            self.futures[attempt_id] = self.pool.submit(self._execute, attempt_id)
+
+    def _can_launch(self, store: Store, resources: Resources, result: dict,
+                    snapshot: dict, candidate_id: str | None = None) -> bool:
+        """Recheck total reservations and consume pending headroom per launch.
+
+        A candidate already reserved locally is excluded exactly once. Starts
+        after the sample remain pending even if their running transition wins
+        the race with this check. Unknown/cancelling reservations are retained.
+        """
+        manager = result['manager_capacity']
+        policy = result['policy']
+        capacity = self.config.worker
+        now = time.time()
+        observed = snapshot['observed_at']
+        if (result['paused'] or not capacity.enabled or not manager['enabled']
+                or observed > now or now - observed > policy['metrics_max_age_seconds']):
+            return False
+        reservations = [r for r in store.reservations() if r.attempt_id != candidate_id]
+        pending = 0.0
+        for reservation in reservations:
+            attempt = store.attempt(reservation.attempt_id)
+            # Staged acceptance reserves quotas before launch admission. Other
+            # unclaimed assignments have not consumed sampled memory yet; making
+            # them consume it here would let fitting jobs block each other.
+            # Keep uncertain/cancelling records conservative, and count a claim
+            # immediately, even before its executor starts.
+            if (self.config.storage_mode == 'staged' and attempt.state == 'assigned'
+                    and not store.launch_claimed(reservation.attempt_id)):
+                continue
+            started = attempt.started_at
+            if (reservation.attempt_id not in self.sample_started or started is None
+                    or datetime.fromisoformat(started.replace('Z', '+00:00')).timestamp()
+                    >= observed):
+                pending += reservation.memory_gib
+        return (sum(r.cpu_slots for r in reservations) + resources.cpu_slots
+                    <= min(capacity.cpu_slots, manager['cpu_slots'], snapshot['detected_cpu_slots'])
+                and sum(r.memory_gib for r in reservations) + resources.memory_gib
+                    <= min(capacity.memory_budget_gib, manager['memory_budget_gib'],
+                           snapshot['detected_memory_gib'])
+                and len(reservations) + 1 <= min(capacity.max_concurrent_jobs,
+                                                manager['max_concurrent_jobs'])
+                and len(self.futures) < capacity.max_concurrent_jobs
+                and pending + resources.memory_gib + policy['reserve_memory_gib']
+                    <= snapshot['available_memory_gib']
+                and (not policy['account_external_load'] or snapshot['cpu_utilization_percent']
+                     < policy['max_cpu_utilization_percent']))
 
     def _collect_results(self, attempt_ids: tuple[str, ...]) -> None:
         """Retry delivery of terminal journals; never rerun a simulation."""
