@@ -10,6 +10,7 @@ job_defaults:
   time_limit_seconds: 86400
   max_retries: 0
 scheduler:
+  default_priority: 0
   policy: fifo_least_loaded
   max_cpu_utilization_percent: 80
   min_slots: 0
@@ -25,3 +26,8 @@ workers:
 infrastructure_recovery:
   max_retries: 1
   delay_seconds: 30
+
+# Operational alerts; does not alter submitted job specifications.
+monitoring:
+  transfer_stall_seconds: 300
+  low_disk_gib: 5

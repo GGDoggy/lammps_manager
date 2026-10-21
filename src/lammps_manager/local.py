@@ -235,11 +235,13 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
     return False
 
 
-def inspect_job(store: Store, job_id: str) -> dict[str, object]:
+def inspect_job(store: Store, job_id: str, *, history_limit: int | None = None,
+                attempt_before: str | None = None, event_before: int | None = None) -> dict[str, object]:
     """Return durable specification, state, attempts and history for inspection."""
     spec = store.specification(job_id)
     attempts = []
-    for attempt in store.job_attempts(job_id):
+    from .monitoring import transfers
+    for attempt in store.job_attempts(job_id, limit=history_limit, before=attempt_before):
         collection = store.result_collection(attempt.attempt_id)
         staged = spec.storage_mode == 'staged'
         delivered = collection is not None and collection['status'] == 'collected'
@@ -250,7 +252,8 @@ def inspect_job(store: Store, job_id: str) -> dict[str, object]:
         def artifact(name: str) -> str | None:
             return str(directory / name) if not staged or delivered and name in available else None
 
-        attempts.append({**asdict(attempt), 'stdout': artifact('stdout'), 'stderr': artifact('stderr'),
+        attempts.append({**asdict(attempt), 'dispatch': store.assignment_priority(attempt.attempt_id),
+                         'transfers': transfers(store, attempt.attempt_id), 'stdout': artifact('stdout'), 'stderr': artifact('stderr'),
                          'execution_metadata': artifact('execution.json'),
                          'result_collection': collection or (dict(status='pending',
                              reason='Results have not been collected') if staged else None),
@@ -259,6 +262,9 @@ def inspect_job(store: Store, job_id: str) -> dict[str, object]:
                          'worker_cleanup': store.cleanup_record(attempt.attempt_id),
                          'prelaunch_rejection': store.rejection(attempt.attempt_id),
                          'infrastructure_recovery': store.interruption(attempt.attempt_id)})
+    events = store.events(job_id, limit=history_limit, before=event_before)
     return {'specification': asdict(spec), 'state': store.job_state(job_id),
             'infrastructure_recovery': store.recovery_status(job_id),
-            'attempts': attempts, 'events': store.events(job_id)}
+            'attempts': attempts, 'events': events,
+            'history_cursors': {'attempt_before': attempts[0]['attempt_id'] if history_limit and len(attempts) == history_limit else None,
+                                'event_before': events[0]['event_id'] if history_limit and len(events) == history_limit else None}}

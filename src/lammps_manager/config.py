@@ -46,6 +46,7 @@ class Scheduler:
     reserve_slots: int = 0
     reserve_memory_gib: float = 4
     metrics_max_age_seconds: float = 30
+    default_priority: int = 0
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,12 @@ class WorkerCapacity:
 
 
 @dataclass(frozen=True)
+class Monitoring:
+    transfer_stall_seconds: float = 300
+    low_disk_gib: float = 5
+
+
+@dataclass(frozen=True)
 class ManagerConfig:
     manager: ManagerSettings
     storage: Storage
@@ -66,6 +73,7 @@ class ManagerConfig:
     job_defaults: Resources = field(default_factory=Resources)
     scheduler: Scheduler = field(default_factory=Scheduler)
     infrastructure_recovery: InfrastructureRecovery = field(default_factory=InfrastructureRecovery)
+    monitoring: Monitoring = field(default_factory=Monitoring)
 
 
 @dataclass(frozen=True)
@@ -166,7 +174,7 @@ def _scalar(kind: type, value: Any, path: str, *, allow_empty: bool = False) -> 
 def _validate(instance: Any, location: str) -> None:
     for entry in fields(instance):
         name, value = entry.name, getattr(instance, entry.name)
-        if type(value) in (int, float):
+        if type(value) in (int, float) and name != 'default_priority':
             allow_zero = name in ('max_retries', 'reserve_memory_gib', 'max_cpu_utilization_percent', 'min_slots', 'reserve_slots')
             if value < 0 or (value == 0 and not allow_zero):
                 reason = 'must not be negative' if allow_zero else 'must be positive'
@@ -179,6 +187,8 @@ def _validate(instance: Any, location: str) -> None:
     if isinstance(instance, WorkerConfig) and instance.storage_mode not in ('shared', 'staged'):
         raise ConfigurationError(f'{location}.storage_mode: expected shared or staged')
     if isinstance(instance, Scheduler):
+        if not -(2**63) <= instance.default_priority < 2**63:
+            raise ConfigurationError(f'{location}.default_priority: must be a signed 64-bit integer')
         if instance.policy != 'fifo_least_loaded':
             raise ConfigurationError(f'{location}.policy: unsupported policy {instance.policy!r}')
         if instance.max_cpu_utilization_percent > 100:

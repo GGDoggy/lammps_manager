@@ -77,6 +77,8 @@ class ManagerService:
         """Run at startup and periodically even while all workers are disconnected."""
         with self._poll_lock, Store(self.config.manager.database_path) as store:
             store.expire_workers(time.time(), self.config.manager.heartbeat_timeout_seconds)
+            from .monitoring import refresh_alerts
+            refresh_alerts(store, self.config, time.time())
 
     def close(self) -> None:
         self.challenge.unlink(missing_ok=True)
@@ -136,6 +138,13 @@ class ManagerService:
                         transfer = report['input_transfer']
                         store.set_input_transfer(report['attempt_id'], transfer['directory'],
                                                  transfer['status'], transfer.get('reason'))
+                        from .monitoring import transfer as progress
+                        input_spec = store.specification(store.attempt(report['attempt_id']).job_id)
+                        progress(store, report['attempt_id'], 'input',
+                                 {'ready': 'ready', 'failed': 'failed'}.get(transfer['status'], 'transferring'),
+                                 error='Input transfer failed; inspect attempt diagnostics' if transfer['status'] == 'failed' else None,
+                                 total_bytes=sum(f.size for f in input_spec.input_manifest),
+                                 total_files=len(input_spec.input_manifest))
                     old = store.attempt(report['attempt_id'])
                     state = report['state']
                     if state not in {'assigned', 'running', 'cancelling', 'unknown', *TERMINAL}:
@@ -165,7 +174,26 @@ class ManagerService:
                         status = collection['status']
                         if status != 'collected':
                             store.set_result_collection(old.attempt_id, status, reason=collection.get('reason'))
-                store.set_worker(worker_id, snapshot=asdict(snapshot))
+                            from .monitoring import transfer as progress
+                            current_collection = store.result_collection(old.attempt_id, include_manifest=False)
+                            if current_collection['status'] != 'collected':
+                                phase = {'uploading': 'transferring', 'failed': 'failed'}.get(status, 'pending')
+                                previous = store._db.execute(
+                                    "SELECT phase FROM transfer_progress WHERE attempt_id=? AND direction='result'",
+                                    (old.attempt_id,)).fetchone()
+                                # Polls can lag behind artifact requests. Preserve progress
+                                # already observed by the manager, including verification.
+                                if previous and (phase == 'pending' or (
+                                        phase == 'transferring' and previous['phase'] == 'verifying')):
+                                    phase = previous['phase']
+                                progress(store, old.attempt_id, 'result',
+                                         phase,
+                                         error='Worker reports result collection failure' if status == 'failed' else None)
+                saved_snapshot = asdict(snapshot)
+                for optional in ('ready', 'draining'):
+                    if optional not in data:
+                        saved_snapshot.pop(optional, None)
+                store.set_worker(worker_id, snapshot=saved_snapshot)
             store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
                 snapshots = []
@@ -200,6 +228,35 @@ class ManagerService:
                     'policy': asdict(policy),
                     'manager_capacity': asdict(next(w for w in self.config.workers if w.id == worker_id))}
 
+    def input_verified(self, worker_id: str, attempt_id: str, index: int) -> dict:
+        """Accept only bounded input verification identities owned by this worker."""
+        from .monitoring import file_progress, transfer
+        with Store(self.config.manager.database_path) as store:
+            attempt = store.attempt(attempt_id)
+            spec = store.specification(attempt.job_id)
+            if attempt.worker_id != worker_id or spec.storage_mode != 'staged':
+                raise ValueError('Input progress ownership mismatch')
+            if type(index) is not int or not 0 <= index < len(spec.input_manifest):
+                raise ValueError('Invalid input progress index')
+            transfer(store, attempt_id, 'input', 'transferring',
+                     total_bytes=sum(f.size for f in spec.input_manifest), total_files=len(spec.input_manifest))
+            existing = {row[0] for row in store._db.execute(
+                "SELECT file_index FROM transfer_files WHERE attempt_id=? AND direction='input' AND verified_bytes IS NOT NULL",
+                (attempt_id,))}
+            for completed in range(index + 1):
+                if completed not in existing:
+                    file_progress(store, attempt_id, 'input', completed,
+                                  verified_bytes=spec.input_manifest[completed].size)
+        return {'accepted': True}
+
+    def health(self, worker_id: str) -> dict:
+        """Worker credentials expose only that worker's health, without job inputs."""
+        from .monitoring import worker_view
+        if worker_id not in self.tokens:
+            raise ValueError('Unregistered worker')
+        with Store(self.config.manager.database_path) as store:
+            return next(row for row in worker_view(store, self.config, time.time()) if row['worker_id'] == worker_id)
+
     def input_artifact(self, worker_id: str, attempt_id: str, index: int) -> tuple[BinaryIO, int]:
         """Authorize an assigned attempt before opening one bounded input file."""
         from .staging import open_regular, validate_manifest
@@ -228,6 +285,13 @@ class ManagerService:
                 self._input_cache.move_to_end(key)
         if not 0 <= index < len(spec.input_manifest):
             raise ValueError('Unknown input index')
+        from .monitoring import transfer
+        with Store(self.config.manager.database_path) as telemetry:
+            previous = telemetry._db.execute("SELECT total_bytes FROM transfer_progress WHERE attempt_id=? AND direction='input'",
+                                              (attempt_id,)).fetchone()
+            transfer(telemetry, attempt_id, 'input', 'transferring',
+                     total_bytes=sum(f.size for f in spec.input_manifest) if not previous or previous[0] is None else None,
+                     total_files=len(spec.input_manifest))
         item = spec.input_manifest[index]
         stream = open_regular(Path(spec.work_directory) / 'inputs', item.path)
         if os.fstat(stream.fileno()).st_size != item.size:
@@ -243,6 +307,7 @@ class ManagerService:
         with self._result_lock, Store(self.config.manager.database_path) as store:
             directory = authorize(store, worker_id, attempt_id)
             limits = output_limits(self.config.storage)
+            from .monitoring import transfer, file_progress, ProgressReader
             if operation == 'manifest':
                 validate_results(payload, limits)
                 previous = store.result_collection(attempt_id)
@@ -262,16 +327,34 @@ class ManagerService:
                 if len(self._result_cache) > 32:
                     self._result_cache.popitem(last=False)
             self._result_cache.move_to_end(key)
+            transfer(store, attempt_id, 'result',
+                     'acknowledged' if collection['status'] == 'collected' else 'transferring',
+                     total_bytes=sum(f.size for f in files), total_files=len(files))
             if operation == 'commit':
-                commit_results(directory, files, limits)
+                if collection['status'] != 'collected':
+                    transfer(store, attempt_id, 'result', 'verifying')
+                try:
+                    commit_results(directory, files, limits)
+                except (OSError, ValueError):
+                    transfer(store, attempt_id, 'result', 'failed', error='Result publication or verification failed')
+                    raise
                 store.set_result_collection(attempt_id, 'collected')
+                transfer(store, attempt_id, 'result', 'acknowledged')
             elif operation != 'manifest':
                 index = int(operation)
                 if not 0 <= index < len(files) or length != files[index].size:
                     raise ValueError('Invalid result file index or length')
                 if collection['status'] == 'collected':
                     raise ValueError('Result already published; replay commit instead')
-                upload_file(directory, files[index], stream)
+                incoming = ProgressReader(stream, store, attempt_id, 'result', index)
+                try:
+                    upload_file(directory, files[index], incoming)
+                    file_progress(store, attempt_id, 'result', index, verified_bytes=files[index].size)
+                except (OSError, ValueError):
+                    transfer(store, attempt_id, 'result', 'failed', error='Result file transfer or verification failed')
+                    raise
+                finally:
+                    incoming.flush()
             saved = store.result_collection(attempt_id, include_manifest=False)
             return {'status': saved['status'], 'reason': saved['reason']}
 
@@ -298,6 +381,14 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 if not service.authenticate(worker_id, self.headers.get('Authorization', '')):
                     self.send_error(401, 'Unauthorized worker')
                     return
+                if self.path == '/v1/health':
+                    body = json.dumps(service.health(worker_id)).encode()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 parts = self.path.split('/')
                 if len(parts) != 6 or parts[:3] != ['', 'v2', 'inputs'] or parts[4] != 'files':
                     raise ValueError('Unknown input endpoint')
@@ -310,16 +401,23 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 self.send_header('Content-Type', 'application/octet-stream')
                 self.send_header('Content-Length', str(size))
                 self.end_headers()
+                from .monitoring import transfer, ProgressReader
+                progress_store = Store(service.config.manager.database_path)
+                reader = ProgressReader(stream, progress_store, parts[3], 'input', int(parts[5]))
                 remaining = size
                 while remaining:
                     chunk = stream.read(min(65536, remaining))
                     if not chunk:
                         break
                     self.wfile.write(chunk)
+                    reader.record(len(chunk))
                     remaining -= len(chunk)
             except (OSError, TimeoutError):
                 pass  # The receiver verifies length/hash and retries without launching.
             finally:
+                if 'reader' in locals():
+                    reader.flush()
+                    progress_store.close()
                 stream.close()
 
         def do_PUT(self) -> None:
@@ -332,6 +430,14 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 worker_id = self.headers.get('X-Worker-ID', '')
                 if not service.authenticate(worker_id, self.headers.get('Authorization', '')):
                     status, result = 401, {'error': 'Unauthorized worker'}
+                elif self.path.startswith('/v2/input-verified/'):
+                    length = int(self.headers.get('Content-Length', '-1'))
+                    if not 0 < length <= 128 or self.headers.get('Transfer-Encoding'):
+                        raise ValueError('Invalid progress request size')
+                    data = json.loads(self.rfile.read(length))
+                    if set(data) != {'index'}:
+                        raise ValueError('Invalid progress fields')
+                    result = service.input_verified(worker_id, self.path.split('/')[-1], data['index'])
                 elif self.path.startswith('/v2/results/'):
                     parts = self.path.split('/')
                     if len(parts) != 5:

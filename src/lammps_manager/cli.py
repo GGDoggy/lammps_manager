@@ -34,15 +34,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     validate.add_argument("path")
     validate.add_argument("--check-local-paths", action="store_true",
                           help="Check paths on this host; never contacts remote workers")
-    for name in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry'):
+    for name in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry', 'priority'):
         command = commands.add_parser(name, help=f'{name} jobs')
         command.add_argument('--config', required=True, help='Manager YAML configuration')
+        if name == 'status':
+            command.add_argument('--limit', type=int, default=100)
+            command.add_argument('--after', type=int, default=0)
+            command.add_argument('--state')
+            command.add_argument('--worker-id')
+            command.add_argument('--worker-after', default='')
+            command.add_argument('--alert-after', default='')
+        if name == 'inspect':
+            command.add_argument('--limit', type=int, default=100)
+            command.add_argument('--attempt-before')
+            command.add_argument('--event-before', type=int)
         if name == 'submit':
             command.add_argument('manifest', help='JSON list of source_directory / input_file jobs')
         elif name == 'run-local':
             command.add_argument('--worker-config', required=True)
-        elif name in ('inspect', 'cancel', 'retry'):
+        elif name in ('inspect', 'cancel', 'retry', 'priority'):
             command.add_argument('job_id')
+            if name == 'priority':
+                command.add_argument('value', type=int)
     manager = commands.add_parser('serve', help='Run the authenticated manager API')
     manager.add_argument('--config', required=True)
     manager.add_argument('--credentials', required=True, help='JSON worker ID to private token-file path mapping')
@@ -104,7 +117,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("Configuration valid (" + ("local paths checked" if args.check_local_paths
               else "structure only; deployment paths not checked") + ").")
         return 0
-    if args.command in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry'):
+    if args.command in ('submit', 'run-local', 'status', 'inspect', 'cancel', 'retry', 'priority'):
         try:
             config = load_config(args.config, 'manager')
             with Store(config.manager.database_path) as store:
@@ -119,16 +132,23 @@ def main(argv: Sequence[str] | None = None) -> int:
                         raise ValueError('Cancellation requires an assigned job')
                     store.request_cancel(attempts[-1].attempt_id)
                     result = inspect_job(store, args.job_id)
+                elif args.command == 'priority':
+                    store.set_priority(args.job_id, args.value)
+                    result = store.scheduling_metadata(args.job_id, config.scheduler.default_priority)
                 elif args.command == 'retry':
                     store.retry(args.job_id)
                     result = inspect_job(store, args.job_id)
                 elif args.command == 'status':
-                    result = [{**job, 'infrastructure_recovery': store.recovery_status(job['job_id']),
-                               'result_collection':
-                               (_collection_summary(inspect_job(store, job['job_id'])['attempts'][-1]['result_collection'])
-                                if store.job_attempts(job['job_id']) else None)} for job in store.jobs()]
+                    from .monitoring import status
+                    result = status(store, config, limit=args.limit, after=args.after,
+                                    state=args.state, worker_id=args.worker_id,
+                                    worker_after=args.worker_after, alert_after=args.alert_after)
                 else:
-                    result = inspect_job(store, args.job_id)
+                    result = inspect_job(store, args.job_id, history_limit=args.limit,
+                                         attempt_before=args.attempt_before, event_before=args.event_before)
+                    from .monitoring import job_view
+                    import time
+                    result['monitoring'] = job_view(store, args.job_id, config, time.time())
             print(json.dumps(result, indent=2))
         except (ValueError, OSError, sqlite3.Error) as exc:
             parser.error(str(exc))

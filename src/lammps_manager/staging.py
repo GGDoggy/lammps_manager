@@ -143,7 +143,8 @@ def snapshot_inputs(source: Path, destination: Path, limits: dict) -> tuple[Inpu
 
 
 def publish_inputs(destination: Path, files: tuple[InputFile, ...],
-                   fetch: Callable[[int], BinaryIO], limits: dict) -> None:
+                   fetch: Callable[[int], BinaryIO], limits: dict,
+                   verified: Callable[[int], None] | None = None) -> None:
     """Verify retries or atomically publish a fully verified temporary tree."""
     validate_manifest(files, **limits)
     if destination.is_symlink():
@@ -156,7 +157,7 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
                 continue
             if not stat.S_ISREG(info.st_mode) or path.relative_to(destination).as_posix() not in expected:
                 raise ValueError('Published inputs contain unexpected files or unsafe types')
-        for item in files:
+        for index, item in enumerate(files):
             with open_regular(destination, item.path) as stream:
                 digest = hashlib.sha256()
                 count = 0
@@ -167,6 +168,8 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
                     digest.update(chunk)
                 if count != item.size or digest.hexdigest() != item.sha256:
                     raise ValueError('Published input hash mismatch')
+            if verified:
+                verified(index)
         # Existence does not prove durability: a previous call may have failed
         # while synchronizing any ancestor after creating directories or rename.
         _sync_publication_ancestors(destination)
@@ -179,6 +182,8 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
             target.parent.mkdir(parents=True, exist_ok=True)
             with fetch(index) as incoming, target.open('xb') as outgoing:
                 copy_verified(incoming, outgoing, item)
+            if verified:
+                verified(index)
         for directory, _, _ in os.walk(temporary, topdown=False):
             sync_directory(Path(directory))
         os.rename(temporary, destination)

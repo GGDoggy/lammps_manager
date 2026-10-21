@@ -129,6 +129,10 @@ class Store:
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))")
                 self._db.execute('CREATE INDEX IF NOT EXISTS attempts_worker '
                                  'ON attempts(worker_id)')
+                self._db.execute('CREATE INDEX IF NOT EXISTS attempts_job '
+                                 'ON attempts(job_id)')
+                self._db.execute('CREATE INDEX IF NOT EXISTS events_job_event '
+                                 'ON events(job_id,event_id)')
                 self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
                                  "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
@@ -157,6 +161,14 @@ class Store:
                 self._db.execute('CREATE TABLE IF NOT EXISTS rejections ('
                                  'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
                                  'code TEXT NOT NULL, reason TEXT NOT NULL, retry_at REAL NOT NULL)')
+                self._db.execute('CREATE TABLE IF NOT EXISTS dispatch_priorities ('
+                                 'job_id TEXT PRIMARY KEY REFERENCES jobs(job_id), '
+                                 'priority INTEGER NOT NULL, origin TEXT NOT NULL)')
+                self._db.execute('CREATE TABLE IF NOT EXISTS assignment_priorities ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                 'priority INTEGER NOT NULL, origin TEXT NOT NULL, queue_sequence INTEGER NOT NULL)')
+                from .monitoring import initialize
+                initialize(self)
                 if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
                     raise StoreError('Database foreign key check failed')
             self._db.execute('PRAGMA foreign_keys = ON')
@@ -174,9 +186,9 @@ class Store:
         self.close()
 
     @contextmanager
-    def _transaction(self) -> Iterator[None]:
+    def _transaction(self, *, immediate: bool = True) -> Iterator[None]:
         nested = self._db.in_transaction
-        self._db.execute('SAVEPOINT store_write' if nested else 'BEGIN IMMEDIATE')
+        self._db.execute('SAVEPOINT store_write' if nested else ('BEGIN IMMEDIATE' if immediate else 'BEGIN'))
         try:
             yield
             self._db.execute('RELEASE store_write' if nested else 'COMMIT')
@@ -288,11 +300,65 @@ class Store:
         return tuple(dict(row) for row in self._db.execute(
             'SELECT job_id,state,created_at FROM jobs ORDER BY rowid'))
 
-    def job_attempts(self, job_id: str) -> tuple[Attempt, ...]:
-        """Read attempts belonging to a known job."""
+    def set_priority(self, job_id: str, priority: int, *, origin: str = 'manager_cli') -> None:
+        """Serialize a queued override with dispatch and retain its audit origin."""
+        if type(priority) is not int or not -(2**63) <= priority < 2**63:
+            raise StoreError('priority must be a signed 64-bit integer')
+        if not isinstance(origin, str) or not origin.strip() or '\x00' in origin or len(origin) > 256:
+            raise StoreError('origin must be a nonempty string of at most 256 characters')
+        with self._transaction():
+            if self.job_state(job_id) != 'queued':
+                raise StoreError('Only queued jobs can change priority')
+            self._db.execute('INSERT INTO dispatch_priorities VALUES(?,?,?) '
+                             'ON CONFLICT(job_id) DO UPDATE SET priority=excluded.priority,origin=excluded.origin',
+                             (job_id, priority, origin))
+            self._event(job_id, None, 'queued', f'Priority set to {priority} by {origin}')
+
+    def scheduling_metadata(self, job_id: str, default: int = 0) -> dict:
+        """Return mutable policy separately from immutable simulation inputs."""
         self._job(job_id)
-        return tuple(Attempt(**dict(row)) for row in self._db.execute(
-            'SELECT * FROM attempts WHERE job_id=? ORDER BY rowid', (job_id,)))
+        row = self._db.execute('SELECT priority,origin FROM dispatch_priorities WHERE job_id=?',
+                               (job_id,)).fetchone()
+        queue = self._db.execute("SELECT event_id,created_at FROM events WHERE job_id=? AND state='queued' "
+                                 "AND (reason IS NULL OR reason IN ('Explicit retry requested', "
+                                 "'Authenticated manager assigned a successor', 'Automatic infrastructure recovery scheduled') "
+                                 "OR reason LIKE 'Prelaunch rejection:%') ORDER BY event_id DESC LIMIT 1",
+                                 (job_id,)).fetchone()
+        return {**(dict(row) if row else {'priority': default, 'origin': 'manager_default'}),
+                'queue_sequence': queue['event_id'], 'queue_entered_at': queue['created_at']}
+
+    def queued_jobs(self, default_priority: int = 0) -> tuple[dict, ...]:
+        """Priority, total CPU demand descending, then fresh queue entry and ID."""
+        jobs = [{**job, **self.scheduling_metadata(job['job_id'], default_priority),
+                 'cpu_demand': self.specification(job['job_id']).resources.cpu_slots}
+                for job in self.jobs() if job['state'] == 'queued']
+        return tuple(sorted(jobs, key=lambda j: (-j['priority'], -j['cpu_demand'],
+                                                 j['queue_sequence'], j['job_id'])))
+
+    def assignment_priority(self, attempt_id: str) -> dict | None:
+        self.attempt(attempt_id)
+        row = self._db.execute('SELECT priority,origin,queue_sequence FROM assignment_priorities '
+                               'WHERE attempt_id=?', (attempt_id,)).fetchone()
+        return dict(row) if row else None
+
+    def job_attempts(self, job_id: str, *, limit: int | None = None,
+                     before: str | None = None) -> tuple[Attempt, ...]:
+        """Read attempts; optional bounded history pages run newest to oldest."""
+        self._job(job_id)
+        args: list = [job_id]
+        query = 'SELECT * FROM attempts WHERE job_id=?'
+        if before is not None:
+            anchor = self.attempt(before)
+            if anchor.job_id != job_id:
+                raise StoreError('Attempt cursor belongs to another job')
+            query += ' AND rowid<(SELECT rowid FROM attempts WHERE attempt_id=?)'
+            args.append(before)
+        if limit is not None:
+            if type(limit) is not int or not 1 <= limit <= 500:
+                raise StoreError('History limit must be 1..500')
+            rows = self._db.execute(query + ' ORDER BY rowid DESC LIMIT ?', (*args, limit)).fetchall()
+            return tuple(Attempt(**dict(row)) for row in reversed(rows))
+        return tuple(Attempt(**dict(row)) for row in self._db.execute(query + ' ORDER BY rowid', args))
 
     def job_state(self, job_id: str) -> str:
         return str(self._job(job_id)['state'])
@@ -338,7 +404,7 @@ class Store:
         return Attempt(**dict(row))
 
     def assign(self, job_id: str, attempt_id: str, worker_id: str,
-               directory: str) -> Attempt:
+               directory: str, *, default_priority: int = 0) -> Attempt:
         """Atomically assign a queued job and reserve its snapshot resources.
 
         Admission and capacity decisions belong to the scheduler; this low-level
@@ -369,6 +435,9 @@ class Store:
                 self._db.execute(
                     'INSERT INTO attempts(attempt_id,job_id,worker_id,directory,state) '
                     'VALUES(?,?,?,?,?)', (attempt_id, job_id, worker_id, directory, 'assigned'))
+                metadata = self.scheduling_metadata(job_id, default_priority)
+                self._db.execute('INSERT INTO assignment_priorities VALUES(?,?,?,?)',
+                                 (attempt_id, metadata['priority'], metadata['origin'], metadata['queue_sequence']))
                 self._db.execute('INSERT INTO reservations VALUES(?,?,?,?)',
                                  (attempt_id, worker_id, resources.cpu_slots, resources.memory_gib))
                 self._db.execute('UPDATE jobs SET state=? WHERE job_id=?', ('assigned', job_id))
@@ -793,11 +862,23 @@ class Store:
         return tuple(Reservation(**dict(row)) for row in
                      self._db.execute(query + ' ORDER BY attempt_id', args))
 
-    def events(self, job_id: str) -> tuple[dict[str, object], ...]:
-        """Return ordered immutable-history snapshots for a known job."""
+    def events(self, job_id: str, *, limit: int | None = None,
+               before: int | None = None) -> tuple[dict[str, object], ...]:
+        """Return ordered history, optionally bounded before an event ID."""
         self._job(job_id)
-        return tuple(dict(row) for row in self._db.execute(
-            'SELECT * FROM events WHERE job_id=? ORDER BY event_id', (job_id,)))
+        query = 'SELECT * FROM events WHERE job_id=?'
+        args: list = [job_id]
+        if before is not None:
+            if type(before) is not int or before < 1:
+                raise StoreError('Event cursor must be positive')
+            query += ' AND event_id<?'
+            args.append(before)
+        if limit is not None:
+            if type(limit) is not int or not 1 <= limit <= 500:
+                raise StoreError('History limit must be 1..500')
+            rows = self._db.execute(query + ' ORDER BY event_id DESC LIMIT ?', (*args, limit)).fetchall()
+            return tuple(dict(row) for row in reversed(rows))
+        return tuple(dict(row) for row in self._db.execute(query + ' ORDER BY event_id', args))
 
     def _event(self, job_id: str, attempt_id: str | None, state: str,
                reason: str | None = None, exit_code: int | None = None,

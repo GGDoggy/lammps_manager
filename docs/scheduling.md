@@ -38,7 +38,9 @@ specifications contain no worker compatibility constraints.
 
 ## Ordering and admission
 
-Jobs are examined in stable submission order (SQLite insertion order). A blocked
+T015 examines jobs by priority descending, total requested CPU slots descending,
+then queue-entry sequence ascending and job ID. Default priority is 0, configurable
+as `scheduler.default_priority` (a signed 64-bit integer). A blocked
 job may be skipped to admit smaller jobs. Eligible workers are ranked by ascending
 CPU utilization, descending remaining CPU quota, descending remaining memory quota,
 and lexicographic worker ID. Remaining quotas are measured before the proposed
@@ -137,3 +139,23 @@ results and logs changed per-CPU decisions to stderr for CLI/service operators.
 CPU headroom is admission evidence, not exclusive CPU ownership. This
 policy does not bind MPI/OpenMP processes; configure and verify placement and
 host clock synchronization separately. Unrelated load may change after sampling.
+
+## Manager priority controls (T015)
+
+The configuration policy name `fifo_least_loaded` remains accepted for compatibility;
+it now applies the priority/demand/FIFO ordering described above.
+
+Use `lammps-manager priority --config manager.yaml JOB_ID VALUE` or
+`Store.set_priority(job_id, value, origin="operator")` for queued work. Overrides
+persist separately from immutable job JSON, with an audit event and origin.
+The manager default applies at dispatch when no override exists. Assignment
+priority, origin and queue sequence are snapshotted atomically with reservations
+and available through `Store.assignment_priority(attempt_id)`. Legacy assignments
+without this metadata return `None`. Updates serialize with scheduling; an update
+after assignment fails. Running work is never preempted.
+
+At equal priority, 2 MPI ranks × 4 OpenMP threads precedes a 4-thread job; at
+equal total demand the older queue entry wins. Retry, infrastructure recovery and
+prelaunch return receive a fresh sequence; waiting diagnostics and priority edits
+do not reset queue age. Priority never bypasses readiness, compatibility or quota
+checks. No aging or automatic priority adjustment is applied.

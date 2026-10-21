@@ -690,7 +690,7 @@ class ResultTests(unittest.TestCase):
             with patch('lammps_manager.cli.load_config', return_value=self.config), redirect_stdout(output):
                 self.assertEqual(main(args), 0)
             payload = json.loads(output.getvalue())
-            entry = payload[0] if command == 'status' else payload['attempts'][0]
+            entry = payload['jobs'][0] if command == 'status' else payload['attempts'][0]
             self.assertEqual(entry['state'], 'succeeded')
             self.assertEqual(entry['result_collection']['status'], 'pending')
             if command == 'inspect':

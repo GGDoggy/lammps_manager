@@ -97,3 +97,15 @@ Application failures and input errors do not consume this separate policy or
 trigger automatic retries. Prelaunch returns consume neither retry budget.
 See [recovery](recovery.md#automatic-infrastructure-recovery-t014) for evidence,
 inspection and limitations.
+
+`scheduler.default_priority` defaults to 0 and accepts
+a signed 64-bit integer. It controls dispatch ordering only; queued per-job
+overrides and assignment snapshots are runtime SQLite data, not job specifications.
+
+## Monitoring thresholds (T016)
+
+Optional manager `monitoring.transfer_stall_seconds` (default 300) and
+`monitoring.low_disk_gib` (default 5) must be finite positive numbers. They affect
+runtime alert evaluation, never submitted job specifications. See
+[monitoring](monitoring.md) for JSON fields, pagination, transfer accounting and
+alert deduplication/recovery semantics.

@@ -1,4 +1,4 @@
-"""Transactional FIFO admission using explicit worker monitoring snapshots."""
+"""Transactional priority/demand/FIFO admission using explicit worker monitoring snapshots."""
 
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -29,8 +29,13 @@ class WorkerSnapshot:
     cpu_sample_started_at: float | None = None
     ready: bool = True
     draining: bool = False
+    staged_free_disk_gib: float | None = None
 
     def __post_init__(self) -> None:
+        if self.staged_free_disk_gib is not None and (
+                type(self.staged_free_disk_gib) not in (int, float)
+                or not math.isfinite(self.staged_free_disk_gib) or self.staged_free_disk_gib < 0):
+            raise ValueError('staged_free_disk_gib must be finite and nonnegative or unknown')
         validate_sample(self.per_cpu_utilization_percent, self.cpu_sample_started_at,
                         self.observed_at, self.detected_cpu_slots)
         # Direct Python callers receive the same capacity checks as YAML callers.
@@ -62,7 +67,7 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
              *, now: float) -> ScheduleResult:
     """Reserve a round atomically; never launch processes or release reservations.
 
-    FIFO may skip blocked jobs. Rank by CPU usage, remaining CPU (descending),
+    Priority/demand/FIFO ordering may skip blocked jobs. Rank by CPU usage, remaining CPU (descending),
     remaining memory (descending), then worker ID. Missing snapshots fail closed.
     """
     if type(now) not in (int, float) or not math.isfinite(now) or now < 0:
@@ -81,7 +86,7 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
         raise ValueError('Unsupported scheduling policy')
     with store.scheduling_round():
         pending_by_worker: dict[str, int] = {}
-        for job in store.jobs():
+        for job in store.queued_jobs(policy.default_priority):
             if job['state'] != 'queued':
                 continue
             blocker = store.recovery_blocker(job['job_id'], now)
@@ -175,7 +180,8 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 worker_id = min(candidates)[-1]
                 attempt_id = uuid4().hex
                 assigned.append(store.assign(spec.job_id, attempt_id, worker_id,
-                                              str(Path(spec.work_directory) / attempt_id)))
+                                              str(Path(spec.work_directory) / attempt_id),
+                                              default_priority=policy.default_priority))
                 # This new unstarted assignment must consume the current sample
                 # immediately, before the next queued job is considered.
                 if (policy.account_external_load

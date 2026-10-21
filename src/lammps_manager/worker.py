@@ -194,6 +194,12 @@ class Worker:
                                 if store.attempt(r.attempt_id).started_at is not None}
         snapshot = self.monitor.sample(self.config)
         snapshot.update(ready=self.ready, draining=self.draining)
+        if self.config.storage_mode == 'staged':
+            try:
+                import shutil
+                snapshot['staged_free_disk_gib'] = shutil.disk_usage(self.config.work_root).free / 2**30
+            except OSError:
+                snapshot['staged_free_disk_gib'] = None
         self.sample_started = reflected_starts
         if (self.config.storage_mode == 'staged' and self.config.cleanup_staged_files
                 and self.cleanup_future is None and not self.collection_stop.is_set()):
@@ -450,6 +456,26 @@ class Worker:
                                        'Authorization': 'Bearer ' + self.token})
             return self.opener.open(request, timeout=10)
 
+        last_report = 0.0
+
+        def verified(index: int) -> None:
+            nonlocal last_report
+            if time.monotonic() - last_report < 1 and index != len(spec.input_manifest) - 1:
+                return
+            last_report = time.monotonic()
+            # Telemetry failure must not invalidate a verified simulation input.
+            from urllib.error import URLError
+            request = Request(self.config.manager_endpoint.rstrip('/') +
+                              f'/v2/input-verified/{attempt_id}', data=json.dumps({'index': index}).encode(),
+                              headers={'X-Worker-ID': self.config.worker.id,
+                                       'Authorization': 'Bearer ' + self.token,
+                                       'Content-Type': 'application/json'})
+            try:
+                with self.opener.open(request, timeout=1) as response:
+                    response.read(128)
+            except (OSError, URLError):
+                pass  # Missing verification telemetry remains unknown until the ready report.
+
         try:
             from urllib.error import URLError
             root = Path(self.config.work_root).resolve(strict=True)
@@ -459,7 +485,7 @@ class Worker:
             publish_inputs(destination, spec.input_manifest, fetch,
                            dict(max_files=self.config.max_input_files,
                                 max_file_bytes=self.config.max_input_file_bytes,
-                                max_total_bytes=self.config.max_input_total_bytes))
+                                max_total_bytes=self.config.max_input_total_bytes), verified=verified)
         except (OSError, ValueError, IncompleteRead, URLError) as exc:
             store.set_input_transfer(attempt_id, str(destination), 'failed',
                                      f'{type(exc).__name__}: {exc}')

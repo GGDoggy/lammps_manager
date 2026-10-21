@@ -65,7 +65,7 @@ Environment differences, resource limits, and policy parameters belong in config
 | Worker capacity | Manager and worker configuration: CPU / memory quotas and concurrency; worker detects hardware capacity and uses conservative effective limits |
 | Busy-host thresholds | Configuration: CPU threshold, memory reserve, monitoring / scheduling intervals, metrics age |
 | External load | Configurable admission policy; disabling CPU load checks must still retain available-memory and system safety checks |
-| Scheduling | Named policy and parameters; initially FIFO plus least-loaded eligible worker; never arbitrary Python code from config |
+| Scheduling | Named policy and parameters; priority / descending CPU demand / FIFO plus least-loaded eligible worker; never arbitrary Python code from config |
 | Storage | Mode, work / result locations, retention policy; staged mode transfers inputs and results; retention controls remain planned |
 | Execution | Worker configuration: LAMMPS / MPI paths, fixed argument arrays, environment; no shell command templates |
 | Communication | Endpoint, identity, heartbeat / timeout settings, protected credential references |
@@ -83,7 +83,7 @@ Validate schema, ranges, duplicate identities, paths, and executables with clear
 
 ## Scheduling and resource accounting
 
-Each scheduling round excludes paused, disabled, offline, stale-metric, and incompatible workers. Examine queued jobs in FIFO order. The first version may skip a temporarily unplaceable job to run a smaller one, but must expose its waiting reason. Long-wait fairness improvements are later work.
+Each scheduling round excludes paused, disabled, offline, stale-metric, and incompatible workers. Examine queued jobs by priority descending, total CPU demand descending, then fresh queue-entry order (T015). The first version may skip a temporarily unplaceable job to run a smaller one, but must expose its waiting reason. Long-wait fairness improvements are later work.
 
 A worker can accept a new job only when all conditions hold:
 
@@ -138,12 +138,12 @@ Local tests do not establish real worker, MPI, LAMMPS, or deployment readiness. 
 
 ## Recovery, ordering, monitoring and simulation segmentation
 
-T013-T014 are implemented with local verification; T015-T019 remain planned in [tasks.md](../tasks.md). FIFO and independent-job behavior remain current; application retries remain explicit.
+T013-T016 are implemented with local verification; T017-T019 remain planned in [tasks.md](../tasks.md). Independent-job behavior remains current; application retries remain explicit.
 
 - Implemented T013 adds durable prelaunch rejection/revocation and readiness-based assignment exclusion. Reassignment requires a persisted fence against the old launch; uncertain execution retains reservations.
 - Implemented T014 adds bounded automatic infrastructure recovery after worker/host restart with confirmed termination. Surviving execution is reconciled rather than duplicated; disconnection alone never permits retry.
-- T015 adds manager dispatch-time priority metadata separate from immutable job inputs. Queued order becomes descending priority, descending total CPU thread demand (MPI ranks times OpenMP threads), then FIFO, subject to all admission gates. Running work is not preempted.
-- T016 adds bounded CLI/JSON operational monitoring of jobs, transfers, worker readiness/resources, recovery and actionable alerts. Process completion and result delivery remain separate.
+- Implemented T015 adds manager dispatch-time priority metadata separate from immutable job inputs. Queued order becomes descending priority, descending total CPU thread demand (MPI ranks times OpenMP threads), then FIFO, subject to all admission gates. Running work is not preempted.
+- Implemented T016 adds [bounded CLI/JSON](monitoring.md) operational monitoring of jobs, transfers, worker readiness/resources, recovery and actionable alerts. Process completion and result delivery remain separate.
 - T017-T019 add a restricted sequential continuation chain for one logical simulation, not a general dependency graph. Default step_max is 100000 integration steps; each completed segment durably publishes a verified checkpoint before its successor returns to the manager queue. Each return gets a fresh FIFO position. The manager may set continuation priority separately; by default it inherits the first segment's first effective dispatch priority.
 
 Continuation must preserve physical state, global step/time, parameter schedules and provenance. Exact continuation includes every RNG/fix/integrator state and requires a validated build/layout contract. When exact continuity is unavailable, statistically valid continuation is acceptable only with a validated recipe and predeclared scientific equivalence criteria, including dynamical and boundary behavior; segments remain parts of the same logical run and are not independent samples. Unsupported recipes fail clearly. The official [read_restart](https://docs.lammps.org/read_restart.html) and [fix langevin](https://docs.lammps.org/fix_langevin.html) documentation describe exact-restart restrictions and absent RNG-state serialization; capability must be checked against the deployed build. A crash can recover only from the latest durable checkpoint, with uncommitted work explicitly replayed rather than counted twice.
