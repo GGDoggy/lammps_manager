@@ -135,3 +135,15 @@ Use the defaults above for planning, but confirm these before deployment and rea
 - Permission to run persistent workers; if only SSH is available, revise interfaces as described above.
 
 Local tests do not establish real worker, MPI, LAMMPS, or deployment readiness. Record external integration evidence separately in tasks.md.
+
+## Planned recovery, ordering, monitoring and simulation segmentation
+
+T013-T019 in [tasks.md](../tasks.md) specify requested extensions; none is implemented by this planning update. Existing FIFO, explicit retry and independent-job behavior remain the current interfaces.
+
+- T013 adds durable prelaunch rejection/revocation and readiness-based assignment exclusion. Reassignment requires a persisted fence against the old launch; uncertain execution retains reservations.
+- T014 adds bounded automatic infrastructure recovery after worker/host restart with confirmed termination. Surviving execution is reconciled rather than duplicated; disconnection alone never permits retry.
+- T015 adds manager dispatch-time priority metadata separate from immutable job inputs. Queued order becomes descending priority, descending total CPU thread demand (MPI ranks times OpenMP threads), then FIFO, subject to all admission gates. Running work is not preempted.
+- T016 adds bounded CLI/JSON operational monitoring of jobs, transfers, worker readiness/resources, recovery and actionable alerts. Process completion and result delivery remain separate.
+- T017-T019 add a restricted sequential continuation chain for one logical simulation, not a general dependency graph. Default step_max is 100000 integration steps; each completed segment durably publishes a verified checkpoint before its successor returns to the manager queue. Each return gets a fresh FIFO position. The manager may set continuation priority separately; by default it inherits the first segment's first effective dispatch priority.
+
+Continuation must preserve physical state, global step/time, parameter schedules and provenance. Exact continuation includes every RNG/fix/integrator state and requires a validated build/layout contract. When exact continuity is unavailable, statistically valid continuation is acceptable only with a validated recipe and predeclared scientific equivalence criteria, including dynamical and boundary behavior; segments remain parts of the same logical run and are not independent samples. Unsupported recipes fail clearly. The official [read_restart](https://docs.lammps.org/read_restart.html) and [fix langevin](https://docs.lammps.org/fix_langevin.html) documentation describe exact-restart restrictions and absent RNG-state serialization; capability must be checked against the deployed build. A crash can recover only from the latest durable checkpoint, with uncommitted work explicitly replayed rather than counted twice.
