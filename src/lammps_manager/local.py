@@ -113,6 +113,10 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
             store.record_waiting(row['job_id'], blocker)
             continue
         spec = store.specification(row['job_id'])
+        from .segments import segment
+        if segment(store, spec.job_id):
+            store.record_waiting(spec.job_id, 'Continuation segments require the polling manager and checkpoint publication')
+            continue
         if spec.storage_mode == 'staged':
             store.record_waiting(spec.job_id, 'Staged execution requires the polling worker and result collection')
             continue
@@ -164,6 +168,8 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
         work = directory / 'work'
         if hashlib.sha256((work / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
             raise ValueError('Input SHA-256 differs from submitted snapshot')
+        from .checkpoints import prepare_launch
+        prepare_launch(store, worker, attempt.attempt_id, work)
         args = [worker.execution.mpi_launcher_path, *worker.execution.mpi_args,
                 '-np', str(spec.resources.mpi_ranks), worker.execution.lammps_path,
                 *worker.execution.lammps_args, '-in', spec.input_file]
@@ -243,7 +249,8 @@ def inspect_job(store: Store, job_id: str, *, history_limit: int | None = None,
     from .monitoring import transfers
     for attempt in store.job_attempts(job_id, limit=history_limit, before=attempt_before):
         collection = store.result_collection(attempt.attempt_id)
-        staged = spec.storage_mode == 'staged'
+        from .segments import segment
+        staged = spec.storage_mode == 'staged' or segment(store, job_id) is not None
         delivered = collection is not None and collection['status'] == 'collected'
         available = {item['path'] for item in collection['manifest']['files']} if (
             delivered and collection['manifest']) else set()

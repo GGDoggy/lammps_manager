@@ -1,0 +1,2656 @@
+{
+  "passed": true,
+  "root": "/tmp/lammps-t019-pw8Nv0Y1/segmentation",
+  "modes": [
+    {
+      "mode": "shared",
+      "scenario": "shared",
+      "stages": [
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "dd090c4cd9664ee482aa5a4a47378ff2",
+            "job_id": "acceptance-shared.s000000",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:01.730Z",
+            "started_at": "2026-10-21T16:51:02.459Z",
+            "ended_at": "2026-10-21T16:51:02.459Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "dd090c4cd9664ee482aa5a4a47378ff2",
+            "run_id": "acceptance-shared",
+            "segment": 0,
+            "contract": {
+              "attempt_id": "dd090c4cd9664ee482aa5a4a47378ff2",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 600,
+              "global_time": 3.0,
+              "job_id": "acceptance-shared.s000000",
+              "parent_checkpoint_id": null,
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-shared",
+              "segment": 0,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "dd090c4cd9664ee482aa5a4a47378ff2",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 600,
+                "global_time": 3.0,
+                "job_id": "acceptance-shared.s000000",
+                "parent_checkpoint_id": null,
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-shared",
+                "segment": 0,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "bb04bb51b2838117e716232d0293ea755f49fb7169cdcf52b0d06188c7d6ea4f",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000000/.checkpoints/dd090c4cd9664ee482aa5a4a47378ff2/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": 11,
+            "origin": "run_initial",
+            "queue_sequence": 1
+          },
+          "process": {
+            "pid": 159727,
+            "process_group": 159727,
+            "session": 159727,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25058682",
+            "launched_at": "2026-10-21T16:51:01.935969+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/work",
+          "parent_progress": 600,
+          "parent_status": "queued"
+        },
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "aa699d43a3a543899e31e73f7a62ddd9",
+            "job_id": "acceptance-shared.s000001",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:02.766Z",
+            "started_at": "2026-10-21T16:51:03.656Z",
+            "ended_at": "2026-10-21T16:51:03.656Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "aa699d43a3a543899e31e73f7a62ddd9",
+            "run_id": "acceptance-shared",
+            "segment": 1,
+            "contract": {
+              "attempt_id": "aa699d43a3a543899e31e73f7a62ddd9",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 1400,
+              "global_time": 7.0,
+              "job_id": "acceptance-shared.s000001",
+              "parent_checkpoint_id": "bb04bb51b2838117e716232d0293ea755f49fb7169cdcf52b0d06188c7d6ea4f",
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-shared",
+              "segment": 1,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "aa699d43a3a543899e31e73f7a62ddd9",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 1400,
+                "global_time": 7.0,
+                "job_id": "acceptance-shared.s000001",
+                "parent_checkpoint_id": "bb04bb51b2838117e716232d0293ea755f49fb7169cdcf52b0d06188c7d6ea4f",
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-shared",
+                "segment": 1,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "401814cb447908a7ca1c50e986ce5699d9ec0ea24cd176927945728230afe7bb",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000001/.checkpoints/aa699d43a3a543899e31e73f7a62ddd9/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": -3,
+            "origin": "run_continuation",
+            "queue_sequence": 6
+          },
+          "process": {
+            "pid": 159760,
+            "process_group": 159760,
+            "session": 159760,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25058789",
+            "launched_at": "2026-10-21T16:51:03.000124+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/work",
+          "parent_progress": 1400,
+          "parent_status": "queued"
+        },
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "30d9f78d1d1045c68a8ad89e8947b9cb",
+            "job_id": "acceptance-shared.s000002",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:04.054Z",
+            "started_at": "2026-10-21T16:51:04.838Z",
+            "ended_at": "2026-10-21T16:51:04.839Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "30d9f78d1d1045c68a8ad89e8947b9cb",
+            "run_id": "acceptance-shared",
+            "segment": 2,
+            "contract": {
+              "attempt_id": "30d9f78d1d1045c68a8ad89e8947b9cb",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 2000,
+              "global_time": 10.0,
+              "job_id": "acceptance-shared.s000002",
+              "parent_checkpoint_id": "401814cb447908a7ca1c50e986ce5699d9ec0ea24cd176927945728230afe7bb",
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-shared",
+              "segment": 2,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "30d9f78d1d1045c68a8ad89e8947b9cb",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 2000,
+                "global_time": 10.0,
+                "job_id": "acceptance-shared.s000002",
+                "parent_checkpoint_id": "401814cb447908a7ca1c50e986ce5699d9ec0ea24cd176927945728230afe7bb",
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-shared",
+                "segment": 2,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "bcabecc140722f1b026b98a6356fa98d36c8e40d808bef49950718f62ee46d1a",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "25636ef396a6de50b9606af3bf7f17ee2209ec3f31afce6c8ec907ebda1c856c",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000002/.checkpoints/30d9f78d1d1045c68a8ad89e8947b9cb/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": -3,
+            "origin": "run_continuation",
+            "queue_sequence": 11
+          },
+          "process": {
+            "pid": 159792,
+            "process_group": 159792,
+            "session": 159792,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25058918",
+            "launched_at": "2026-10-21T16:51:04.295022+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/work",
+          "parent_progress": 2000,
+          "parent_status": "succeeded"
+        }
+      ],
+      "initial_priority": 11,
+      "continuation_priority": -3,
+      "parent": {
+        "run_id": "acceptance-shared",
+        "snapshot": {
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "infrastructure_recovery": {
+            "delay_seconds": 30,
+            "max_retries": 1
+          },
+          "input_limits": {
+            "max_file_bytes": 1073741824,
+            "max_files": 10000,
+            "max_total_bytes": 10737418240
+          },
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 0.1,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 30
+          },
+          "run_id": "acceptance-shared",
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "start_step": 0,
+          "step_max": 800,
+          "storage_mode": "shared",
+          "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-shared\",\"phase\":\"run\",\"replica\":0,\"seeds\":[238002104,288943853,432754604,295501142,553103165]}",
+          "total_steps": 2000,
+          "work_root": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/manager-files"
+        },
+        "status": "succeeded",
+        "committed_step": 2000,
+        "first_priority": 11,
+        "initial_override": 11,
+        "continuation_override": -3,
+        "cancelled": 0,
+        "reason": null,
+        "segments": [
+          {
+            "run_id": "acceptance-shared",
+            "ordinal": 0,
+            "job_id": "acceptance-shared.s000000",
+            "start_step": 0,
+            "stop_step": 600,
+            "checkpoint_id": null,
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": false,
+            "checkpoint": {
+              "identity": "bb04bb51b2838117e716232d0293ea755f49fb7169cdcf52b0d06188c7d6ea4f",
+              "acknowledged": true,
+              "error": null
+            }
+          },
+          {
+            "run_id": "acceptance-shared",
+            "ordinal": 1,
+            "job_id": "acceptance-shared.s000001",
+            "start_step": 600,
+            "stop_step": 1400,
+            "checkpoint_id": "bb04bb51b2838117e716232d0293ea755f49fb7169cdcf52b0d06188c7d6ea4f",
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": true,
+            "checkpoint": {
+              "identity": "401814cb447908a7ca1c50e986ce5699d9ec0ea24cd176927945728230afe7bb",
+              "acknowledged": true,
+              "error": null
+            }
+          },
+          {
+            "run_id": "acceptance-shared",
+            "ordinal": 2,
+            "job_id": "acceptance-shared.s000002",
+            "start_step": 1400,
+            "stop_step": 2000,
+            "checkpoint_id": "401814cb447908a7ca1c50e986ce5699d9ec0ea24cd176927945728230afe7bb",
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": true,
+            "checkpoint": {
+              "identity": "25636ef396a6de50b9606af3bf7f17ee2209ec3f31afce6c8ec907ebda1c856c",
+              "acknowledged": true,
+              "error": null
+            }
+          }
+        ],
+        "output_policy": "Segment trajectories retain both boundary copies; duplicate initial frames are explicitly marked by segment ordinal. Segments are one logical trajectory, never independent replicas.",
+        "committed_steps": 2000,
+        "next_after": null,
+        "events": [
+          {
+            "event_id": 4,
+            "run_id": "acceptance-shared",
+            "description": "Committed segment 2 at step 2000",
+            "created_at": "2026-10-21T16:51:05.174Z"
+          },
+          {
+            "event_id": 3,
+            "run_id": "acceptance-shared",
+            "description": "Committed segment 1 at step 1400",
+            "created_at": "2026-10-21T16:51:03.958Z"
+          },
+          {
+            "event_id": 2,
+            "run_id": "acceptance-shared",
+            "description": "Committed segment 0 at step 600",
+            "created_at": "2026-10-21T16:51:02.689Z"
+          },
+          {
+            "event_id": 1,
+            "run_id": "acceptance-shared",
+            "description": "Run submitted",
+            "created_at": "2026-10-21T16:51:01.710Z"
+          }
+        ]
+      },
+      "segmented_observables": {
+        "orientation-cos1": 0.0013542512248552949,
+        "orientation-sin1": -0.0024692615220069914,
+        "orientation-cos2": -0.002214275257853683,
+        "orientation-sin2": -0.00474539904242984,
+        "position-0-cos": 0.002386509945703004,
+        "position-0-sin": 0.003921982746598924,
+        "position-1-cos": 0.011270008574527425,
+        "position-1-sin": -0.01569363597022571,
+        "orientation-bin-0": 0.12343363242574257,
+        "orientation-bin-1": 0.1250870204207921,
+        "orientation-bin-2": 0.1243521813118812,
+        "orientation-bin-3": 0.1251643719059406,
+        "orientation-bin-4": 0.12309521967821782,
+        "orientation-bin-5": 0.12550278465346534,
+        "orientation-bin-6": 0.12674040841584158,
+        "orientation-bin-7": 0.1266243811881188,
+        "position-bin-0-0": 0.06707340655940594,
+        "position-bin-0-1": 0.06355391398514851,
+        "position-bin-0-2": 0.057539836014851485,
+        "position-bin-0-3": 0.06836904393564357,
+        "position-bin-1-0": 0.05737546410891089,
+        "position-bin-1-1": 0.05741413985148515,
+        "position-bin-1-2": 0.07067025061881188,
+        "position-bin-1-3": 0.06554571472772278,
+        "position-bin-2-0": 0.05165145420792079,
+        "position-bin-2-1": 0.06878480816831684,
+        "position-bin-2-2": 0.052695699257425746,
+        "position-bin-2-3": 0.07306814665841584,
+        "position-bin-3-0": 0.06166847153465346,
+        "position-bin-3-1": 0.06496557858910891,
+        "position-bin-3-2": 0.05463915532178218,
+        "position-bin-3-3": 0.06498491646039604,
+        "msd-1.0": 1.002644781803089,
+        "acf-1.0": 1.0377281113552554,
+        "msd-2.0": 1.010192255003434,
+        "acf-2.0": 1.164346830499942,
+        "boundary-600-before-msd": 0.9750777162931371,
+        "boundary-600-before-acf": 0.9930295799365614,
+        "boundary-600-cross-msd": 0.9676281632240123,
+        "boundary-600-cross-acf": 1.0094552278657232,
+        "boundary-600-after-msd": 1.0024322528519114,
+        "boundary-600-after-acf": 1.0090774096339528,
+        "boundary-1400-before-msd": 0.9944340029949142,
+        "boundary-1400-before-acf": 1.0091948096369214,
+        "boundary-1400-cross-msd": 1.0102165446438132,
+        "boundary-1400-cross-acf": 1.007139074018559,
+        "boundary-1400-after-msd": 0.9932132766439825,
+        "boundary-1400-after-acf": 1.0049233556905064
+      },
+      "reference_observables": {
+        "orientation-cos1": -0.008570187614628261,
+        "orientation-sin1": 0.002496992972856379,
+        "orientation-cos2": 0.0025291140372461656,
+        "orientation-sin2": -0.005133108073802674,
+        "position-0-cos": -0.01136373897128707,
+        "position-0-sin": 0.0007812458226461447,
+        "position-1-cos": 0.006385380242815595,
+        "position-1-sin": -0.019285935743451024,
+        "orientation-bin-0": 0.12244740099009901,
+        "orientation-bin-1": 0.12381072091584158,
+        "orientation-bin-2": 0.1268467667079208,
+        "orientation-bin-3": 0.12870320235148514,
+        "orientation-bin-4": 0.1253287438118812,
+        "orientation-bin-5": 0.12501933787128713,
+        "orientation-bin-6": 0.12414913366336634,
+        "orientation-bin-7": 0.1236946936881188,
+        "position-bin-0-0": 0.06764387376237624,
+        "position-bin-0-1": 0.06024713799504951,
+        "position-bin-0-2": 0.0531404702970297,
+        "position-bin-0-3": 0.06622254022277228,
+        "position-bin-1-0": 0.06017945544554455,
+        "position-bin-1-1": 0.05690168626237624,
+        "position-bin-1-2": 0.06832069925742575,
+        "position-bin-1-3": 0.06576810024752475,
+        "position-bin-2-0": 0.057385133044554455,
+        "position-bin-2-1": 0.07035117574257425,
+        "position-bin-2-2": 0.060933632425742575,
+        "position-bin-2-3": 0.06521697091584158,
+        "position-bin-3-0": 0.0549582301980198,
+        "position-bin-3-1": 0.0675181775990099,
+        "position-bin-3-2": 0.0564762530940594,
+        "position-bin-3-3": 0.06873646349009901,
+        "msd-1.0": 0.9897234644483494,
+        "acf-1.0": 1.0311791802599592,
+        "msd-2.0": 0.9901897817131692,
+        "acf-2.0": 1.095995101912639,
+        "boundary-600-before-msd": 1.001869689384486,
+        "boundary-600-before-acf": 1.001692110036834,
+        "boundary-600-cross-msd": 0.9496179644710073,
+        "boundary-600-cross-acf": 1.0191189315944391,
+        "boundary-600-after-msd": 0.961001688319151,
+        "boundary-600-after-acf": 0.9960004705035687,
+        "boundary-1400-before-msd": 1.0504551897176966,
+        "boundary-1400-before-acf": 1.0013003877669102,
+        "boundary-1400-cross-msd": 1.021286450693249,
+        "boundary-1400-cross-acf": 1.0194359474827182,
+        "boundary-1400-after-msd": 0.9919373185613654,
+        "boundary-1400-after-acf": 0.9988376836756749
+      },
+      "reference_seed": 140769319,
+      "frame_count": 101,
+      "full_boundary_copies_equal": true,
+      "worker_reassignment_verified": false
+    },
+    {
+      "mode": "staged",
+      "scenario": "staged",
+      "stages": [
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "3bfa119a02684b02a735bd111d19d9ff",
+            "job_id": "acceptance-staged.s000000",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:07.129Z",
+            "started_at": "2026-10-21T16:51:08.066Z",
+            "ended_at": "2026-10-21T16:51:08.067Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "3bfa119a02684b02a735bd111d19d9ff",
+            "run_id": "acceptance-staged",
+            "segment": 0,
+            "contract": {
+              "attempt_id": "3bfa119a02684b02a735bd111d19d9ff",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 600,
+              "global_time": 3.0,
+              "job_id": "acceptance-staged.s000000",
+              "parent_checkpoint_id": null,
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-staged",
+              "segment": 0,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "3bfa119a02684b02a735bd111d19d9ff",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 600,
+                "global_time": 3.0,
+                "job_id": "acceptance-staged.s000000",
+                "parent_checkpoint_id": null,
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-staged",
+                "segment": 0,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "7a3f2a4bb87f67724230804d1fb1ab0433078247a0ba9da12743fe70f568ed5a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000000/.checkpoints/3bfa119a02684b02a735bd111d19d9ff/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": 11,
+            "origin": "run_initial",
+            "queue_sequence": 1
+          },
+          "process": {
+            "pid": 159838,
+            "process_group": 159838,
+            "session": 159838,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25059234",
+            "launched_at": "2026-10-21T16:51:07.450979+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/work",
+          "parent_progress": 600,
+          "parent_status": "queued"
+        },
+        {
+          "worker": "b",
+          "attempt": {
+            "attempt_id": "4ae2a1563fe14505b484a29965ae6f8a",
+            "job_id": "acceptance-staged.s000001",
+            "worker_id": "b",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:08.556Z",
+            "started_at": "2026-10-21T16:51:09.542Z",
+            "ended_at": "2026-10-21T16:51:09.543Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "4ae2a1563fe14505b484a29965ae6f8a",
+            "run_id": "acceptance-staged",
+            "segment": 1,
+            "contract": {
+              "attempt_id": "4ae2a1563fe14505b484a29965ae6f8a",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 1400,
+              "global_time": 7.0,
+              "job_id": "acceptance-staged.s000001",
+              "parent_checkpoint_id": "7a3f2a4bb87f67724230804d1fb1ab0433078247a0ba9da12743fe70f568ed5a",
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-staged",
+              "segment": 1,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "4ae2a1563fe14505b484a29965ae6f8a",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 1400,
+                "global_time": 7.0,
+                "job_id": "acceptance-staged.s000001",
+                "parent_checkpoint_id": "7a3f2a4bb87f67724230804d1fb1ab0433078247a0ba9da12743fe70f568ed5a",
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-staged",
+                "segment": 1,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "cd6dab0b48de237fd5baf6d8773141051bd8b03ed371a975032c1a261639d2af",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000001/.checkpoints/4ae2a1563fe14505b484a29965ae6f8a/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": -3,
+            "origin": "run_continuation",
+            "queue_sequence": 6
+          },
+          "process": {
+            "pid": 159878,
+            "process_group": 159878,
+            "session": 159878,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25059380",
+            "launched_at": "2026-10-21T16:51:08.909687+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/work",
+          "parent_progress": 1400,
+          "parent_status": "queued"
+        },
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "125308401fcb45cfa6f78c7e19463156",
+            "job_id": "acceptance-staged.s000002",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:10.065Z",
+            "started_at": "2026-10-21T16:51:11.021Z",
+            "ended_at": "2026-10-21T16:51:11.022Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "125308401fcb45cfa6f78c7e19463156",
+            "run_id": "acceptance-staged",
+            "segment": 2,
+            "contract": {
+              "attempt_id": "125308401fcb45cfa6f78c7e19463156",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 2000,
+              "global_time": 10.0,
+              "job_id": "acceptance-staged.s000002",
+              "parent_checkpoint_id": "cd6dab0b48de237fd5baf6d8773141051bd8b03ed371a975032c1a261639d2af",
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-staged",
+              "segment": 2,
+              "segment_ends": [
+                600,
+                1400,
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "125308401fcb45cfa6f78c7e19463156",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 2000,
+                "global_time": 10.0,
+                "job_id": "acceptance-staged.s000002",
+                "parent_checkpoint_id": "cd6dab0b48de237fd5baf6d8773141051bd8b03ed371a975032c1a261639d2af",
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-staged",
+                "segment": 2,
+                "segment_ends": [
+                  600,
+                  1400,
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "f89ca06f1f7900e9068cbd70c807421df9c67e538f00a3e0cb33375b77c11110",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files/acceptance-staged.s000002/.checkpoints/125308401fcb45cfa6f78c7e19463156/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": -3,
+            "origin": "run_continuation",
+            "queue_sequence": 11
+          },
+          "process": {
+            "pid": 159917,
+            "process_group": 159917,
+            "session": 159917,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25059537",
+            "launched_at": "2026-10-21T16:51:10.487583+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/work",
+          "parent_progress": 2000,
+          "parent_status": "succeeded"
+        }
+      ],
+      "initial_priority": 11,
+      "continuation_priority": -3,
+      "parent": {
+        "run_id": "acceptance-staged",
+        "snapshot": {
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "infrastructure_recovery": {
+            "delay_seconds": 30,
+            "max_retries": 1
+          },
+          "input_limits": {
+            "max_file_bytes": 1073741824,
+            "max_files": 10000,
+            "max_total_bytes": 10737418240
+          },
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 0.1,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 30
+          },
+          "run_id": "acceptance-staged",
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "start_step": 0,
+          "step_max": 800,
+          "storage_mode": "staged",
+          "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-staged\",\"phase\":\"run\",\"replica\":0,\"seeds\":[436240517,171662577,731711980,853712645,155489235]}",
+          "total_steps": 2000,
+          "work_root": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/manager-files"
+        },
+        "status": "succeeded",
+        "committed_step": 2000,
+        "first_priority": 11,
+        "initial_override": 11,
+        "continuation_override": -3,
+        "cancelled": 0,
+        "reason": null,
+        "segments": [
+          {
+            "run_id": "acceptance-staged",
+            "ordinal": 0,
+            "job_id": "acceptance-staged.s000000",
+            "start_step": 0,
+            "stop_step": 600,
+            "checkpoint_id": null,
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": false,
+            "checkpoint": {
+              "identity": "7a3f2a4bb87f67724230804d1fb1ab0433078247a0ba9da12743fe70f568ed5a",
+              "acknowledged": true,
+              "error": null
+            }
+          },
+          {
+            "run_id": "acceptance-staged",
+            "ordinal": 1,
+            "job_id": "acceptance-staged.s000001",
+            "start_step": 600,
+            "stop_step": 1400,
+            "checkpoint_id": "7a3f2a4bb87f67724230804d1fb1ab0433078247a0ba9da12743fe70f568ed5a",
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": true,
+            "checkpoint": {
+              "identity": "cd6dab0b48de237fd5baf6d8773141051bd8b03ed371a975032c1a261639d2af",
+              "acknowledged": true,
+              "error": null
+            }
+          },
+          {
+            "run_id": "acceptance-staged",
+            "ordinal": 2,
+            "job_id": "acceptance-staged.s000002",
+            "start_step": 1400,
+            "stop_step": 2000,
+            "checkpoint_id": "cd6dab0b48de237fd5baf6d8773141051bd8b03ed371a975032c1a261639d2af",
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": true,
+            "checkpoint": {
+              "identity": "f89ca06f1f7900e9068cbd70c807421df9c67e538f00a3e0cb33375b77c11110",
+              "acknowledged": true,
+              "error": null
+            }
+          }
+        ],
+        "output_policy": "Segment trajectories retain both boundary copies; duplicate initial frames are explicitly marked by segment ordinal. Segments are one logical trajectory, never independent replicas.",
+        "committed_steps": 2000,
+        "next_after": null,
+        "events": [
+          {
+            "event_id": 4,
+            "run_id": "acceptance-staged",
+            "description": "Committed segment 2 at step 2000",
+            "created_at": "2026-10-21T16:51:11.262Z"
+          },
+          {
+            "event_id": 3,
+            "run_id": "acceptance-staged",
+            "description": "Committed segment 1 at step 1400",
+            "created_at": "2026-10-21T16:51:09.972Z"
+          },
+          {
+            "event_id": 2,
+            "run_id": "acceptance-staged",
+            "description": "Committed segment 0 at step 600",
+            "created_at": "2026-10-21T16:51:08.470Z"
+          },
+          {
+            "event_id": 1,
+            "run_id": "acceptance-staged",
+            "description": "Run submitted",
+            "created_at": "2026-10-21T16:51:07.120Z"
+          }
+        ]
+      },
+      "segmented_observables": {
+        "orientation-cos1": -0.009271538980208379,
+        "orientation-sin1": 0.01003106568995397,
+        "orientation-cos2": -0.0040707485736714245,
+        "orientation-sin2": 0.0017534534290481654,
+        "position-0-cos": 0.01241682714265685,
+        "position-0-sin": 0.016601173122619616,
+        "position-1-cos": -0.004161194957981025,
+        "position-1-sin": -0.015250157768348628,
+        "orientation-bin-0": 0.12180925123762376,
+        "orientation-bin-1": 0.12975711633663367,
+        "orientation-bin-2": 0.1266340501237624,
+        "orientation-bin-3": 0.12774597772277227,
+        "orientation-bin-4": 0.12652769183168316,
+        "orientation-bin-5": 0.12451655321782178,
+        "orientation-bin-6": 0.12161587252475248,
+        "orientation-bin-7": 0.12139348700495049,
+        "position-bin-0-0": 0.06457882116336634,
+        "position-bin-0-1": 0.06770188737623763,
+        "position-bin-0-2": 0.06672532487623763,
+        "position-bin-0-3": 0.0665706219059406,
+        "position-bin-1-0": 0.05545134591584158,
+        "position-bin-1-1": 0.06047919245049505,
+        "position-bin-1-2": 0.0743831219059406,
+        "position-bin-1-3": 0.05604115099009901,
+        "position-bin-2-0": 0.0633121905940594,
+        "position-bin-2-1": 0.05120668316831683,
+        "position-bin-2-2": 0.06653194616336634,
+        "position-bin-2-3": 0.055789758663366336,
+        "position-bin-3-0": 0.06315748762376237,
+        "position-bin-3-1": 0.06540068069306931,
+        "position-bin-3-2": 0.058564743193069306,
+        "position-bin-3-3": 0.06410504331683169,
+        "msd-1.0": 1.0047761775800474,
+        "acf-1.0": 1.0126822478826667,
+        "msd-2.0": 1.0057764642218494,
+        "acf-2.0": 1.0418618228695369,
+        "boundary-600-before-msd": 0.9792421904265101,
+        "boundary-600-before-acf": 0.9986990532235064,
+        "boundary-600-cross-msd": 1.0164897911756816,
+        "boundary-600-cross-acf": 0.99854648912382,
+        "boundary-600-after-msd": 1.0274209666444014,
+        "boundary-600-after-acf": 1.0010990708835343,
+        "boundary-1400-before-msd": 0.9961063206207527,
+        "boundary-1400-before-acf": 0.999900432428644,
+        "boundary-1400-cross-msd": 1.0017279104155994,
+        "boundary-1400-cross-acf": 0.9913505877771335,
+        "boundary-1400-after-msd": 1.0247780755269196,
+        "boundary-1400-after-acf": 1.005361304693833
+      },
+      "reference_observables": {
+        "orientation-cos1": -0.014445422684375353,
+        "orientation-sin1": 0.0030580667341581365,
+        "orientation-cos2": 0.002203596444601817,
+        "orientation-sin2": 0.0016018372358026348,
+        "position-0-cos": 0.00783100808588026,
+        "position-0-sin": 0.012709544931236471,
+        "position-1-cos": 0.019809800148204736,
+        "position-1-sin": -0.031839875255089696,
+        "orientation-bin-0": 0.12270846225247525,
+        "orientation-bin-1": 0.12421681621287128,
+        "orientation-bin-2": 0.1270884900990099,
+        "orientation-bin-3": 0.12802637685643564,
+        "orientation-bin-4": 0.13008586014851486,
+        "orientation-bin-5": 0.12410078898514851,
+        "orientation-bin-6": 0.12287283415841584,
+        "orientation-bin-7": 0.12090037128712872,
+        "position-bin-0-0": 0.0639116646039604,
+        "position-bin-0-1": 0.06855275371287128,
+        "position-bin-0-2": 0.058119972153465344,
+        "position-bin-0-3": 0.07003210086633663,
+        "position-bin-1-0": 0.05826500618811881,
+        "position-bin-1-1": 0.05724009900990099,
+        "position-bin-1-2": 0.07173383353960396,
+        "position-bin-1-3": 0.06084661200495049,
+        "position-bin-2-0": 0.05385597153465346,
+        "position-bin-2-1": 0.051168007425742575,
+        "position-bin-2-2": 0.06935527537128713,
+        "position-bin-2-3": 0.06146542388613861,
+        "position-bin-3-0": 0.05798460705445545,
+        "position-bin-3-1": 0.06498491646039604,
+        "position-bin-3-2": 0.058255337252475246,
+        "position-bin-3-3": 0.07422841893564357,
+        "msd-1.0": 1.0042387986848618,
+        "acf-1.0": 1.0287432165635653,
+        "msd-2.0": 1.0198424999416202,
+        "acf-2.0": 1.0497222200702558,
+        "boundary-600-before-msd": 1.00121320602927,
+        "boundary-600-before-acf": 1.0048495194513285,
+        "boundary-600-cross-msd": 0.9863611948054476,
+        "boundary-600-cross-acf": 0.9995049625473135,
+        "boundary-600-after-msd": 1.0002731784537002,
+        "boundary-600-after-acf": 1.0000634848412946,
+        "boundary-1400-before-msd": 1.0210971357421599,
+        "boundary-1400-before-acf": 1.0025008186291888,
+        "boundary-1400-cross-msd": 1.0334646949124375,
+        "boundary-1400-cross-acf": 1.0184615811695827,
+        "boundary-1400-after-msd": 1.0280604062338463,
+        "boundary-1400-after-acf": 1.001204898532133
+      },
+      "reference_seed": 742839059,
+      "frame_count": 101,
+      "full_boundary_copies_equal": true,
+      "worker_reassignment_verified": true
+    },
+    {
+      "mode": "shared",
+      "scenario": "single",
+      "stages": [
+        {
+          "worker": "a",
+          "attempt": {
+            "attempt_id": "24b8c2fd94bb4110a22002e01543d052",
+            "job_id": "acceptance-single.s000000",
+            "worker_id": "a",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052",
+            "state": "succeeded",
+            "created_at": "2026-10-21T16:51:13.238Z",
+            "started_at": "2026-10-21T16:51:14.383Z",
+            "ended_at": "2026-10-21T16:51:14.383Z",
+            "exit_code": 0,
+            "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+            "reason": null
+          },
+          "checkpoint": {
+            "attempt_id": "24b8c2fd94bb4110a22002e01543d052",
+            "run_id": "acceptance-single",
+            "segment": 0,
+            "contract": {
+              "attempt_id": "24b8c2fd94bb4110a22002e01543d052",
+              "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+              "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+              "global_step": 2000,
+              "global_time": 10.0,
+              "job_id": "acceptance-single.s000000",
+              "parent_checkpoint_id": null,
+              "recipe": {
+                "mode": "statistical",
+                "mpi_ranks": 1,
+                "name": "ideal-abp-2d-v1",
+                "omp_threads": 1
+              },
+              "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+              "required_state": [
+                "checkpoint.restart"
+              ],
+              "resources": {
+                "max_retries": 0,
+                "memory_gib": 0.1,
+                "mpi_ranks": 1,
+                "omp_threads_per_rank": 1,
+                "time_limit_seconds": 30
+              },
+              "run_id": "acceptance-single",
+              "segment": 0,
+              "segment_ends": [
+                2000
+              ],
+              "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-single\",\"phase\":\"run\",\"replica\":0,\"seeds\":[785048450,690921325,341323247]}",
+              "total_steps": 2000
+            },
+            "manifest": {
+              "contract": {
+                "attempt_id": "24b8c2fd94bb4110a22002e01543d052",
+                "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+                "execution_boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+                "global_step": 2000,
+                "global_time": 10.0,
+                "job_id": "acceptance-single.s000000",
+                "parent_checkpoint_id": null,
+                "recipe": {
+                  "mode": "statistical",
+                  "mpi_ranks": 1,
+                  "name": "ideal-abp-2d-v1",
+                  "omp_threads": 1
+                },
+                "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+                "required_state": [
+                  "checkpoint.restart"
+                ],
+                "resources": {
+                  "max_retries": 0,
+                  "memory_gib": 0.1,
+                  "mpi_ranks": 1,
+                  "omp_threads_per_rank": 1,
+                  "time_limit_seconds": 30
+                },
+                "run_id": "acceptance-single",
+                "segment": 0,
+                "segment_ends": [
+                  2000
+                ],
+                "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-single\",\"phase\":\"run\",\"replica\":0,\"seeds\":[785048450,690921325,341323247]}",
+                "total_steps": 2000
+              },
+              "files": [
+                {
+                  "path": "checkpoint.restart",
+                  "sha256": "4f516c358ff8abfd29fc5f04dd03ed8e01a532b872fe3bcd0cf9652a1d714441",
+                  "size": 172964
+                }
+              ]
+            },
+            "identity": "e087df01fceb14c3e455d0d2441950125f031d7f39bc724206be1e3b1bd93ba0",
+            "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/single/manager-files/acceptance-single.s000000/.checkpoints/24b8c2fd94bb4110a22002e01543d052/results",
+            "acknowledged": 1
+          },
+          "dispatch": {
+            "priority": 11,
+            "origin": "run_initial",
+            "queue_sequence": 1
+          },
+          "process": {
+            "pid": 159960,
+            "process_group": 159960,
+            "session": 159960,
+            "boot_id": "12e86caa-3f25-4990-9c4b-5348ea92f83d",
+            "start_ticks": "25059836",
+            "launched_at": "2026-10-21T16:51:13.477463+00:00"
+          },
+          "runtime_directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/work",
+          "parent_progress": 2000,
+          "parent_status": "succeeded"
+        }
+      ],
+      "initial_priority": 11,
+      "continuation_priority": -3,
+      "parent": {
+        "run_id": "acceptance-single",
+        "snapshot": {
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "infrastructure_recovery": {
+            "delay_seconds": 30,
+            "max_retries": 1
+          },
+          "input_limits": {
+            "max_file_bytes": 1073741824,
+            "max_files": 10000,
+            "max_total_bytes": 10737418240
+          },
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 0.1,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 30
+          },
+          "run_id": "acceptance-single",
+          "segment_ends": [
+            2000
+          ],
+          "start_step": 0,
+          "step_max": 100000,
+          "storage_mode": "shared",
+          "stream_provenance": "{\"namespace\":\"lammps-manager-run-v1:acceptance-single\",\"phase\":\"run\",\"replica\":0,\"seeds\":[785048450,690921325,341323247]}",
+          "total_steps": 2000,
+          "work_root": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/single/manager-files"
+        },
+        "status": "succeeded",
+        "committed_step": 2000,
+        "first_priority": 11,
+        "initial_override": 11,
+        "continuation_override": -3,
+        "cancelled": 0,
+        "reason": null,
+        "segments": [
+          {
+            "run_id": "acceptance-single",
+            "ordinal": 0,
+            "job_id": "acceptance-single.s000000",
+            "start_step": 0,
+            "stop_step": 2000,
+            "checkpoint_id": null,
+            "completed": 1,
+            "state": "succeeded",
+            "duplicate_initial_boundary_frame": false,
+            "checkpoint": {
+              "identity": "e087df01fceb14c3e455d0d2441950125f031d7f39bc724206be1e3b1bd93ba0",
+              "acknowledged": true,
+              "error": null
+            }
+          }
+        ],
+        "output_policy": "Segment trajectories retain both boundary copies; duplicate initial frames are explicitly marked by segment ordinal. Segments are one logical trajectory, never independent replicas.",
+        "committed_steps": 2000,
+        "next_after": null,
+        "events": [
+          {
+            "event_id": 2,
+            "run_id": "acceptance-single",
+            "description": "Committed segment 0 at step 2000",
+            "created_at": "2026-10-21T16:51:14.642Z"
+          },
+          {
+            "event_id": 1,
+            "run_id": "acceptance-single",
+            "description": "Run submitted",
+            "created_at": "2026-10-21T16:51:13.215Z"
+          }
+        ]
+      },
+      "segmented_observables": {
+        "orientation-cos1": -0.0025440652586075667,
+        "orientation-sin1": -0.007544073536977051,
+        "orientation-cos2": 0.004733011191691976,
+        "orientation-sin2": 0.00487645311337886,
+        "position-0-cos": -0.012224653643600385,
+        "position-0-sin": -0.05735354265581497,
+        "position-1-cos": 0.010430444821586327,
+        "position-1-sin": 0.012416942249132952,
+        "orientation-bin-0": 0.12485496596534654,
+        "orientation-bin-1": 0.12278581373762376,
+        "orientation-bin-2": 0.12265044863861387,
+        "orientation-bin-3": 0.12407178217821782,
+        "orientation-bin-4": 0.12832611386138615,
+        "orientation-bin-5": 0.12661471225247525,
+        "orientation-bin-6": 0.12631497524752475,
+        "orientation-bin-7": 0.12438118811881188,
+        "position-bin-0-0": 0.06109800433168317,
+        "position-bin-0-1": 0.06018912438118812,
+        "position-bin-0-2": 0.05299543626237624,
+        "position-bin-0-3": 0.05542233910891089,
+        "position-bin-1-0": 0.0638826577970297,
+        "position-bin-1-1": 0.060314820544554455,
+        "position-bin-1-2": 0.049766011757425746,
+        "position-bin-1-3": 0.05792659344059406,
+        "position-bin-2-0": 0.06543935643564357,
+        "position-bin-2-1": 0.058719446163366336,
+        "position-bin-2-2": 0.07564975247524752,
+        "position-bin-2-3": 0.07292311262376237,
+        "position-bin-3-0": 0.06901686262376237,
+        "position-bin-3-1": 0.07292311262376237,
+        "position-bin-3-2": 0.061958539603960396,
+        "position-bin-3-3": 0.06177482982673267,
+        "msd-1.0": 1.011183435918282,
+        "acf-1.0": 1.0419804827567791,
+        "msd-2.0": 1.0230738358028841,
+        "acf-2.0": 1.112385900489942,
+        "boundary-600-before-msd": 0.9954515643073716,
+        "boundary-600-before-acf": 1.00533596173555,
+        "boundary-600-cross-msd": 0.9362100613377075,
+        "boundary-600-cross-acf": 1.00081822813145,
+        "boundary-600-after-msd": 1.0128517562003723,
+        "boundary-600-after-acf": 0.9976693033485132,
+        "boundary-1400-before-msd": 1.006040108240472,
+        "boundary-1400-before-acf": 1.0108895075626854,
+        "boundary-1400-cross-msd": 0.9442964140757876,
+        "boundary-1400-cross-acf": 0.9968916781438131,
+        "boundary-1400-after-msd": 0.9774561715334377,
+        "boundary-1400-after-acf": 1.0049269073067935
+      },
+      "reference_observables": {
+        "orientation-cos1": -0.0007065171344671212,
+        "orientation-sin1": 0.0017482040499366355,
+        "orientation-cos2": 0.002779435487248697,
+        "orientation-sin2": -0.0010060543023018638,
+        "position-0-cos": -0.014699335362782905,
+        "position-0-sin": -0.04234541064485289,
+        "position-1-cos": 0.021722814080557137,
+        "position-1-sin": 0.019551433751334876,
+        "orientation-bin-0": 0.12430383663366337,
+        "orientation-bin-1": 0.12670173267326731,
+        "orientation-bin-2": 0.1237817141089109,
+        "orientation-bin-3": 0.12677908415841585,
+        "orientation-bin-4": 0.12424582301980198,
+        "orientation-bin-5": 0.1251353650990099,
+        "orientation-bin-6": 0.12400409962871287,
+        "orientation-bin-7": 0.12504834467821782,
+        "position-bin-0-0": 0.06261602722772278,
+        "position-bin-0-1": 0.0548518719059406,
+        "position-bin-0-2": 0.04642056002475248,
+        "position-bin-0-3": 0.053585241336633664,
+        "position-bin-1-0": 0.07039952042079207,
+        "position-bin-1-1": 0.0677889077970297,
+        "position-bin-1-2": 0.05025912747524752,
+        "position-bin-1-3": 0.06407603650990099,
+        "position-bin-2-0": 0.05790725556930693,
+        "position-bin-2-1": 0.06044051670792079,
+        "position-bin-2-2": 0.06773089418316831,
+        "position-bin-2-3": 0.07110535272277228,
+        "position-bin-3-0": 0.06979037747524752,
+        "position-bin-3-1": 0.06958732982673267,
+        "position-bin-3-2": 0.06539101175742575,
+        "position-bin-3-3": 0.06804996905940594,
+        "msd-1.0": 0.9990184327785753,
+        "acf-1.0": 1.0220415892049455,
+        "msd-2.0": 1.0070106434603383,
+        "acf-2.0": 1.069491906903188,
+        "boundary-600-before-msd": 0.9917990009987793,
+        "boundary-600-before-acf": 0.9951536760241031,
+        "boundary-600-cross-msd": 1.0431990510269895,
+        "boundary-600-cross-acf": 0.9942038554868604,
+        "boundary-600-after-msd": 0.9951972623985927,
+        "boundary-600-after-acf": 1.0024481395504807,
+        "boundary-1400-before-msd": 0.963801498536181,
+        "boundary-1400-before-acf": 1.0096371966505777,
+        "boundary-1400-cross-msd": 1.0494168075128743,
+        "boundary-1400-cross-acf": 1.0123920450200945,
+        "boundary-1400-after-msd": 1.0004645839369692,
+        "boundary-1400-after-acf": 1.003397161996248
+      },
+      "reference_seed": 325988511,
+      "frame_count": 101,
+      "full_boundary_copies_equal": true,
+      "worker_reassignment_verified": false
+    }
+  ],
+  "reference_commands": [
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/shared/uninterrupted",
+      "pid": 159815,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/staged/uninterrupted",
+      "pid": 159939,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t019-pw8Nv0Y1/segmentation/single/uninterrupted",
+      "pid": 159982,
+      "returncode": 0
+    }
+  ],
+  "scientific_gate": "T017 frozen 256-pair confirmatory evidence; new pairs are functional checks only",
+  "limitations": [
+    "No new model/build/range acceptance; no cross-host compatibility or physical power-loss test"
+  ],
+  "initial_source_sha256": {
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "src/lammps_manager/checkpoints.py": "1dde17a0a5518f34cdb982c143892b262e6f1fc17932b21a4e7c3857b2a621c1",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/cli.py": "ded57375ec2e586be658c782f0427762f41c8009985b6db8876536103c15c967",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/manager.py": "2cc78dfa252dee1fa08296e6229d330f3b6722bd13c8ae2ab8dab8f35956772f",
+    "src/lammps_manager/models.py": "3a8b88f854032515b8722223b31802d0ffd32a659778e305675a2e633b35c002",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/scheduler.py": "64b3a86d5d7d9deb27a697fbfe701e160bf74575fa928bc152aefadfcfe0a873",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/staging.py": "1fed2aa286428be19450f2af0c6d0e4156571541e33f532107545882cfc0d868",
+    "src/lammps_manager/store.py": "7197d512292583a31df9f7903f3e7893670fb45a0c0dca4e89096c9c2284cfba",
+    "src/lammps_manager/worker.py": "a896871de9e1da64d3e71430dde6e9b17b8be15dbda1e683d5e45bee3da82cd1"
+  },
+  "driver_sha256": {
+    "/tmp/lammps-t019-pw8Nv0Y1/tools/verification/segmentation_acceptance.py": "7845bd40856490661161cf85fd09d37b46f8410cad2e732c8d19d6274cc9581b",
+    "/tmp/lammps-t019-pw8Nv0Y1/tools/verification/abp_acceptance.py": "102787aff1b3d096ed70174c72e8595ed6d5e3f8c0ad76e1e98726c74ebb6ff7",
+    "/tmp/lammps-t019-pw8Nv0Y1/tools/verification/continuation_acceptance.py": "cad100b06bcec4f9a536901ac3864c85cea6700c1e3e4d0fb33e8626884a4554"
+  },
+  "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+  "source_sha256": {
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "src/lammps_manager/checkpoints.py": "1dde17a0a5518f34cdb982c143892b262e6f1fc17932b21a4e7c3857b2a621c1",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/cli.py": "ded57375ec2e586be658c782f0427762f41c8009985b6db8876536103c15c967",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/manager.py": "2cc78dfa252dee1fa08296e6229d330f3b6722bd13c8ae2ab8dab8f35956772f",
+    "src/lammps_manager/models.py": "3a8b88f854032515b8722223b31802d0ffd32a659778e305675a2e633b35c002",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/scheduler.py": "64b3a86d5d7d9deb27a697fbfe701e160bf74575fa928bc152aefadfcfe0a873",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/staging.py": "1fed2aa286428be19450f2af0c6d0e4156571541e33f532107545882cfc0d868",
+    "src/lammps_manager/store.py": "7197d512292583a31df9f7903f3e7893670fb45a0c0dca4e89096c9c2284cfba",
+    "src/lammps_manager/worker.py": "a896871de9e1da64d3e71430dde6e9b17b8be15dbda1e683d5e45bee3da82cd1"
+  },
+  "files": {
+    "shared/journal-a/attempts.sqlite3": {
+      "size": 270336,
+      "sha256": "808dd2e1b150eb279cf0a86b92d99265a920f9f65fc2cb68f8469ce41f10ca60"
+    },
+    "shared/journal-a/identity.json": {
+      "size": 131,
+      "sha256": "f76d17a4318506cc61bdb664bef420deb4e9ede9b4d9d1d42826eb71f9f8599b"
+    },
+    "shared/journal-a/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "shared/journal-b/attempts.sqlite3": {
+      "size": 258048,
+      "sha256": "5ae84034d4da17745fb0d3583d05140ecbd71dc7c259419f4484bd46a19c0b38"
+    },
+    "shared/journal-b/identity.json": {
+      "size": 131,
+      "sha256": "c91c57baeeed1c5796b0bf751b938de44063fa4ddf674f5348d3954657acba0d"
+    },
+    "shared/journal-b/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "shared/manager-files/acceptance-shared.s000000/.checkpoints/dd090c4cd9664ee482aa5a4a47378ff2/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2721,
+      "sha256": "04ca38711f2b7186f61691288a1a7a0753235e7d5fc4bfdfda3ce35246079791"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3390,
+      "sha256": "2801f46fe6f5a476baa11b9a963cb7922d6a3b678212b8d47cacedbadeec1f02"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 590,
+      "sha256": "d601b9a69d2c3cb8d75d2bab3bfcab84740ed45030bb74c0bb0a935c16d7eb42"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "53999cef2149b20ea62ce2949e5d229840598fbf9d2ae7f989e556be63e1a724"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 2696813,
+      "sha256": "db688b8f7b114c42b3cec7bf6dcec93df675fb4e464a7ae6138691d70e6448de"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 511,
+      "sha256": "d798608d66fde166fe587d1acc3951c5a605c3bb038a4a86fda9c46be32882f8"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 760,
+      "sha256": "f3fd8eea443a8f7abfc50af7c81cdb80505e9d83b06ef1967b91b8421268f185"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/execution.json": {
+      "size": 590,
+      "sha256": "d601b9a69d2c3cb8d75d2bab3bfcab84740ed45030bb74c0bb0a935c16d7eb42"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/outcome.json": {
+      "size": 511,
+      "sha256": "d798608d66fde166fe587d1acc3951c5a605c3bb038a4a86fda9c46be32882f8"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/process.json": {
+      "size": 188,
+      "sha256": "53999cef2149b20ea62ce2949e5d229840598fbf9d2ae7f989e556be63e1a724"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/execution.json": {
+      "size": 590,
+      "sha256": "d601b9a69d2c3cb8d75d2bab3bfcab84740ed45030bb74c0bb0a935c16d7eb42"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/outcome.json": {
+      "size": 511,
+      "sha256": "d798608d66fde166fe587d1acc3951c5a605c3bb038a4a86fda9c46be32882f8"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/process.json": {
+      "size": 188,
+      "sha256": "53999cef2149b20ea62ce2949e5d229840598fbf9d2ae7f989e556be63e1a724"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/stdout": {
+      "size": 2721,
+      "sha256": "04ca38711f2b7186f61691288a1a7a0753235e7d5fc4bfdfda3ce35246079791"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/work/in.lmp": {
+      "size": 760,
+      "sha256": "f3fd8eea443a8f7abfc50af7c81cdb80505e9d83b06ef1967b91b8421268f185"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/work/log.lammps": {
+      "size": 3390,
+      "sha256": "2801f46fe6f5a476baa11b9a963cb7922d6a3b678212b8d47cacedbadeec1f02"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/results/work/trajectory.dump": {
+      "size": 2696813,
+      "sha256": "db688b8f7b114c42b3cec7bf6dcec93df675fb4e464a7ae6138691d70e6448de"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/stdout": {
+      "size": 2721,
+      "sha256": "04ca38711f2b7186f61691288a1a7a0753235e7d5fc4bfdfda3ce35246079791"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/work/in.lmp": {
+      "size": 760,
+      "sha256": "f3fd8eea443a8f7abfc50af7c81cdb80505e9d83b06ef1967b91b8421268f185"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/work/log.lammps": {
+      "size": 3390,
+      "sha256": "2801f46fe6f5a476baa11b9a963cb7922d6a3b678212b8d47cacedbadeec1f02"
+    },
+    "shared/manager-files/acceptance-shared.s000000/dd090c4cd9664ee482aa5a4a47378ff2/work/trajectory.dump": {
+      "size": 2696813,
+      "sha256": "db688b8f7b114c42b3cec7bf6dcec93df675fb4e464a7ae6138691d70e6448de"
+    },
+    "shared/manager-files/acceptance-shared.s000000/inputs/in.lmp": {
+      "size": 760,
+      "sha256": "f3fd8eea443a8f7abfc50af7c81cdb80505e9d83b06ef1967b91b8421268f185"
+    },
+    "shared/manager-files/acceptance-shared.s000001/.checkpoints/aa699d43a3a543899e31e73f7a62ddd9/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2834,
+      "sha256": "ebaac33c03ad1b23fce2d524a71d4d5c1551558f50cf0c10d86bc0da4dae3f1f"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3285,
+      "sha256": "b8b90f7c787fcd268bd140fee588521f8d3c40bf23766aded0857fb185392131"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 590,
+      "sha256": "0d0b174746a95572446bd783ca50a0e7a9f8efed9501858cc2b6f47bdc2c0c55"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "90882f2f6d36f4d55d18cb4e84fb680c5dc0647beb5d4437ef59f84969584858"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 3568838,
+      "sha256": "b8f194d5f905445817a9e806fdf6d2f2b4f643a92e4dc695f7081cc772f35760"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 511,
+      "sha256": "d3187544bb309b91af1aa0d432ed93b204adc0d13a509d70b461cede9b2db591"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 544,
+      "sha256": "ab69e9c283f072d471fd72be26741fd23c06e03767cf8cb65e35c85fed473da0"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/execution.json": {
+      "size": 590,
+      "sha256": "0d0b174746a95572446bd783ca50a0e7a9f8efed9501858cc2b6f47bdc2c0c55"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/outcome.json": {
+      "size": 511,
+      "sha256": "d3187544bb309b91af1aa0d432ed93b204adc0d13a509d70b461cede9b2db591"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/process.json": {
+      "size": 188,
+      "sha256": "90882f2f6d36f4d55d18cb4e84fb680c5dc0647beb5d4437ef59f84969584858"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/execution.json": {
+      "size": 590,
+      "sha256": "0d0b174746a95572446bd783ca50a0e7a9f8efed9501858cc2b6f47bdc2c0c55"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/outcome.json": {
+      "size": 511,
+      "sha256": "d3187544bb309b91af1aa0d432ed93b204adc0d13a509d70b461cede9b2db591"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/process.json": {
+      "size": 188,
+      "sha256": "90882f2f6d36f4d55d18cb4e84fb680c5dc0647beb5d4437ef59f84969584858"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/stdout": {
+      "size": 2834,
+      "sha256": "ebaac33c03ad1b23fce2d524a71d4d5c1551558f50cf0c10d86bc0da4dae3f1f"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/work/in.lmp": {
+      "size": 544,
+      "sha256": "ab69e9c283f072d471fd72be26741fd23c06e03767cf8cb65e35c85fed473da0"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/work/log.lammps": {
+      "size": 3285,
+      "sha256": "b8b90f7c787fcd268bd140fee588521f8d3c40bf23766aded0857fb185392131"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/results/work/trajectory.dump": {
+      "size": 3568838,
+      "sha256": "b8f194d5f905445817a9e806fdf6d2f2b4f643a92e4dc695f7081cc772f35760"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/stdout": {
+      "size": 2834,
+      "sha256": "ebaac33c03ad1b23fce2d524a71d4d5c1551558f50cf0c10d86bc0da4dae3f1f"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/work/in.lmp": {
+      "size": 544,
+      "sha256": "ab69e9c283f072d471fd72be26741fd23c06e03767cf8cb65e35c85fed473da0"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/work/log.lammps": {
+      "size": 3285,
+      "sha256": "b8b90f7c787fcd268bd140fee588521f8d3c40bf23766aded0857fb185392131"
+    },
+    "shared/manager-files/acceptance-shared.s000001/aa699d43a3a543899e31e73f7a62ddd9/work/trajectory.dump": {
+      "size": 3568838,
+      "sha256": "b8f194d5f905445817a9e806fdf6d2f2b4f643a92e4dc695f7081cc772f35760"
+    },
+    "shared/manager-files/acceptance-shared.s000001/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1520d56b24b9699416210deb7ed052ffce5aaabb3ed3e52f1fbf6ec5bae1c6ed"
+    },
+    "shared/manager-files/acceptance-shared.s000001/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "ab69e9c283f072d471fd72be26741fd23c06e03767cf8cb65e35c85fed473da0"
+    },
+    "shared/manager-files/acceptance-shared.s000002/.checkpoints/30d9f78d1d1045c68a8ad89e8947b9cb/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "bcabecc140722f1b026b98a6356fa98d36c8e40d808bef49950718f62ee46d1a"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2782,
+      "sha256": "2296ad0ebf80eab119dd5fcb724af4c0a5797d61bc62444d319e56889c03ee6e"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3232,
+      "sha256": "37d3cee7665f726de4220c34fb2c2ed3aa6f3bb6c0e8b533ac59f06da8dad788"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 590,
+      "sha256": "3e65dd7eba1c0672546fa29bb6465ed5ccfc4fe9100e9dd8c7fe8a2654aa5069"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "91f3dd6f055024fadc2a3c979d58040673ec64c05608c23eff543250e51ebf87"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 2698584,
+      "sha256": "83734c9cc1e80a76a6c73c014bfd0a3c9f7c4c8bcc55accb996b2a704f1a50c9"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 511,
+      "sha256": "3244246ec4251f89a27e918102664129ce9b2143a8d8bb7f579f5c6d42525440"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 544,
+      "sha256": "72bce3cfcdce208ed2be2ad1d05dd2d6b4efc64a8361e900cc7c14dd4c8247bd"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "bcabecc140722f1b026b98a6356fa98d36c8e40d808bef49950718f62ee46d1a"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/execution.json": {
+      "size": 590,
+      "sha256": "3e65dd7eba1c0672546fa29bb6465ed5ccfc4fe9100e9dd8c7fe8a2654aa5069"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/outcome.json": {
+      "size": 511,
+      "sha256": "3244246ec4251f89a27e918102664129ce9b2143a8d8bb7f579f5c6d42525440"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/process.json": {
+      "size": 188,
+      "sha256": "91f3dd6f055024fadc2a3c979d58040673ec64c05608c23eff543250e51ebf87"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/execution.json": {
+      "size": 590,
+      "sha256": "3e65dd7eba1c0672546fa29bb6465ed5ccfc4fe9100e9dd8c7fe8a2654aa5069"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/outcome.json": {
+      "size": 511,
+      "sha256": "3244246ec4251f89a27e918102664129ce9b2143a8d8bb7f579f5c6d42525440"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/process.json": {
+      "size": 188,
+      "sha256": "91f3dd6f055024fadc2a3c979d58040673ec64c05608c23eff543250e51ebf87"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/stdout": {
+      "size": 2782,
+      "sha256": "2296ad0ebf80eab119dd5fcb724af4c0a5797d61bc62444d319e56889c03ee6e"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "bcabecc140722f1b026b98a6356fa98d36c8e40d808bef49950718f62ee46d1a"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/work/in.lmp": {
+      "size": 544,
+      "sha256": "72bce3cfcdce208ed2be2ad1d05dd2d6b4efc64a8361e900cc7c14dd4c8247bd"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/work/log.lammps": {
+      "size": 3232,
+      "sha256": "37d3cee7665f726de4220c34fb2c2ed3aa6f3bb6c0e8b533ac59f06da8dad788"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/results/work/trajectory.dump": {
+      "size": 2698584,
+      "sha256": "83734c9cc1e80a76a6c73c014bfd0a3c9f7c4c8bcc55accb996b2a704f1a50c9"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/stdout": {
+      "size": 2782,
+      "sha256": "2296ad0ebf80eab119dd5fcb724af4c0a5797d61bc62444d319e56889c03ee6e"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "bcabecc140722f1b026b98a6356fa98d36c8e40d808bef49950718f62ee46d1a"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/work/in.lmp": {
+      "size": 544,
+      "sha256": "72bce3cfcdce208ed2be2ad1d05dd2d6b4efc64a8361e900cc7c14dd4c8247bd"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/work/log.lammps": {
+      "size": 3232,
+      "sha256": "37d3cee7665f726de4220c34fb2c2ed3aa6f3bb6c0e8b533ac59f06da8dad788"
+    },
+    "shared/manager-files/acceptance-shared.s000002/30d9f78d1d1045c68a8ad89e8947b9cb/work/trajectory.dump": {
+      "size": 2698584,
+      "sha256": "83734c9cc1e80a76a6c73c014bfd0a3c9f7c4c8bcc55accb996b2a704f1a50c9"
+    },
+    "shared/manager-files/acceptance-shared.s000002/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1516ebe286a32aaeb648032ac8a984867a019653cf8dc050b546cc46493eefd4"
+    },
+    "shared/manager-files/acceptance-shared.s000002/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "72bce3cfcdce208ed2be2ad1d05dd2d6b4efc64a8361e900cc7c14dd4c8247bd"
+    },
+    "shared/manager.sqlite3": {
+      "size": 270336,
+      "sha256": "7de44f1f5a764e5c0352a45c0242ce00d28f761cc4089a0489f81a42831f3f84"
+    },
+    "shared/uninterrupted/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dc634dfc214f5497d4aa0d0e84f7c43eab7c63488e945a8ed5b8cb60dee4313a"
+    },
+    "shared/uninterrupted/in.lmp": {
+      "size": 761,
+      "sha256": "e37e021036a180ace75639c6f3d4da8d20dd705f569a30604b3041aff9df083c"
+    },
+    "shared/uninterrupted/log.lammps": {
+      "size": 3772,
+      "sha256": "b67d2e43eda190927094011728bd55ffe37202b4bf9df7192fe3d1bea14c4de2"
+    },
+    "shared/uninterrupted/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared/uninterrupted/stdout": {
+      "size": 3102,
+      "sha256": "f898f5511597d3b948c6964ac31cac1c6539777b9a1744dbf4833586b1f93f69"
+    },
+    "shared/uninterrupted/trajectory.dump": {
+      "size": 8790838,
+      "sha256": "e2db7dfafe3771ec3e3dd399a7384e5bfe0e954f4ae5ce7ccc4a544cf0d769f1"
+    },
+    "single/journal-a/attempts.sqlite3": {
+      "size": 258048,
+      "sha256": "103e93adee2d391e8ea28b0aa29e362bebf051833547b195750c4f5b8e23208b"
+    },
+    "single/journal-a/identity.json": {
+      "size": 131,
+      "sha256": "4c93feeb36b40a5031d06320a41b5beb8ae7c79e98d6adc9e349ef12790ad54b"
+    },
+    "single/journal-a/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "single/journal-b/attempts.sqlite3": {
+      "size": 258048,
+      "sha256": "5ae84034d4da17745fb0d3583d05140ecbd71dc7c259419f4484bd46a19c0b38"
+    },
+    "single/journal-b/identity.json": {
+      "size": 131,
+      "sha256": "c9600b66a4dd907f33b19d91159496edfe4ab9ba6f2c9cafef72c86a060d0f2e"
+    },
+    "single/journal-b/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "single/manager-files/acceptance-single.s000000/.checkpoints/24b8c2fd94bb4110a22002e01543d052/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "4f516c358ff8abfd29fc5f04dd03ed8e01a532b872fe3bcd0cf9652a1d714441"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 3102,
+      "sha256": "eb30a29ae77cb722603bb917dd45b2ef733c0439f5538cd10c2aa729a6c7eb24"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3772,
+      "sha256": "1787b289b83197093cae95830047f47aef4550d9b6e7548e05ae295d763c071a"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 590,
+      "sha256": "1da93d569b530d71d1c543b4a85bfe5dc32477e5fdab365de32a082123a17425"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "f43059a329e52245bb7afef3d38c2f706655f24166b61c5491a3591910c008b6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 8788999,
+      "sha256": "119d31cbc71acc245fb9c3c58d3e1800cebfa44b0d1b6dbccfc9cce61f9f351f"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 511,
+      "sha256": "543a7d723de2533724405818f2d424696bf3d17c3bbee0c74d1714b19b21dbd6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 761,
+      "sha256": "778e58c4e7752980818563bc7f7837ddbdffb53b3095def1d84f2ac6795eb377"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "4f516c358ff8abfd29fc5f04dd03ed8e01a532b872fe3bcd0cf9652a1d714441"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/execution.json": {
+      "size": 590,
+      "sha256": "1da93d569b530d71d1c543b4a85bfe5dc32477e5fdab365de32a082123a17425"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/outcome.json": {
+      "size": 511,
+      "sha256": "543a7d723de2533724405818f2d424696bf3d17c3bbee0c74d1714b19b21dbd6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/process.json": {
+      "size": 188,
+      "sha256": "f43059a329e52245bb7afef3d38c2f706655f24166b61c5491a3591910c008b6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/execution.json": {
+      "size": 590,
+      "sha256": "1da93d569b530d71d1c543b4a85bfe5dc32477e5fdab365de32a082123a17425"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/outcome.json": {
+      "size": 511,
+      "sha256": "543a7d723de2533724405818f2d424696bf3d17c3bbee0c74d1714b19b21dbd6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/process.json": {
+      "size": 188,
+      "sha256": "f43059a329e52245bb7afef3d38c2f706655f24166b61c5491a3591910c008b6"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/stdout": {
+      "size": 3102,
+      "sha256": "eb30a29ae77cb722603bb917dd45b2ef733c0439f5538cd10c2aa729a6c7eb24"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "4f516c358ff8abfd29fc5f04dd03ed8e01a532b872fe3bcd0cf9652a1d714441"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/work/in.lmp": {
+      "size": 761,
+      "sha256": "778e58c4e7752980818563bc7f7837ddbdffb53b3095def1d84f2ac6795eb377"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/work/log.lammps": {
+      "size": 3772,
+      "sha256": "1787b289b83197093cae95830047f47aef4550d9b6e7548e05ae295d763c071a"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/results/work/trajectory.dump": {
+      "size": 8788999,
+      "sha256": "119d31cbc71acc245fb9c3c58d3e1800cebfa44b0d1b6dbccfc9cce61f9f351f"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/stdout": {
+      "size": 3102,
+      "sha256": "eb30a29ae77cb722603bb917dd45b2ef733c0439f5538cd10c2aa729a6c7eb24"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "4f516c358ff8abfd29fc5f04dd03ed8e01a532b872fe3bcd0cf9652a1d714441"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/work/in.lmp": {
+      "size": 761,
+      "sha256": "778e58c4e7752980818563bc7f7837ddbdffb53b3095def1d84f2ac6795eb377"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/work/log.lammps": {
+      "size": 3772,
+      "sha256": "1787b289b83197093cae95830047f47aef4550d9b6e7548e05ae295d763c071a"
+    },
+    "single/manager-files/acceptance-single.s000000/24b8c2fd94bb4110a22002e01543d052/work/trajectory.dump": {
+      "size": 8788999,
+      "sha256": "119d31cbc71acc245fb9c3c58d3e1800cebfa44b0d1b6dbccfc9cce61f9f351f"
+    },
+    "single/manager-files/acceptance-single.s000000/inputs/in.lmp": {
+      "size": 761,
+      "sha256": "778e58c4e7752980818563bc7f7837ddbdffb53b3095def1d84f2ac6795eb377"
+    },
+    "single/manager.sqlite3": {
+      "size": 258048,
+      "sha256": "8f29a8c04c3839589c7d2e4d0b980a42530f886525cfad04cf071ed260261b8d"
+    },
+    "single/uninterrupted/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "b216e47451cb7dc491f5a8a445cd666933d620162419a3e3c65a021f261b8b46"
+    },
+    "single/uninterrupted/in.lmp": {
+      "size": 761,
+      "sha256": "7524260f932007b3086e1e0cb510a5b9fb3540a483679fd1e8bbaac3168e2839"
+    },
+    "single/uninterrupted/log.lammps": {
+      "size": 3771,
+      "sha256": "c9267ef0eec33580f3c7087719c1ced5fdb3b7ad56d07d54e4d80b265e1bd49c"
+    },
+    "single/uninterrupted/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "single/uninterrupted/stdout": {
+      "size": 3101,
+      "sha256": "5d0d40a945502b5fe864662930ffb4c70ab70f8eb062ce04f144ecf0f8004177"
+    },
+    "single/uninterrupted/trajectory.dump": {
+      "size": 8787044,
+      "sha256": "192fe57494b97bd573e20cc05f4c6b5b8a94f7325931f38e2ae84bb8f05b9a3a"
+    },
+    "staged/journal-a/attempts.sqlite3": {
+      "size": 266240,
+      "sha256": "d6f95a1560e7d8d5f4852d39b2639613647c873adfc4aa286ce16fb6d548a51d"
+    },
+    "staged/journal-a/identity.json": {
+      "size": 167,
+      "sha256": "04c223adf2482b36614ce5ecfa4de1c201fc445a2b169bd7cc6e10b8cb88666c"
+    },
+    "staged/journal-a/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "staged/journal-b/attempts.sqlite3": {
+      "size": 258048,
+      "sha256": "a2bcf9a42365c2fed17ec765d06d3a7167ab0d335642b5df3d1accc35fe27641"
+    },
+    "staged/journal-b/identity.json": {
+      "size": 167,
+      "sha256": "1973b85527abf19951b9ce6853a4f76a9ef050016ada2bfc6f8abbe4c2a9d844"
+    },
+    "staged/journal-b/worker.lock": {
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "staged/manager-files/acceptance-staged.s000000/.checkpoints/3bfa119a02684b02a735bd111d19d9ff/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/.checkpoints/3bfa119a02684b02a735bd111d19d9ff/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2721,
+      "sha256": "7353f5c410b842569992110d9a3e81320e300d1f1f4e019bd1aac071e265afa8"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3390,
+      "sha256": "f7b1605cf49ed66e876f943b669205d5bbdce31517c3adba42a67e87e65e8ee0"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 575,
+      "sha256": "19ffca9118af62484c524023fef72add85381425c7b09aab47bd1316b6589253"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "9cdd623113f00729ffdb3d0a85578d749e43d29a827c7314111edc72e1628af4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 2696434,
+      "sha256": "3019d03c49d49567142b2abcce2384ea60e89a1e00cb206bc69fab9a5aba3253"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 506,
+      "sha256": "31e7694d5d4994c955c82baf17dfa817cfbb75cb9dba0990283db6088b593f80"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 760,
+      "sha256": "f4f70747080c505997f8ea1a9c4a39a08f15b8e8989c13fc5c78dee19a17a62d"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/execution.json": {
+      "size": 575,
+      "sha256": "19ffca9118af62484c524023fef72add85381425c7b09aab47bd1316b6589253"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/outcome.json": {
+      "size": 506,
+      "sha256": "31e7694d5d4994c955c82baf17dfa817cfbb75cb9dba0990283db6088b593f80"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/process.json": {
+      "size": 188,
+      "sha256": "9cdd623113f00729ffdb3d0a85578d749e43d29a827c7314111edc72e1628af4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/stdout": {
+      "size": 2721,
+      "sha256": "7353f5c410b842569992110d9a3e81320e300d1f1f4e019bd1aac071e265afa8"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/work/in.lmp": {
+      "size": 760,
+      "sha256": "f4f70747080c505997f8ea1a9c4a39a08f15b8e8989c13fc5c78dee19a17a62d"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/work/log.lammps": {
+      "size": 3390,
+      "sha256": "f7b1605cf49ed66e876f943b669205d5bbdce31517c3adba42a67e87e65e8ee0"
+    },
+    "staged/manager-files/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/results/work/trajectory.dump": {
+      "size": 2696434,
+      "sha256": "3019d03c49d49567142b2abcce2384ea60e89a1e00cb206bc69fab9a5aba3253"
+    },
+    "staged/manager-files/acceptance-staged.s000000/inputs/in.lmp": {
+      "size": 760,
+      "sha256": "f4f70747080c505997f8ea1a9c4a39a08f15b8e8989c13fc5c78dee19a17a62d"
+    },
+    "staged/manager-files/acceptance-staged.s000001/.checkpoints/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/manager-files/acceptance-staged.s000001/.checkpoints/4ae2a1563fe14505b484a29965ae6f8a/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2833,
+      "sha256": "fa394f1290df4bd8acf656ac3af5f80184a7a7fb50f86c30662010ca5eacac67"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3284,
+      "sha256": "bb0519edc9a8e373039408db8bcae8782cb8cc8929cc9238c3e27d12729ce9b0"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 575,
+      "sha256": "c8a4dcd49ebff451c5496cbe83a8767e270625e9cdc1e3dca07495af9aa58285"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "ceb1aff0651d09b4e5e84a69169727160b554b0bd20b9f22fd295bf4fe611b33"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 3567590,
+      "sha256": "8678f17545dc0023ce86b66fa5c1471cb3ff61e424f84f111b0453b97e9d012d"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 506,
+      "sha256": "2dfa6da21c99adda2cac3d52cfe08863872208cc7e4468f71405722c8f0e5349"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 544,
+      "sha256": "ded5c39c96557ee9aab16ad6b741702caa5d9151b978a0daf53f59a72ce7a1a8"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/execution.json": {
+      "size": 575,
+      "sha256": "c8a4dcd49ebff451c5496cbe83a8767e270625e9cdc1e3dca07495af9aa58285"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/outcome.json": {
+      "size": 506,
+      "sha256": "2dfa6da21c99adda2cac3d52cfe08863872208cc7e4468f71405722c8f0e5349"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/process.json": {
+      "size": 188,
+      "sha256": "ceb1aff0651d09b4e5e84a69169727160b554b0bd20b9f22fd295bf4fe611b33"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/stdout": {
+      "size": 2833,
+      "sha256": "fa394f1290df4bd8acf656ac3af5f80184a7a7fb50f86c30662010ca5eacac67"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/work/in.lmp": {
+      "size": 544,
+      "sha256": "ded5c39c96557ee9aab16ad6b741702caa5d9151b978a0daf53f59a72ce7a1a8"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/work/log.lammps": {
+      "size": 3284,
+      "sha256": "bb0519edc9a8e373039408db8bcae8782cb8cc8929cc9238c3e27d12729ce9b0"
+    },
+    "staged/manager-files/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/results/work/trajectory.dump": {
+      "size": 3567590,
+      "sha256": "8678f17545dc0023ce86b66fa5c1471cb3ff61e424f84f111b0453b97e9d012d"
+    },
+    "staged/manager-files/acceptance-staged.s000001/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/manager-files/acceptance-staged.s000001/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "ded5c39c96557ee9aab16ad6b741702caa5d9151b978a0daf53f59a72ce7a1a8"
+    },
+    "staged/manager-files/acceptance-staged.s000002/.checkpoints/125308401fcb45cfa6f78c7e19463156/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9"
+    },
+    "staged/manager-files/acceptance-staged.s000002/.checkpoints/125308401fcb45cfa6f78c7e19463156/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7": {
+      "size": 2781,
+      "sha256": "d0956d426d77174c934206c6e041e7cc94e3ceddee88ca0653c8117bb972f4d2"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/7e6b710b765404cccbad9eedcff7615fc37b269d6db12cd81a58be541d93083c": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/87b0ec05cc17e617afaee2a73cb4ae8016ae8d193b77279fe6a20be545d1f74c": {
+      "size": 3231,
+      "sha256": "d64331afe621a952f0dc79765320aedda8c32bba31f5156a839d66f2d972e1af"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/899250d2ce590e1880b044c7da884b922c2092119d65582809b427c2e108d7af": {
+      "size": 575,
+      "sha256": "b7df9838a93083a987208c8db2c18cd1273d57e5e61aff3da92103b7452a8fa2"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/a0826f8344ecb451452fbee2924cfcb437f743747483e2d9bfdf504400733462": {
+      "size": 188,
+      "sha256": "73f8022652fe41c615c87e9fb0b628108d409a52f258638b7b3bc086bbe82cae"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/b35662f95e0444afa8a5f62fcdcbfad521b2a87c8d6713181bd6f686f685e9f7": {
+      "size": 2698408,
+      "sha256": "f26993c7d2cc10a4d0ac8e9122b436f5aabc9b5c0d6b1fc262168b9f9a388459"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/c4c38f3b7d7e6718ce3e4fe8eddfd01cef4671cc99ed1e7130af28c91f92c6b7": {
+      "size": 506,
+      "sha256": "4ff2b74a12631017fd07455dc55aaaa50e87e0be1b2cbdf688c5ddaa95c1140b"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/c65e70fc3bfbd3ea1df702edde3fdc412f98463433b924177c8b10bc5176a879": {
+      "size": 544,
+      "sha256": "749f9fba7f57314fb87b224f990625efb21f7a4bfd8b46550639359c1fdf7241"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/.results-upload/cf564406ed86e6d0a2aef65928b26c5e6350e4e88353d92becf1e63485582a69": {
+      "size": 172964,
+      "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/execution.json": {
+      "size": 575,
+      "sha256": "b7df9838a93083a987208c8db2c18cd1273d57e5e61aff3da92103b7452a8fa2"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/outcome.json": {
+      "size": 506,
+      "sha256": "4ff2b74a12631017fd07455dc55aaaa50e87e0be1b2cbdf688c5ddaa95c1140b"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/process.json": {
+      "size": 188,
+      "sha256": "73f8022652fe41c615c87e9fb0b628108d409a52f258638b7b3bc086bbe82cae"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/stdout": {
+      "size": 2781,
+      "sha256": "d0956d426d77174c934206c6e041e7cc94e3ceddee88ca0653c8117bb972f4d2"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/work/in.lmp": {
+      "size": 544,
+      "sha256": "749f9fba7f57314fb87b224f990625efb21f7a4bfd8b46550639359c1fdf7241"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/work/log.lammps": {
+      "size": 3231,
+      "sha256": "d64331afe621a952f0dc79765320aedda8c32bba31f5156a839d66f2d972e1af"
+    },
+    "staged/manager-files/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/results/work/trajectory.dump": {
+      "size": 2698408,
+      "sha256": "f26993c7d2cc10a4d0ac8e9122b436f5aabc9b5c0d6b1fc262168b9f9a388459"
+    },
+    "staged/manager-files/acceptance-staged.s000002/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/manager-files/acceptance-staged.s000002/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "749f9fba7f57314fb87b224f990625efb21f7a4bfd8b46550639359c1fdf7241"
+    },
+    "staged/manager.sqlite3": {
+      "size": 270336,
+      "sha256": "b0ca1591342dafbc50a579e5a2ed1370863234b8f91ae997d41d387e6889d8f1"
+    },
+    "staged/uninterrupted/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "1de40d656afdcd4b93a86d9ca2b9c5529eae6ec33d521dc5f61d3d969a1ce2a6"
+    },
+    "staged/uninterrupted/in.lmp": {
+      "size": 761,
+      "sha256": "de73404cad8ea4ba7ace3cef0c83f67967564e5f588f732eae885feb695bb1c1"
+    },
+    "staged/uninterrupted/log.lammps": {
+      "size": 3772,
+      "sha256": "31f9bf82e1b3a8afc5716220ec32a13cac1c81d3cb674e2162f586390f082b20"
+    },
+    "staged/uninterrupted/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/uninterrupted/stdout": {
+      "size": 3102,
+      "sha256": "7591f37becd0593482e140134f08816d4e08b43407f6b91509809d49c39278f0"
+    },
+    "staged/uninterrupted/trajectory.dump": {
+      "size": 8789689,
+      "sha256": "a855ecac56a94b3cf3b82dde9e7b67ea019e1b23ba06bb4fb498277eb101231c"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/execution.json": {
+      "size": 575,
+      "sha256": "19ffca9118af62484c524023fef72add85381425c7b09aab47bd1316b6589253"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/inputs/in.lmp": {
+      "size": 760,
+      "sha256": "f4f70747080c505997f8ea1a9c4a39a08f15b8e8989c13fc5c78dee19a17a62d"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/outcome.json": {
+      "size": 506,
+      "sha256": "31e7694d5d4994c955c82baf17dfa817cfbb75cb9dba0990283db6088b593f80"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/process.json": {
+      "size": 188,
+      "sha256": "9cdd623113f00729ffdb3d0a85578d749e43d29a827c7314111edc72e1628af4"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/stdout": {
+      "size": 2721,
+      "sha256": "7353f5c410b842569992110d9a3e81320e300d1f1f4e019bd1aac071e265afa8"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/work/in.lmp": {
+      "size": 760,
+      "sha256": "f4f70747080c505997f8ea1a9c4a39a08f15b8e8989c13fc5c78dee19a17a62d"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/work/log.lammps": {
+      "size": 3390,
+      "sha256": "f7b1605cf49ed66e876f943b669205d5bbdce31517c3adba42a67e87e65e8ee0"
+    },
+    "staged/worker-a/acceptance-staged.s000000/3bfa119a02684b02a735bd111d19d9ff/work/trajectory.dump": {
+      "size": 2696434,
+      "sha256": "3019d03c49d49567142b2abcce2384ea60e89a1e00cb206bc69fab9a5aba3253"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/execution.json": {
+      "size": 575,
+      "sha256": "b7df9838a93083a987208c8db2c18cd1273d57e5e61aff3da92103b7452a8fa2"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "749f9fba7f57314fb87b224f990625efb21f7a4bfd8b46550639359c1fdf7241"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/outcome.json": {
+      "size": 506,
+      "sha256": "4ff2b74a12631017fd07455dc55aaaa50e87e0be1b2cbdf688c5ddaa95c1140b"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/process.json": {
+      "size": 188,
+      "sha256": "73f8022652fe41c615c87e9fb0b628108d409a52f258638b7b3bc086bbe82cae"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/stdout": {
+      "size": 2781,
+      "sha256": "d0956d426d77174c934206c6e041e7cc94e3ceddee88ca0653c8117bb972f4d2"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "8c6ea2fbba5a6c8996b116419cb785771c67deaa7ce119ba150ca2c243ffafd9"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/work/in.lmp": {
+      "size": 544,
+      "sha256": "749f9fba7f57314fb87b224f990625efb21f7a4bfd8b46550639359c1fdf7241"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/work/log.lammps": {
+      "size": 3231,
+      "sha256": "d64331afe621a952f0dc79765320aedda8c32bba31f5156a839d66f2d972e1af"
+    },
+    "staged/worker-a/acceptance-staged.s000002/125308401fcb45cfa6f78c7e19463156/work/trajectory.dump": {
+      "size": 2698408,
+      "sha256": "f26993c7d2cc10a4d0ac8e9122b436f5aabc9b5c0d6b1fc262168b9f9a388459"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/execution.json": {
+      "size": 575,
+      "sha256": "c8a4dcd49ebff451c5496cbe83a8767e270625e9cdc1e3dca07495af9aa58285"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/inputs/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "cfaddf3e5e15f52f28fb726f62be669362110b87007ba70c83affe4cc3775bb4"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/inputs/in.lmp": {
+      "size": 544,
+      "sha256": "ded5c39c96557ee9aab16ad6b741702caa5d9151b978a0daf53f59a72ce7a1a8"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/outcome.json": {
+      "size": 506,
+      "sha256": "2dfa6da21c99adda2cac3d52cfe08863872208cc7e4468f71405722c8f0e5349"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/process.json": {
+      "size": 188,
+      "sha256": "ceb1aff0651d09b4e5e84a69169727160b554b0bd20b9f22fd295bf4fe611b33"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/stdout": {
+      "size": 2833,
+      "sha256": "fa394f1290df4bd8acf656ac3af5f80184a7a7fb50f86c30662010ca5eacac67"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "dd7cdb890755f031faecfe1b01c24ee80ba407f4e028e997299e54c970fbf3fc"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/work/in.lmp": {
+      "size": 544,
+      "sha256": "ded5c39c96557ee9aab16ad6b741702caa5d9151b978a0daf53f59a72ce7a1a8"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/work/log.lammps": {
+      "size": 3284,
+      "sha256": "bb0519edc9a8e373039408db8bcae8782cb8cc8929cc9238c3e27d12729ce9b0"
+    },
+    "staged/worker-b/acceptance-staged.s000001/4ae2a1563fe14505b484a29965ae6f8a/work/trajectory.dump": {
+      "size": 3567590,
+      "sha256": "8678f17545dc0023ce86b66fa5c1471cb3ff61e424f84f111b0453b97e9d012d"
+    }
+  },
+  "verification_date": "2026-10-22",
+  "final_read_only_audit": {
+    "passed": true,
+    "root": "/tmp/lammps-t019-pw8Nv0Y1",
+    "files": 254,
+    "bytes": 116004089,
+    "source_files": 19,
+    "sessions_checked": [
+      159727,
+      159760,
+      159792,
+      159838,
+      159878,
+      159917,
+      159960,
+      159815,
+      159939,
+      159982
+    ],
+    "live_root_processes": [],
+    "singleton_logs": 10,
+    "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695"
+  },
+  "earlier_functional_runs": [
+    {
+      "root": "/tmp/lammps-t019-9CUZ74zI/segmentation",
+      "process_invocations": 8,
+      "note": "Initial shared/staged chain run before default single-segment support."
+    },
+    {
+      "root": "/tmp/lammps-t019-KTko22hT/segmentation",
+      "process_invocations": 10,
+      "note": "Three scenarios before the shared-result durability self-review correction. Retained and superseded."
+    }
+  ],
+  "local_recomputation": {
+    "source_files_matched": 19,
+    "renderer_hashes_matched": 7,
+    "checkpoint_contracts": 7,
+    "all_seeds_distinct_within_each_run": true,
+    "all_segment_results_published": true
+  }
+}

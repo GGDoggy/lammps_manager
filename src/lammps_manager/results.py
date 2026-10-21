@@ -105,10 +105,12 @@ def enumerate_results(directory: Path, limits: dict) -> dict:
 
 
 def authorize(store: Store, worker_id: str, attempt_id: str) -> Path:
-    """Return manager-owned destination only for a terminated staged attempt."""
+    """Return a manager-owned destination for a terminated staged/continuation attempt."""
     attempt = store.attempt(attempt_id)
     spec = store.specification(attempt.job_id)
-    if (attempt.worker_id != worker_id or spec.storage_mode != 'staged'
+    from .checkpoints import record as checkpoint_record
+    continuation = checkpoint_record(store, attempt_id) is not None
+    if (attempt.worker_id != worker_id or (spec.storage_mode != 'staged' and not continuation)
             or attempt.state not in TERMINAL or not attempt.termination_evidence):
         raise ValueError('Result ownership or termination mismatch')
     root = Path(spec.work_directory)

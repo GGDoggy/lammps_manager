@@ -83,7 +83,7 @@ def recipe_digest() -> str:
 
 @dataclass(frozen=True)
 class ValidatedContinuation:
-    """The exact scientific scope a future segment launcher must enforce."""
+    """The exact scientific scope a segment launcher must enforce."""
 
     recipe: Recipe
     build_fingerprint: str
@@ -107,14 +107,14 @@ def require_validated(recipe: Recipe, *, build_fingerprint: str,
     """Accept only a released model/build/step plan; reject every other request.
 
     A caller-supplied passing report must never self-authorize production use.
-    T018/T019 still need checkpoint publication and enforce this returned scope.
+    Checkpoint publication and queued segments enforce this returned scope.
     """
     validate_candidate(recipe)
     if (recipe == Recipe(name="ideal-abp-2d-v1", mode="statistical")
             and build_fingerprint in _ACCEPTED_ABP_BUILDS
             and abp_recipe_digest() == _ACCEPTED_ABP_RECIPE_SHA256
             and type(total_steps) is int and total_steps == 2000
-            and type(segment_ends) is tuple and segment_ends == (600, 1400, 2000)
+            and type(segment_ends) is tuple and segment_ends in ((2000,), (600, 1400, 2000))
             and all(type(step) is int for step in segment_ends)):
         return ValidatedContinuation(recipe, build_fingerprint, abp_recipe_digest(),
                                      total_steps, segment_ends,

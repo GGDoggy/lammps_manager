@@ -2,12 +2,13 @@
 
 T017 validates one restricted **statistical** continuation contract:
 `ideal-abp-2d-v1` on the fingerprinted mozzarella LAMMPS 2 Apr 2025 environment,
-one MPI rank and one OpenMP thread, 2000 total steps split at 600 and 1400.
+one MPI rank and one OpenMP thread, 2000 total steps split at 600 and 1400
+or the measured uninterrupted reference as a single segment.
 The [scientific protocol/results](verification/t017-continuation.md) and
 [machine-readable evidence](verification/t017-continuation.json) define its scope.
 No exact recipe is accepted. Unsupported builds, models, layouts, parameter changes
-and segment ranges fail the capability gate. T018 checkpoint publication and T019
-automatic splitting remain unimplemented; existing independent-job behavior and
+and segment ranges fail the capability gate. [T018 checkpoint publication](checkpoints.md) is implemented; [T019 queued continuation](segmentation.md) is implemented
+for these measured plans; existing independent-job behavior and
 configuration/submission snapshots are unchanged.
 
 ## Capability API
@@ -36,8 +37,8 @@ scope = require_validated(
 CPU model and architecture. A version banner alone is insufficient. The identity
 covers `ldd` dependencies, not arbitrary future runtime-loaded plugins; extensions
 and alternative runtime environments require their own audit. Layout is a separate
-explicit recipe constraint. A future launcher must compute the actual identity,
-enforce the returned scope, stream policy and checkpoint contract, and use the
+explicit recipe constraint. The launcher computes the actual identity,
+enforces the returned scope, stream policy and checkpoint contract, and uses the
 fixed renderer. Passing a recipe name, caller-supplied report or executable hash
 alone cannot register acceptance. The built-in matrix also checks the renderer
 digest, so editing the model invalidates acceptance until reviewed and revalidated.
@@ -65,7 +66,7 @@ constraints, callbacks, ramps or commands are outside this recipe.
 | Integrator/ensemble | Recreate the same Brownian fix ID/style/parameters and self-propulsion fix. Overdamped positions/orientations are the dynamical state; inertial velocities are not independent state in this model. No thermostat/barostat, constraint history or analysis fix state is added. |
 | Clock/schedules | Restore step/time and fixed dt; every run uses `start 0 stop 2000`. Logged time must agree with global step times dt within floating precision. No time-dependent parameter schedule is accepted. |
 | RNG | Re-create the Brownian fix with a fresh, recorded seed per segment. RNG/cached generator state is not claimed to be restored. SHA-256 namespace/phase/arm/replica/segment derivation, collision rejection and sampled angular-noise repetition checks define the tested stream policy. See the verification protocol for exact derivation and limitations. |
-| Rank/thread mapping | Same fingerprinted binary/library/CPU platform and singleton rank/thread layout. Every measured log confirmed one rank and one thread; reassignment to other workers is not validated. |
+| Rank/thread mapping | Same fingerprinted binary/library/CPU platform and singleton rank/thread layout. Every measured log confirmed one rank and one thread; T019 separately verifies reassignment between worker identities on the same pinned host boot; other physical hosts remain unvalidated. |
 | External state | None. No external potentials, coupled solvers or untracked input state. |
 | Output/statistics | Global numbering, one stationary initial ensemble, no renewed equilibration. Check both boundary copies, retain one logical frame; time origins/segments are never independent statistical replicas. |
 

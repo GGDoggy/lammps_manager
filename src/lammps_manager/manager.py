@@ -77,6 +77,8 @@ class ManagerService:
         """Run at startup and periodically even while all workers are disconnected."""
         with self._poll_lock, Store(self.config.manager.database_path) as store:
             store.expire_workers(time.time(), self.config.manager.heartbeat_timeout_seconds)
+            from .segments import refresh
+            refresh(store)
             from .monitoring import refresh_alerts
             refresh_alerts(store, self.config, time.time())
 
@@ -125,6 +127,11 @@ class ManagerService:
                     generation = payload['generation']
                     store.worker_generation(worker_id, generation['boot_id'], generation['session_id'])
                 for report in reports:
+                    if report.get('checkpoint_error'):
+                        from .checkpoints import set_error, record as checkpoint_record
+                        checkpoint = checkpoint_record(store, report['attempt_id'])
+                        if checkpoint and not checkpoint['acknowledged']:
+                            set_error(store, report['attempt_id'], report['checkpoint_error'])
                     if 'rejection' in report:
                         rejected = report['rejection']
                         if store.reject_launch(report['attempt_id'], rejected['code'],
@@ -190,11 +197,13 @@ class ManagerService:
                                          phase,
                                          error='Worker reports result collection failure' if status == 'failed' else None)
                 saved_snapshot = asdict(snapshot)
-                for optional in ('ready', 'draining'):
+                for optional in ('ready', 'draining', 'continuation_ready'):
                     if optional not in data:
                         saved_snapshot.pop(optional, None)
                 store.set_worker(worker_id, snapshot=saved_snapshot)
             store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
+            from .segments import refresh
+            refresh(store)
             if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
                 snapshots = []
                 for saved_id, record in store.worker_records().items():
@@ -216,7 +225,10 @@ class ManagerService:
                         # Legacy shared workers accept only the original specification keys.
                         specification.pop('storage_mode')
                         specification.pop('input_manifest')
-                    assignments.append({'attempt': asdict(attempt), 'specification': specification})
+                    from .checkpoints import record as checkpoint_record
+                    checkpoint = checkpoint_record(store, attempt.attempt_id)
+                    assignments.append({'attempt': asdict(attempt), 'specification': specification,
+                                        **({'checkpoint_contract': checkpoint['contract']} if checkpoint else {})})
             policy = self.config.scheduler
             return {'challenge': str(self.challenge), 'assignments': assignments,
                     'protocol': 2, 'storage_mode': self.config.storage.mode,
@@ -358,6 +370,36 @@ class ManagerService:
             saved = store.result_collection(attempt_id, include_manifest=False)
             return {'status': saved['status'], 'reason': saved['reason']}
 
+    def checkpoint_operation(self, worker_id: str, attempt_id: str, action: str,
+                             payload: dict | None = None, stream: BinaryIO | None = None,
+                             length: int | None = None) -> dict:
+        """Use the artifact lock and authenticated assignment for checkpoint writes."""
+        from .checkpoints import operation
+        from .results import output_limits
+        with self._result_lock, Store(self.config.manager.database_path) as store:
+            shared_source = None
+            if self.config.storage.mode == 'shared' and action == 'commit':
+                shared_source = Path(store.attempt(attempt_id).directory) / 'work'
+            from .checkpoints import set_error, record as checkpoint_record
+            try:
+                reply = operation(store, worker_id, attempt_id, action, output_limits(self.config.storage),
+                                  payload=payload, stream=stream, length=length, shared_source=shared_source)
+            except (OSError, ValueError) as exc:
+                if checkpoint_record(store, attempt_id) and store.attempt(attempt_id).worker_id == worker_id:
+                    set_error(store, attempt_id, f'{type(exc).__name__}: {exc}'[:2048])
+                raise
+            if reply['acknowledged']:
+                set_error(store, attempt_id, None)
+            return reply
+
+    def checkpoint_artifact(self, worker_id: str, attempt_id: str, index: int,
+                            build_fingerprint: str) -> tuple[BinaryIO, int]:
+        """Authorize a committed dependency and verify it before sending bytes."""
+        from .checkpoints import fetch
+        with Store(self.config.manager.database_path) as store:
+            stream, item = fetch(store, worker_id, attempt_id, index, build_fingerprint)
+            return stream, item.size
+
 
 def make_server(service: ManagerService, host: str, port: int, *,
                 certfile: str | None = None, keyfile: str | None = None) -> HTTPServer:
@@ -390,9 +432,14 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     self.wfile.write(body)
                     return
                 parts = self.path.split('/')
-                if len(parts) != 6 or parts[:3] != ['', 'v2', 'inputs'] or parts[4] != 'files':
+                checkpoint = len(parts) == 6 and parts[:3] == ['', 'v2', 'checkpoints'] and parts[4] == 'files'
+                if checkpoint:
+                    stream, size = service.checkpoint_artifact(worker_id, parts[3], int(parts[5]),
+                        self.headers.get('X-Build-Fingerprint', ''))
+                elif len(parts) != 6 or parts[:3] != ['', 'v2', 'inputs'] or parts[4] != 'files':
                     raise ValueError('Unknown input endpoint')
-                stream, size = service.input_artifact(worker_id, parts[3], int(parts[5]))
+                else:
+                    stream, size = service.input_artifact(worker_id, parts[3], int(parts[5]))
             except (ValueError, KeyError, TypeError, OSError):
                 self.send_error(400, 'Input artifact unavailable or unauthorized')
                 return
@@ -403,20 +450,22 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 self.end_headers()
                 from .monitoring import transfer, ProgressReader
                 progress_store = Store(service.config.manager.database_path)
-                reader = ProgressReader(stream, progress_store, parts[3], 'input', int(parts[5]))
+                reader = None if checkpoint else ProgressReader(stream, progress_store, parts[3], 'input', int(parts[5]))
                 remaining = size
                 while remaining:
                     chunk = stream.read(min(65536, remaining))
                     if not chunk:
                         break
                     self.wfile.write(chunk)
-                    reader.record(len(chunk))
+                    if reader:
+                        reader.record(len(chunk))
                     remaining -= len(chunk)
             except (OSError, TimeoutError):
                 pass  # The receiver verifies length/hash and retries without launching.
             finally:
-                if 'reader' in locals():
-                    reader.flush()
+                if 'progress_store' in locals():
+                    if reader:
+                        reader.flush()
                     progress_store.close()
                 stream.close()
 
@@ -438,19 +487,20 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if set(data) != {'index'}:
                         raise ValueError('Invalid progress fields')
                     result = service.input_verified(worker_id, self.path.split('/')[-1], data['index'])
-                elif self.path.startswith('/v2/results/'):
+                elif self.path.startswith(('/v2/results/', '/v2/checkpoints/')):
                     parts = self.path.split('/')
                     if len(parts) != 5:
                         raise ValueError('Invalid result endpoint')
                     length = int(self.headers.get('Content-Length', '-1'))
                     operation = parts[4]
+                    handler = service.checkpoint_operation if parts[2] == 'checkpoints' else service.result_operation
                     if self.headers.get('Transfer-Encoding'):
                         raise ValueError('Chunked requests are not supported')
                     if operation in {'manifest', 'commit'}:
                         if not 0 < length <= 1048576:
                             raise ValueError('Invalid result request size')
                         payload = json.loads(self.rfile.read(length))
-                        result = service.result_operation(worker_id, parts[3], operation, payload)
+                        result = handler(worker_id, parts[3], operation, payload)
                     else:
                         # Limit reads to Content-Length, including the verifier's
                         # final EOF probe; never read into the next request.
@@ -462,7 +512,7 @@ def make_server(service: ManagerService, host: str, port: int, *,
                                 body.remaining -= len(data)
                                 return data
 
-                        result = service.result_operation(worker_id, parts[3], operation,
+                        result = handler(worker_id, parts[3], operation,
                                                           stream=Body(), length=length)
                 elif self.path != '/v1/poll':
                     status, result = 404, {'error': 'Unknown endpoint'}

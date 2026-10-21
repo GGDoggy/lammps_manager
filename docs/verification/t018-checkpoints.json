@@ -1,0 +1,627 @@
+{
+  "passed": true,
+  "root": "/tmp/lammps-t018-4q0vnsni/restoration",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-0/attempt/work",
+      "pid": 158168,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-1/attempt/work",
+      "pid": 158175,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-2/attempt/work",
+      "pid": 158182,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-0/attempt/work",
+      "pid": 158189,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-1/attempt/work",
+      "pid": 158196,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-2/attempt/work",
+      "pid": 158203,
+      "returncode": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "mode": "shared",
+      "step": 600,
+      "identity": "39dcd05e5c9ad66f2ebf1e5833aab2248d9edfc95af128dd4e87f2e3f9cf56c5",
+      "manifest": {
+        "contract": {
+          "attempt_id": "shared-0",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 600,
+          "global_time": 3.0,
+          "job_id": "shared-0",
+          "parent_checkpoint_id": null,
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "shared",
+          "segment": 0,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-0/attempt/work",
+      "boundary_restored": false
+    },
+    {
+      "mode": "shared",
+      "step": 1400,
+      "identity": "f12c218c314a3b8d8968a7dd7ce0d4c680a7b95ee997604ab56a21e2c9f218ef",
+      "manifest": {
+        "contract": {
+          "attempt_id": "shared-1",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 1400,
+          "global_time": 7.0,
+          "job_id": "shared-1",
+          "parent_checkpoint_id": "39dcd05e5c9ad66f2ebf1e5833aab2248d9edfc95af128dd4e87f2e3f9cf56c5",
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "shared",
+          "segment": 1,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-1/attempt/work",
+      "boundary_restored": true
+    },
+    {
+      "mode": "shared",
+      "step": 2000,
+      "identity": "be72bbf59236cc3f5c430fd39160dd3a6b6cfb24db55a67e04f545221b1060df",
+      "manifest": {
+        "contract": {
+          "attempt_id": "shared-2",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 2000,
+          "global_time": 10.0,
+          "job_id": "shared-2",
+          "parent_checkpoint_id": "f12c218c314a3b8d8968a7dd7ce0d4c680a7b95ee997604ab56a21e2c9f218ef",
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "shared",
+          "segment": 2,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/shared-2/attempt/work",
+      "boundary_restored": true
+    },
+    {
+      "mode": "staged",
+      "step": 600,
+      "identity": "26c394d43778cb3a42af714f633211e14fc4880d0b0db882baa504232dc3598e",
+      "manifest": {
+        "contract": {
+          "attempt_id": "staged-0",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 600,
+          "global_time": 3.0,
+          "job_id": "staged-0",
+          "parent_checkpoint_id": null,
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "staged",
+          "segment": 0,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-0/attempt/work",
+      "boundary_restored": false
+    },
+    {
+      "mode": "staged",
+      "step": 1400,
+      "identity": "bafce8c07f7b929605fb520a3256680e9d8d9a51aef6824cbad42d3c3720d824",
+      "manifest": {
+        "contract": {
+          "attempt_id": "staged-1",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 1400,
+          "global_time": 7.0,
+          "job_id": "staged-1",
+          "parent_checkpoint_id": "26c394d43778cb3a42af714f633211e14fc4880d0b0db882baa504232dc3598e",
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "staged",
+          "segment": 1,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-1/attempt/work",
+      "boundary_restored": true
+    },
+    {
+      "mode": "staged",
+      "step": 2000,
+      "identity": "5ec9cc6d55732e009ec8db97bc955f6a0c16b6d49f5498ff23db403351927cd2",
+      "manifest": {
+        "contract": {
+          "attempt_id": "staged-2",
+          "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+          "global_step": 2000,
+          "global_time": 10.0,
+          "job_id": "staged-2",
+          "parent_checkpoint_id": "bafce8c07f7b929605fb520a3256680e9d8d9a51aef6824cbad42d3c3720d824",
+          "recipe": {
+            "mode": "statistical",
+            "mpi_ranks": 1,
+            "name": "ideal-abp-2d-v1",
+            "omp_threads": 1
+          },
+          "recipe_sha256": "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8",
+          "required_state": [
+            "checkpoint.restart"
+          ],
+          "resources": {
+            "max_retries": 0,
+            "memory_gib": 8.0,
+            "mpi_ranks": 1,
+            "omp_threads_per_rank": 1,
+            "time_limit_seconds": 86400
+          },
+          "run_id": "staged",
+          "segment": 2,
+          "segment_ends": [
+            600,
+            1400,
+            2000
+          ],
+          "stream_provenance": "{\"namespace\":\"t018-storage-restore-v1\",\"phase\":\"restore\",\"replica\":0,\"seeds\":[70048626,89730663,570973103,361865088,524832324]}",
+          "total_steps": 2000
+        },
+        "files": [
+          {
+            "path": "checkpoint.restart",
+            "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f",
+            "size": 172964
+          }
+        ]
+      },
+      "directory": "/tmp/lammps-t018-4q0vnsni/restoration/staged-2/attempt/work",
+      "boundary_restored": true
+    }
+  ],
+  "scope": "T018 storage/restore only; no new scientific or cross-worker acceptance",
+  "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+  "source_sha256": {
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "src/lammps_manager/checkpoints.py": "97695fbdd6d140327129e6c485ddaf088c58b6f90c83de16d2e5b1ce6e5f6b16",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/cli.py": "018e19789a0bca38d9f63f4e27ff1cb9954b3e227bfca3424e4cf886142be3d2",
+    "src/lammps_manager/config.py": "5fc9516dacc57177c7c113cac1e8b72de8671899963cef9f1e24e8880d3af0cc",
+    "src/lammps_manager/continuation.py": "c5626049fa72e7a652ff3c0975bb308e933913e9f08f01f98b1535f7303e4dec",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/local.py": "57cf230ff0fe364f968eb94f5f560e4b7c00d07d911471dc3cbf77f46d221068",
+    "src/lammps_manager/manager.py": "1c7891dc4844715a83c66421bcf23236eafa87aaa0177d2b26bb15257adbaea6",
+    "src/lammps_manager/models.py": "3a8b88f854032515b8722223b31802d0ffd32a659778e305675a2e633b35c002",
+    "src/lammps_manager/monitoring.py": "8e31e81c707c535edc20a96054e375952636bc8a072e8125fd9fdae783b703c2",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+    "src/lammps_manager/scheduler.py": "23f8c18b2e73551062fbffc6e615d7e01c53ac27d656b901fbdab9e165e3b61d",
+    "src/lammps_manager/staging.py": "1fed2aa286428be19450f2af0c6d0e4156571541e33f532107545882cfc0d868",
+    "src/lammps_manager/store.py": "8afa02c5dc5859206beb1553ae2cd6b6762782aaa4bd5d9ad50511c738d279c5",
+    "src/lammps_manager/worker.py": "d90ddd0cfc6e09ec8f102a574fb0cf92164764a6d1d25a32176dec80bf90ea21"
+  },
+  "files": {
+    "shared-0/.checkpoints/shared-0/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f"
+    },
+    "shared-0/attempt/stdout": {
+      "size": 2720,
+      "sha256": "0ca87e6152aea36e68840b721a5783a4faa8be75708fe934e950eec2dcd267e6"
+    },
+    "shared-0/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f"
+    },
+    "shared-0/attempt/work/in.lmp": {
+      "size": 758,
+      "sha256": "1775bee0bd3628c735e013d7568f3d7ef94422afe50927742a5e827a46cb11eb"
+    },
+    "shared-0/attempt/work/log.lammps": {
+      "size": 3387,
+      "sha256": "8d13b179970738079664bfca5c9de52ef82aa8af9ccf9528254bfb47676e0d4f"
+    },
+    "shared-0/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared-0/attempt/work/stdout": {
+      "size": 2720,
+      "sha256": "0ca87e6152aea36e68840b721a5783a4faa8be75708fe934e950eec2dcd267e6"
+    },
+    "shared-0/attempt/work/trajectory.dump": {
+      "size": 2696541,
+      "sha256": "afc3b18e65f0e0e4954718277815997a3b741b3588a60df02bbf9ef3c36cc5ba"
+    },
+    "shared-1/.checkpoints/shared-1/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d"
+    },
+    "shared-1/attempt/stdout": {
+      "size": 2833,
+      "sha256": "34e88ac415901ea1caa00042cbbfda5419ed2c864ae08919aa4e2fa720b673dd"
+    },
+    "shared-1/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d"
+    },
+    "shared-1/attempt/work/in.lmp": {
+      "size": 544,
+      "sha256": "17059a063ea235a83555a5e4d16b208be0454baf25ed872d49f5d5597bcae968"
+    },
+    "shared-1/attempt/work/log.lammps": {
+      "size": 3284,
+      "sha256": "a36019edf2ad00762bf8d1a7b8aa298b00c6e434066ba14f20cf0a7a5abaabd5"
+    },
+    "shared-1/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared-1/attempt/work/stdout": {
+      "size": 2833,
+      "sha256": "34e88ac415901ea1caa00042cbbfda5419ed2c864ae08919aa4e2fa720b673dd"
+    },
+    "shared-1/attempt/work/trajectory.dump": {
+      "size": 3567889,
+      "sha256": "ea9a87b8ad9171e61d7a1c7ab458cd2abc8c9c8ee81791f4fb8c6a914167d72b"
+    },
+    "shared-2/.checkpoints/shared-2/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f"
+    },
+    "shared-2/attempt/stdout": {
+      "size": 2780,
+      "sha256": "5056c4cdd29776264c2f9059a8688f377fb99209e4421441680a6dd4c982b317"
+    },
+    "shared-2/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f"
+    },
+    "shared-2/attempt/work/in.lmp": {
+      "size": 544,
+      "sha256": "e80cd5aa93be68f3fe6721218b33d4a9aa33a1b4a018f9eab54d8ec04e54ea36"
+    },
+    "shared-2/attempt/work/log.lammps": {
+      "size": 3230,
+      "sha256": "d0c3e919d8e244dda8aa04aef258730787471a426794e8a907a98106155a5214"
+    },
+    "shared-2/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "shared-2/attempt/work/stdout": {
+      "size": 2780,
+      "sha256": "5056c4cdd29776264c2f9059a8688f377fb99209e4421441680a6dd4c982b317"
+    },
+    "shared-2/attempt/work/trajectory.dump": {
+      "size": 2698244,
+      "sha256": "e5dffaa0ced131a4a4f088723d2b8447f073dfe8efc2743d63f2a8c057eeef3f"
+    },
+    "shared.sqlite3": {
+      "size": 229376,
+      "sha256": "0c05a41def02ae90e13a5670abba542c9ae634a638874124fd578bc6463d87fb"
+    },
+    "staged-0/.checkpoints/staged-0/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f"
+    },
+    "staged-0/.checkpoints/staged-0/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f"
+    },
+    "staged-0/attempt/stdout": {
+      "size": 2720,
+      "sha256": "2aac1e4fd6732b631451c6e7d23f06f5d039385860602da1d5d9fc8d3f8798bb"
+    },
+    "staged-0/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "655dcba60151f1ef0a80ad6b1dd89429557a36da9539ee4ca6caca8086af547f"
+    },
+    "staged-0/attempt/work/in.lmp": {
+      "size": 758,
+      "sha256": "1775bee0bd3628c735e013d7568f3d7ef94422afe50927742a5e827a46cb11eb"
+    },
+    "staged-0/attempt/work/log.lammps": {
+      "size": 3387,
+      "sha256": "d36ae426d3ec301db7a6c463f1a9e537bd8cd2688d0f376463f553d4bf6c344e"
+    },
+    "staged-0/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged-0/attempt/work/stdout": {
+      "size": 2720,
+      "sha256": "2aac1e4fd6732b631451c6e7d23f06f5d039385860602da1d5d9fc8d3f8798bb"
+    },
+    "staged-0/attempt/work/trajectory.dump": {
+      "size": 2696541,
+      "sha256": "afc3b18e65f0e0e4954718277815997a3b741b3588a60df02bbf9ef3c36cc5ba"
+    },
+    "staged-1/.checkpoints/staged-1/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d"
+    },
+    "staged-1/.checkpoints/staged-1/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d"
+    },
+    "staged-1/attempt/stdout": {
+      "size": 2834,
+      "sha256": "0bfccd7b737fd90b2d879db927a61639582c8a6d7a05c179def3a0a803d022bd"
+    },
+    "staged-1/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "ab98cf2472ca8169a2bdd3ce6a848148e2996697dc8f883dc8b671ee30e71d1d"
+    },
+    "staged-1/attempt/work/in.lmp": {
+      "size": 544,
+      "sha256": "17059a063ea235a83555a5e4d16b208be0454baf25ed872d49f5d5597bcae968"
+    },
+    "staged-1/attempt/work/log.lammps": {
+      "size": 3285,
+      "sha256": "e35d5659d6918e80c40cbd8a30783f4384e960fcf8ea3caa14978ee85c71c4c9"
+    },
+    "staged-1/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged-1/attempt/work/stdout": {
+      "size": 2834,
+      "sha256": "0bfccd7b737fd90b2d879db927a61639582c8a6d7a05c179def3a0a803d022bd"
+    },
+    "staged-1/attempt/work/trajectory.dump": {
+      "size": 3567889,
+      "sha256": "ea9a87b8ad9171e61d7a1c7ab458cd2abc8c9c8ee81791f4fb8c6a914167d72b"
+    },
+    "staged-2/.checkpoints/staged-2/.results-upload/b008fd30b16ba42d3a2d4b75082b0230d47faa68cff421b5eee2ba218f9884e7": {
+      "size": 172964,
+      "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f"
+    },
+    "staged-2/.checkpoints/staged-2/results/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f"
+    },
+    "staged-2/attempt/stdout": {
+      "size": 2779,
+      "sha256": "34933f3f4d75a47a083793757fbeb348ab1ba44a01ecb4d1b3fb26c579024a66"
+    },
+    "staged-2/attempt/work/checkpoint.restart": {
+      "size": 172964,
+      "sha256": "831aad72b08a7974799091e121525044245e8135a844661eb9189990e4462c9f"
+    },
+    "staged-2/attempt/work/in.lmp": {
+      "size": 544,
+      "sha256": "e80cd5aa93be68f3fe6721218b33d4a9aa33a1b4a018f9eab54d8ec04e54ea36"
+    },
+    "staged-2/attempt/work/log.lammps": {
+      "size": 3229,
+      "sha256": "0299f30e7fdfba030281296df21e0a7087a8cbd095e960d2740c53c25a674805"
+    },
+    "staged-2/attempt/work/stderr": {
+      "size": 128,
+      "sha256": "b89b3b7a4efeb8cf668cf2a306df588e236755e2135483e7b0f14668ce3e18c7"
+    },
+    "staged-2/attempt/work/stdout": {
+      "size": 2779,
+      "sha256": "34933f3f4d75a47a083793757fbeb348ab1ba44a01ecb4d1b3fb26c579024a66"
+    },
+    "staged-2/attempt/work/trajectory.dump": {
+      "size": 2698244,
+      "sha256": "e5dffaa0ced131a4a4f088723d2b8447f073dfe8efc2743d63f2a8c057eeef3f"
+    },
+    "staged.sqlite3": {
+      "size": 229376,
+      "sha256": "cda8c5cedd22959750eaf793a7803599db9f6ce6e71cce6eadaac2ea0ec027e2"
+    }
+  },
+  "verification_date": "2026-10-22",
+  "limitations": [
+    "Same released host/build/layout and measured T017 plan only; no cross-worker compatibility, arbitrary binary parsing, power-loss or production deployment verification.",
+    "Six singleton processes establish checkpoint publication/restoration, not a new statistical equivalence claim."
+  ]
+}

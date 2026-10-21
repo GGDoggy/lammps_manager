@@ -133,3 +133,13 @@ refreshes alerts during periodic expiry/startup, including without worker polls;
 CLI status also refreshes them. Resolved rows remain inspectable. No external
 notification channels, Web UI, exporter, checkpoint continuation or real-host
 acceptance is included in T016.
+
+## Continuation parents (T019)
+
+Segment job views populate `continuation` with parent identity/state, total and
+committed steps, segment ordinal/range, `step_max`, continuation mode, committed
+checkpoint identity/step, acknowledgement/error, blocking reason and next-segment
+eligibility. Independent jobs retain `continuation: null`. `inspect-run` provides
+bounded segment history and parent events; `cancel-run` controls the whole chain.
+See [segmentation](segmentation.md) for CLI examples and the physical/scientific
+scope. Process success alone does not establish parent success or durable progress.

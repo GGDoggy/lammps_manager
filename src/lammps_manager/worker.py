@@ -22,7 +22,7 @@ from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
 from .models import JobSpecification, Resources, specification_from_dict
-from .store import Store, StoreError, TERMINAL
+from .store import Attempt, Store, StoreError, TERMINAL
 
 
 class LinuxMonitor:
@@ -193,7 +193,7 @@ class Worker:
             reflected_starts = {r.attempt_id for r in store.reservations()
                                 if store.attempt(r.attempt_id).started_at is not None}
         snapshot = self.monitor.sample(self.config)
-        snapshot.update(ready=self.ready, draining=self.draining)
+        snapshot.update(ready=self.ready, draining=self.draining, continuation_ready=True)
         if self.config.storage_mode == 'staged':
             try:
                 import shutil
@@ -213,10 +213,15 @@ class Worker:
                 interruption = store.interruption(attempt.attempt_id)
                 if interruption:
                     report['interruption'] = interruption
+                from .checkpoints import error as checkpoint_error
+                checkpoint_failure = checkpoint_error(store, attempt.attempt_id)
+                if checkpoint_failure:
+                    report['checkpoint_error'] = checkpoint_failure
                 rejection = store.rejection(attempt.attempt_id)
                 if rejection:
                     report['rejection'] = rejection
-                if self.config.storage_mode == 'staged' and attempt.termination_evidence:
+                from .checkpoints import record as checkpoint_record
+                if attempt.termination_evidence and (self.config.storage_mode == 'staged' or checkpoint_record(store, attempt.attempt_id)):
                     collection = store.result_collection(attempt.attempt_id)
                     if collection is None:
                         store.set_result_collection(attempt.attempt_id, 'pending')
@@ -282,7 +287,7 @@ class Worker:
                 if self.config.storage_mode == 'staged' and not store.launch_claimed(command['attempt_id']):
                     store.transition(command['attempt_id'], 'cancelled', reason=command['reason'],
                                      termination_evidence='Launch did not start a process')
-        if (self.config.storage_mode == 'staged' and self.collection_future is None
+        if (self.collection_future is None
                 and not self.collection_stop.is_set()):
             # Freeze eligibility after the manager has accepted terminal reports.
             # A process finishing during this pass must wait for its own poll.
@@ -321,7 +326,7 @@ class Worker:
                     with store.scheduling_round():
                         self._submit_specification(store, spec)
                         self._accept_retry(store, spec.job_id)
-                        store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
+                        self._assign(store, spec, attempt, directory, assignment)
                         if directory.exists():
                             store.transition(attempt['attempt_id'], 'unknown',
                                              reason='Existing runtime directory; launch identity uncertain')
@@ -346,7 +351,7 @@ class Worker:
                     with store.scheduling_round():
                         self._submit_specification(store, spec)
                         self._accept_retry(store, spec.job_id)
-                        store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
+                        self._assign(store, spec, attempt, directory, assignment)
                     if cancelled:
                         self._prepare_staged_directory(store, attempt['attempt_id'])
                         store.request_cancel(attempt['attempt_id'], cancelled['reason'])
@@ -382,8 +387,7 @@ class Worker:
                 with store.scheduling_round():
                     self._submit_specification(store, spec)
                     self._accept_retry(store, spec.job_id)
-                    accepted = store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id,
-                                            str(directory))
+                    accepted = self._assign(store, spec, attempt, directory, assignment)
                     can_launch = not directory.exists()
                     if can_launch and result.get('prelaunch_protocol') == 1:
                         store.accept_prelaunch(accepted.attempt_id)
@@ -406,6 +410,15 @@ class Worker:
         if hasattr(self, 'cpu_admission'):
             result['local_cpu_admission'] = self.cpu_admission
         return result
+
+    def _assign(self, store: Store, spec: JobSpecification, attempt: dict,
+                directory: Path, assignment: dict) -> 'Attempt':
+        """Persist the manager's continuation contract before any launch right."""
+        accepted = store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
+        if 'checkpoint_contract' in assignment:
+            from .checkpoints import decode_contract, expect
+            expect(store, decode_contract(assignment['checkpoint_contract']))
+        return accepted
 
     def _submit_specification(self, store: Store, spec: JobSpecification) -> None:
         """Preserve legacy local snapshots; recovery authorization lives on the manager."""
@@ -600,6 +613,19 @@ class Worker:
                     return
                 if attempt.state not in TERMINAL or not attempt.termination_evidence:
                     continue
+                from .checkpoints import record as checkpoint_record
+                checkpoint = checkpoint_record(store, attempt_id)
+                if checkpoint and attempt.state == 'succeeded' and not checkpoint['acknowledged']:
+                    try:
+                        self._collect_checkpoint(store, attempt_id)
+                    except (OSError, ValueError, IncompleteRead, URLError) as exc:
+                        from .checkpoints import error, set_error
+                        reason = f'{type(exc).__name__}: {exc}'[:2048]
+                        if error(store, attempt_id) != reason:
+                            print(f'Checkpoint {attempt_id} deferred: {reason}', file=sys.stderr)
+                        set_error(store, attempt_id, reason)
+                if self.config.storage_mode != 'staged' and checkpoint is None:
+                    continue
                 collection = store.result_collection(attempt.attempt_id)
                 if collection and collection['status'] == 'collected':
                     continue
@@ -649,6 +675,46 @@ class Worker:
                     store.set_result_collection(attempt.attempt_id, 'failed',
                                                 reason=f'{type(exc).__name__}: {exc}')
 
+    def _collect_checkpoint(self, store: Store, attempt_id: str) -> None:
+        """Retain local state until the manager acknowledges the exact identity."""
+        import hashlib
+        from .checkpoints import record, bind_manifest, validate_boundary
+        from .staging import open_regular
+        from .results import output_limits
+        from .models import InputFile
+        checkpoint = record(store, attempt_id)
+        directory = Path(store.attempt(attempt_id).directory)
+        validate_boundary(directory, checkpoint['contract'])
+        manifest = checkpoint['manifest']
+        if manifest is None:
+            files = []
+            for name in checkpoint['contract']['required_state']:
+                with open_regular(directory / 'work', name) as incoming:
+                    digest = hashlib.sha256()
+                    size = 0
+                    while chunk := incoming.read(65536):
+                        size += len(chunk)
+                        if size > self.config.max_output_file_bytes:
+                            raise ValueError('Checkpoint exceeds output size limit')
+                        digest.update(chunk)
+                files.append(asdict(InputFile(name, size, digest.hexdigest())))
+            manifest = dict(contract=checkpoint['contract'], files=files)
+        bind_manifest(store, self.config.worker.id, attempt_id, manifest, output_limits(self.config))
+        reply = self._result_request(attempt_id, 'manifest', manifest, checkpoint=True)
+        if not reply.get('acknowledged') and self.config.storage_mode == 'staged':
+            for index, item in enumerate(manifest['files']):
+                if self.collection_stop.is_set():
+                    return
+                with open_regular(directory / 'work', item['path']) as incoming:
+                    self._result_request(attempt_id, str(index), incoming, item['size'], checkpoint=True)
+        reply = self._result_request(attempt_id, 'commit', {}, checkpoint=True)
+        if not reply.get('acknowledged') or reply.get('identity') != record(store, attempt_id)['identity']:
+            raise ValueError('Manager did not acknowledge matching checkpoint')
+        with store.scheduling_round():
+            store._db.execute('UPDATE checkpoints SET acknowledged=1 WHERE attempt_id=?', (attempt_id,))
+            from .checkpoints import set_error
+            set_error(store, attempt_id, None)
+
     def _cleanup_results(self) -> None:
         """One bounded filesystem pass, independent of polling and result uploads."""
         from .cleanup import cleanup_attempt
@@ -668,9 +734,10 @@ class Worker:
                 self.cleanup_cursor = cursor
 
     def _result_request(self, attempt_id: str, operation: str, payload: object,
-                        size: int | None = None) -> dict:
+                        size: int | None = None, *, checkpoint: bool = False) -> dict:
         data = json.dumps(payload).encode() if size is None else payload
-        request = Request(self.config.manager_endpoint.rstrip('/') + f'/v2/results/{attempt_id}/{operation}',
+        namespace = 'checkpoints' if checkpoint else 'results'
+        request = Request(self.config.manager_endpoint.rstrip('/') + f'/v2/{namespace}/{attempt_id}/{operation}',
                           data=data, method='POST' if size is None else 'PUT',
                           headers={'X-Worker-ID': self.config.worker.id,
                                    'Authorization': 'Bearer ' + self.token,

@@ -167,6 +167,10 @@ class Store:
                 self._db.execute('CREATE TABLE IF NOT EXISTS assignment_priorities ('
                                  'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
                                  'priority INTEGER NOT NULL, origin TEXT NOT NULL, queue_sequence INTEGER NOT NULL)')
+                from .checkpoints import initialize as initialize_checkpoints
+                initialize_checkpoints(self)
+                from .segments import initialize as initialize_segments
+                initialize_segments(self)
                 from .monitoring import initialize
                 initialize(self)
                 if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
@@ -440,6 +444,8 @@ class Store:
                                  (attempt_id, metadata['priority'], metadata['origin'], metadata['queue_sequence']))
                 self._db.execute('INSERT INTO reservations VALUES(?,?,?,?)',
                                  (attempt_id, worker_id, resources.cpu_slots, resources.memory_gib))
+                from .segments import on_assignment
+                on_assignment(self, job_id, attempt_id)
                 self._db.execute('UPDATE jobs SET state=? WHERE job_id=?', ('assigned', job_id))
                 self._event(job_id, attempt_id, 'assigned')
         except sqlite3.IntegrityError as exc:
@@ -517,6 +523,10 @@ class Store:
         """Explicitly queue a confirmed failure within the submitted retry budget."""
         with self._transaction():
             attempts = self.job_attempts(job_id)
+            from .segments import retry_blocker
+            blocker = retry_blocker(self, job_id)
+            if blocker:
+                raise StoreError(blocker)
             if self.job_state(job_id) != 'failed' or not attempts:
                 raise StoreError('Retry requires a failed job')
             if not attempts[-1].termination_evidence:
@@ -834,6 +844,7 @@ class Store:
             "WHERE r.status='collected' AND r.manifest IS NOT NULL "
             "AND a.state IN ('succeeded','failed','cancelled') "
             "AND a.termination_evidence IS NOT NULL AND c.status!='cleaned' "
+            "AND NOT EXISTS (SELECT 1 FROM checkpoints k WHERE k.attempt_id=c.attempt_id AND k.acknowledged=0) "
             "AND c.rowid>? ORDER BY c.rowid LIMIT ?", (after, limit)))
 
     def set_cleanup(self, attempt_id: str, status: str, reason: str | None = None) -> None:
@@ -848,6 +859,10 @@ class Store:
                     or not collection or collection['status'] != 'collected'
                     or collection['manifest'] is None or record is None):
                 raise StoreError('Cleanup requires owned files and durable result acknowledgement')
+            from .checkpoints import record as checkpoint_record
+            checkpoint = checkpoint_record(self, attempt_id)
+            if checkpoint and not checkpoint['acknowledged']:
+                raise StoreError('Cleanup requires durable checkpoint acknowledgement')
             if record['status'] != 'cleaned':
                 self._db.execute('UPDATE staged_cleanup SET status=?,reason=? WHERE attempt_id=?',
                                  (status, reason, attempt_id))

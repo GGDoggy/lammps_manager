@@ -56,6 +56,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             command.add_argument('job_id')
             if name == 'priority':
                 command.add_argument('value', type=int)
+    for name in ('submit-run', 'inspect-run', 'cancel-run', 'run-priority'):
+        command = commands.add_parser(name, help=f'{name} explicit continuation runs')
+        command.add_argument('--config', required=True)
+        if name == 'submit-run':
+            command.add_argument('manifest', help='JSON explicit recipe/build/step-plan submission')
+        else:
+            command.add_argument('run_id')
+        if name == 'inspect-run':
+            command.add_argument('--limit', type=int, default=100)
+            command.add_argument('--after', type=int, default=-1)
+        if name == 'run-priority':
+            command.add_argument('--initial', type=int)
+            command.add_argument('--continuation', type=int)
     manager = commands.add_parser('serve', help='Run the authenticated manager API')
     manager.add_argument('--config', required=True)
     manager.add_argument('--credentials', required=True, help='JSON worker ID to private token-file path mapping')
@@ -106,6 +119,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         except KeyboardInterrupt:
             return 130
         except (ValueError, OSError, sqlite3.Error) as exc:
+            parser.error(str(exc))
+        return 0
+
+    if args.command in ('submit-run', 'inspect-run', 'cancel-run', 'run-priority'):
+        from .segments import submit_run, inspect_run, cancel_run, set_priorities
+        from .continuation import Recipe
+        try:
+            config = load_config(args.config, 'manager')
+            with Store(config.manager.database_path) as store:
+                if args.command == 'submit-run':
+                    request = json.loads(Path(args.manifest).read_text())
+                    allowed = {'total_steps', 'build_fingerprint', 'recipe', 'step_max', 'start_step',
+                               'segment_ends', 'run_id', 'resource_overrides', 'initial_priority', 'continuation_priority'}
+                    if not isinstance(request, dict) or request.keys() - allowed:
+                        raise ValueError('Invalid continuation submission fields')
+                    if 'recipe' in request:
+                        request['recipe'] = Recipe(**request['recipe'])
+                    if 'segment_ends' in request:
+                        request['segment_ends'] = tuple(request['segment_ends'])
+                    run_id = submit_run(store, config, **request)
+                else:
+                    run_id = args.run_id
+                    if args.command == 'cancel-run':
+                        cancel_run(store, run_id)
+                    elif args.command == 'run-priority':
+                        set_priorities(store, run_id, initial=args.initial, continuation=args.continuation)
+                result = inspect_run(store, run_id, limit=getattr(args, 'limit', 100), after=getattr(args, 'after', -1))
+            print(json.dumps(result, indent=2))
+        except (ValueError, OSError, sqlite3.Error, TypeError) as exc:
             parser.error(str(exc))
         return 0
 

@@ -36,3 +36,19 @@ group and reaps its direct child before propagating the interruption; output is 
 The NVE driver performs a strict exact comparison; the ABP driver freezes pilot /
 confirmatory protocol and sample count before testing equivalence. A passing raw
 report does not self-authorize production splitting or other stochastic models.
+
+## T018/T019 checkpoint and queued continuation
+
+`checkpoint_acceptance.py` verifies shared/staged checkpoint publication and
+actual restoration with six bounded singleton MPI/LAMMPS invocations.
+`segmentation_acceptance.py` runs the actual polling/queue/transfer path for shared
+and staged three-segment chains (same-host workers a/b/a), plus the measured
+single-segment reference at default `step_max`, and three uninterrupted references.
+Its ten invocations each have a 30-second bound. Both require a new private root,
+PyYAML and the released `/usr/local/bin/lmp` build; pass `--lammps` and `--root`.
+No prior output is overwritten or deleted. Staged cleanup is disabled in the
+segmentation driver so every raw artifact remains available for audit. Source,
+build, checkpoint, process and output inventories are retained. References are
+functional checks; scientific acceptance remains T017's independent confirmatory
+study, never a single-pair mean comparison. See [checkpoints](../../docs/checkpoints.md)
+and [segmentation](../../docs/segmentation.md).

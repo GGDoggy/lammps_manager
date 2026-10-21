@@ -66,6 +66,11 @@ class Monitoring:
 
 
 @dataclass(frozen=True)
+class Segmentation:
+    step_max: int = 100000
+
+
+@dataclass(frozen=True)
 class ManagerConfig:
     manager: ManagerSettings
     storage: Storage
@@ -74,6 +79,7 @@ class ManagerConfig:
     scheduler: Scheduler = field(default_factory=Scheduler)
     infrastructure_recovery: InfrastructureRecovery = field(default_factory=InfrastructureRecovery)
     monitoring: Monitoring = field(default_factory=Monitoring)
+    segmentation: Segmentation = field(default_factory=Segmentation)
 
 
 @dataclass(frozen=True)

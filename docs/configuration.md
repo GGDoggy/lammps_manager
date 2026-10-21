@@ -109,3 +109,14 @@ Optional manager `monitoring.transfer_stall_seconds` (default 300) and
 runtime alert evaluation, never submitted job specifications. See
 [monitoring](monitoring.md) for JSON fields, pagination, transfer accounting and
 alert deduplication/recovery semantics.
+
+## Explicit continuation segmentation (T019)
+
+Manager `segmentation.step_max` is a positive integer, default 100000, frozen in
+new explicit run snapshots. It does not alter independent jobs or previously
+submitted runs. The arithmetic planner covers intervals exactly; execution also
+requires a released scientific recipe/build/plan. See [segmentation](segmentation.md)
+for accepted cases, submission schema, priority controls and limitations. The
+currently measured 2000-step reference uses one segment at the default maximum;
+600/1400/2000 boundaries require `step_max: 800` and explicit measured boundaries.
+A 250001-step plan is arithmetically supported but not scientifically released.

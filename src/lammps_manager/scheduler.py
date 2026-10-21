@@ -30,6 +30,7 @@ class WorkerSnapshot:
     ready: bool = True
     draining: bool = False
     staged_free_disk_gib: float | None = None
+    continuation_ready: bool = False
 
     def __post_init__(self) -> None:
         if self.staged_free_disk_gib is not None and (
@@ -50,6 +51,8 @@ class WorkerSnapshot:
                 raise ValueError(f'{name} must be finite and nonnegative')
         if self.detected_memory_gib == 0 or self.cpu_utilization_percent > 100:
             raise ValueError('Invalid detected memory or CPU utilization')
+        if type(self.continuation_ready) is not bool:
+            raise ValueError('continuation_ready must be boolean')
         if type(self.ready) is not bool or type(self.draining) is not bool:
             raise ValueError('ready and draining must be booleans')
         if type(self.online) is not bool or type(self.paused) is not bool:
@@ -117,12 +120,18 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 fits = r.cpu_slots <= cpu and r.memory_gib <= memory
                 fits_any |= fits
                 reason = None
-                if not fits:
+                from .segments import worker_blocker, segment
+                continuation_blocker = worker_blocker(store, spec.job_id, worker.id)
+                if continuation_blocker:
+                    reason = continuation_blocker
+                elif not fits:
                     reason = 'exceeds_capacity'
                 elif not worker.enabled or (snapshot and not snapshot.capacity.enabled):
                     reason = 'disabled'
                 elif snapshot is None:
                     reason = 'missing_metrics'
+                elif not snapshot.continuation_ready and segment(store, spec.job_id):
+                    reason = 'continuation_protocol_required'
                 elif not snapshot.online:
                     reason = 'offline'
                 elif snapshot.paused:

@@ -31,3 +31,7 @@ infrastructure_recovery:
 monitoring:
   transfer_stall_seconds: 300
   low_disk_gib: 5
+
+# Frozen per explicit continuation run; scientific capability gates still apply.
+segmentation:
+  step_max: 100000

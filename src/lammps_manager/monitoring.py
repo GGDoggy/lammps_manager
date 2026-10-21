@@ -154,6 +154,7 @@ def job_view(store: Store, job_id: str, config: ManagerConfig, now: float) -> di
         "SELECT reason FROM events WHERE job_id=? AND state='queued' AND event_id>? "
         "AND reason NOT LIKE 'Priority set to %' ORDER BY event_id DESC LIMIT 1",
         (job_id, metadata['queue_sequence'])).fetchone()
+    from .segments import monitoring_view
     return {'job_id': job_id, 'state': state, 'attempt_count': attempt_count,
             'queue_age_seconds': _age(_epoch(metadata['queue_entered_at']), now) if state == 'queued' else None,
             'wait_reason': event['reason'] if state == 'queued' and event else None,
@@ -173,7 +174,7 @@ def job_view(store: Store, job_id: str, config: ManagerConfig, now: float) -> di
                                   or ({'status': 'pending', 'reason': 'Results have not been collected'}
                                       if spec.storage_mode == 'staged' else None)) if latest else None,
             'transfers': transfers(store, latest.attempt_id) if latest else None,
-            'continuation': None}
+            'continuation': monitoring_view(store, job_id)}
 
 
 def worker_view(store: Store, config: ManagerConfig, now: float) -> list[dict]:
