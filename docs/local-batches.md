@@ -43,7 +43,7 @@ running, unknown and terminal jobs are skipped. Running two invocations cannot
 assign the same job twice; an assignment conflict terminates the losing invocation.
 Use one local executor at a time. This is not capacity-aware scheduling: worker
 CPU / memory limits, enabled flags, external load and concurrency policies are not
-enforced. T006 adds [time limits, cancellation, conservative restart reconciliation and explicit bounded retry](recovery.md); automatic simulation retries remain disabled.
+enforced. T006 adds [time limits, cancellation, conservative restart reconciliation and explicit bounded retry](recovery.md); application-error retries remain explicit. T014 adds bounded infrastructure recovery after confirmed termination. A recovery delay leaves the job queued; invoke `run-local` again after its recorded deadline to execute the new attempt.
 
 Each job has this layout under `storage.work_root`:
 

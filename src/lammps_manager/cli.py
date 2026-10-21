@@ -123,7 +123,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     store.retry(args.job_id)
                     result = inspect_job(store, args.job_id)
                 elif args.command == 'status':
-                    result = [{**job, 'result_collection':
+                    result = [{**job, 'infrastructure_recovery': store.recovery_status(job['job_id']),
+                               'result_collection':
                                (_collection_summary(inspect_job(store, job['job_id'])['attempts'][-1]['result_collection'])
                                 if store.job_attempts(job['job_id']) else None)} for job in store.jobs()]
                 else:

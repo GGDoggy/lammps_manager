@@ -12,11 +12,11 @@ PYTHONPATH=src python3 -m lammps_manager inspect --config manager.yaml JOB_ID
 PYTHONPATH=src python3 -m lammps_manager retry --config manager.yaml JOB_ID
 ```
 
-`cancel` requires an existing assignment. It persists cancellation intent and `cancelling` before any worker delivery. Repeated requests are safe; a disconnected worker leaves the request pending and the reservation intact. Cancellation is delivered even when the worker is paused. Normal completion racing cancellation can still report success or failure. The local executor reads cancellation from its database directly, without a service. Queued jobs without attempts cannot currently be cancelled.
+`cancel` requires an existing assignment. It persists cancellation intent and `cancelling` before any worker delivery; a queued successor with confirmed prior termination is cancelled directly. Repeated requests are safe; a disconnected worker leaves the request pending and the reservation intact. Cancellation is delivered even when the worker is paused. Normal completion racing cancellation can still report success or failure. The local executor reads cancellation from its database directly, without a service. Queued jobs without attempts cannot currently be cancelled.
 
 The executor enforces the submitted `time_limit_seconds`, including after recovery when a launch timestamp is available. Time-limit expiry persists cancellation with reason `Time limit exceeded`; confirmed cleanup yields `cancelled`. TERM targets all process groups in the dedicated launch session; after two seconds it escalates to KILL and allows two more seconds for termination. MPI-created rank groups in the same session are included. A remaining live process or inspection/signaling error retains `unknown` and reservations. Zombies have already terminated and do not count as live execution. All affected processes must be visible in `/proc`; process escape into another session, remote MPI daemons and multi-node MPI require additional containment and separate verification. This executor launches single-host MPI jobs.
 
-No simulation retries happen automatically. `retry` requires a failed job with confirmed termination and remaining `max_retries` from its immutable submitted resources (default zero). It atomically returns the job to `queued`; scheduling creates a new attempt ID, directory and reservation. Previous attempts, output and events remain available. Changing configuration cannot increase an existing job's retry budget. Cancellation, success and unresolved execution cannot be retried. Fix input errors by submitting corrected input as a new job, rather than repeatedly consuming retries.
+Application-error retries are never automatic. T014 infrastructure recovery is described below. `retry` requires a failed job with confirmed termination and remaining `max_retries` from its immutable submitted resources (default zero). It atomically returns the job to `queued`; scheduling creates a new attempt ID, directory and reservation. Previous attempts, output and events remain available. Changing configuration cannot increase an existing job's retry budget. Cancellation, success and unresolved execution cannot be retried. Fix input errors by submitting corrected input as a new job, rather than repeatedly consuming retries.
 
 ## Disconnection and restart
 
@@ -43,3 +43,64 @@ The default suite remains offline from real MPI and remote hosts. An explicit lo
 ## Staged worker disk reclamation
 
 T012 cleans owned staged worker attempt trees after confirmed termination and durable manager result acknowledgement, including failed/cancelled attempts. Process evidence, manifests, acknowledgements and launch fences remain in the local journal after deletion; report replay and duplicate assignments do not read deleted files or relaunch attempts. Permission failures, partial deletion and interrupted tombstone writes retry on later bounded background passes. Legacy directories without ownership records remain retained. Set worker `cleanup_staged_files: false` and restart when local copies must be preserved; pause alone does not stop cleanup. See [staged cleanup](staged-results.md#worker-staged-cleanup-t012) for ownership boundaries, diagnostics and operator recovery.
+
+## Automatic infrastructure recovery (T014)
+
+New submissions default to one infrastructure recovery after a 30-second delay;
+[configuration](configuration.md#infrastructure-recovery-policy-t014) describes
+validation and disabling it. Original immutable inputs are replayed in a new
+attempt directory. Computation since the start may repeat; no checkpoint or
+committed-progress claim is made. Checkpoint continuation requires T018-T019.
+Older specifications retain zero automatic recovery without changing stored JSON.
+
+Each upgraded worker reports an authenticated Linux boot UUID and a fresh process
+session UUID with `recovery_protocol: 1`. SQLite retains generation history;
+changed generations, missing heartbeats and an absent process leader alone never
+establish termination. A process-only restart monitors positively identified live
+execution without launching another copy. Missing/corrupt identity or surviving
+unidentified descendants keeps the attempt unknown and resources reserved.
+
+Reconciliation can record infrastructure interruption only after a validated
+saved process identity establishes either a different Linux boot or disappearance
+of the entire dedicated launch session. The local terminal transition and its
+structured evidence are one transaction. Authenticated report processing binds
+that evidence, checks cancellation and the global per-job recovery budget, and
+atomically records a deadline and requeues once. Duplicate reports, response loss
+and manager restart retain the same deadline and budget charge. An exhausted
+budget leaves a failed job with an actionable reason. Application-error retries
+remain explicit and use `max_retries`; their audit/count is separate.
+
+For shared local execution, `run-local` makes the recovery decision in the same
+transaction as confirmed termination and uses the same submitted budget. It also
+finishes previously detected interruptions belonging to its configured worker.
+A delayed recovery remains queued when the command exits; invoke `run-local`
+again after the recorded deadline to execute its new attempt. Cancellation during
+that delay prevents execution, and repeated invocations retain the original
+deadline and budget charge.
+
+Both the scheduler and `run-local` respect recorded recovery deadlines. Readiness,
+resource quotas and normal placement gates still apply after the delay. Workers
+mirror an authenticated successor assignment only after confirming prior local
+termination; only the manager counts the global recovery budget because a worker
+may see only part of the job's history. Cancel during the delay prevents dispatch;
+late interruption reports cannot reactivate it. Succeeded/cancelled attempts
+cannot qualify for infrastructure recovery.
+
+`status` and `inspect` JSON include `infrastructure_recovery` with frozen policy,
+used recovery count and latest decision (`status`, `retry_at`, `reason`, evidence).
+`inspect` retains each attempt's interruption and prelaunch rejection records,
+events and artifact locations. Process outcome and staged result collection stay
+separate. Retrying infrastructure failure never deletes previous output, and
+old staged attempts continue collection until durable acknowledgement.
+
+Protocol changes are additive. Legacy workers receive specification keys they
+understand but cannot report structured infrastructure evidence; their execution
+is not automatically recovered from a timeout. Upgraded workers retain their
+legacy journal snapshots, including any omitted policy, while the manager's
+immutable snapshot remains authoritative for recovery. Legacy shared acceptance
+without launch claims stays conservative. New-protocol acceptance without a
+consumed launch claim can use the T013 permanent prelaunch fence after restart.
+
+Verification uses fake identities, local process trees and loopback services.
+This does not establish physical reboot, power-loss durability, real MPI cleanup
+or deployment readiness. See the separate [external test plan](verification/t014-restart-plan.md).

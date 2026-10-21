@@ -221,7 +221,13 @@ class ConcurrentWorkerTests(unittest.TestCase):
         worker.tick()
         # Persist both assignments at the manager without launching locally.
         from unittest.mock import patch
-        with patch.object(worker, '_can_launch', return_value=False):
+        original_poll = self.service.poll
+        def legacy_poll(worker_id, payload):
+            result = original_poll(worker_id, payload)
+            result.pop('prelaunch_protocol', None)
+            return result
+        with patch.object(worker, '_can_launch', return_value=False), \
+                patch.object(self.service, 'poll', side_effect=legacy_poll):
             worker.tick()
         with Store(self.config.manager.database_path) as manager:
             recovered, = manager.job_attempts(jobs[0])
@@ -344,7 +350,8 @@ class ConcurrentStagedTests(unittest.TestCase):
         self.addCleanup(worker.close)
         snapshot = worker.monitor.sample(worker.config)
         snapshot.update(available_memory_gib=.015, detected_cpu_slots=2,
-                        detected_memory_gib=2)
+                        detected_memory_gib=2,
+                        per_cpu_utilization_percent={'0': 0, '1': 0})
         result = dict(paused=False, manager_capacity=asdict(self.capacity),
                       policy=asdict(self.config.scheduler))
         with Store(worker.database) as store:

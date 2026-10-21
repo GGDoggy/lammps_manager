@@ -27,6 +27,8 @@ class WorkerSnapshot:
     paused: bool = False
     per_cpu_utilization_percent: dict[str, float] | None = None
     cpu_sample_started_at: float | None = None
+    ready: bool = True
+    draining: bool = False
 
     def __post_init__(self) -> None:
         validate_sample(self.per_cpu_utilization_percent, self.cpu_sample_started_at,
@@ -43,6 +45,8 @@ class WorkerSnapshot:
                 raise ValueError(f'{name} must be finite and nonnegative')
         if self.detected_memory_gib == 0 or self.cpu_utilization_percent > 100:
             raise ValueError('Invalid detected memory or CPU utilization')
+        if type(self.ready) is not bool or type(self.draining) is not bool:
+            raise ValueError('ready and draining must be booleans')
         if type(self.online) is not bool or type(self.paused) is not bool:
             raise ValueError('online and paused must be booleans')
 
@@ -80,6 +84,11 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
         for job in store.jobs():
             if job['state'] != 'queued':
                 continue
+            blocker = store.recovery_blocker(job['job_id'], now)
+            if blocker:
+                store.record_waiting(job['job_id'], blocker)
+                waiting[job['job_id']] = blocker
+                continue
             spec = store.specification(job['job_id'])
             if spec.storage_mode != config.storage.mode:
                 reason = 'storage_mode_mismatch: existing specification requires ' + spec.storage_mode
@@ -113,6 +122,10 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                     reason = 'offline'
                 elif snapshot.paused:
                     reason = 'paused'
+                elif not snapshot.ready or snapshot.draining:
+                    reason = 'not_ready'
+                elif store.rejection_blocker(spec.job_id, worker.id, now):
+                    reason = store.rejection_blocker(spec.job_id, worker.id, now)
                 elif snapshot.observed_at > now or snapshot.heartbeat_at > now:
                     reason = 'future_timestamp'
                 elif now - snapshot.heartbeat_at > config.manager.heartbeat_timeout_seconds:

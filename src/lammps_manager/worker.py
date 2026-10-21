@@ -3,7 +3,7 @@
 from typing import BinaryIO
 
 from concurrent.futures import Future, ThreadPoolExecutor
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime
 import fcntl
 from http.client import IncompleteRead
@@ -21,8 +21,8 @@ from .cpu import admission, pending_slots, validate_sample
 from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
-from .models import Resources, specification_from_dict
-from .store import Store, TERMINAL
+from .models import JobSpecification, Resources, specification_from_dict
+from .store import Store, StoreError, TERMINAL
 
 
 class LinuxMonitor:
@@ -140,6 +140,11 @@ class Worker:
         self.cleanup_future: Future | None = None
         self.cleanup_cursor = 0
         self.monitor = LinuxMonitor()
+        from uuid import uuid4
+        self.session_id = str(uuid4())
+        self.boot_id = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+        self.ready = True
+        self.draining = False
         self.proof = None
         self.acknowledged: dict[str, dict] = {}
         # Do not send bearer credentials through environment-configured proxies.
@@ -188,6 +193,7 @@ class Worker:
             reflected_starts = {r.attempt_id for r in store.reservations()
                                 if store.attempt(r.attempt_id).started_at is not None}
         snapshot = self.monitor.sample(self.config)
+        snapshot.update(ready=self.ready, draining=self.draining)
         self.sample_started = reflected_starts
         if (self.config.storage_mode == 'staged' and self.config.cleanup_staged_files
                 and self.cleanup_future is None and not self.collection_stop.is_set()):
@@ -198,6 +204,12 @@ class Worker:
                 report = {'attempt_id': attempt.attempt_id, 'state': attempt.state,
                           'started': attempt.started_at is not None, 'exit_code': attempt.exit_code,
                           'termination_evidence': attempt.termination_evidence, 'reason': attempt.reason}
+                interruption = store.interruption(attempt.attempt_id)
+                if interruption:
+                    report['interruption'] = interruption
+                rejection = store.rejection(attempt.attempt_id)
+                if rejection:
+                    report['rejection'] = rejection
                 if self.config.storage_mode == 'staged' and attempt.termination_evidence:
                     collection = store.result_collection(attempt.attempt_id)
                     if collection is None:
@@ -211,7 +223,8 @@ class Worker:
                     reports.append(report)
         request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
                           data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
-                                           'reports': reports, 'protocol': 2,
+                                           'reports': reports, 'protocol': 2, 'recovery_protocol': 1,
+                                           'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
                                            'storage_mode': self.config.storage_mode}).encode(),
                           headers={'Content-Type': 'application/json',
                                    'X-Worker-ID': self.config.worker.id,
@@ -291,6 +304,25 @@ class Worker:
                     pass
                 else:
                     continue  # Existing journals are reconciled above, never reaccepted.
+                if (result.get('prelaunch_protocol') == 1
+                        and (result['paused'] or not self.ready or self.draining
+                             or not self.config.worker.enabled or not result['manager_capacity']['enabled'])):
+                    directory = (root / spec.job_id / attempt['attempt_id']
+                                 if spec.storage_mode == 'staged' else Path(attempt['directory']))
+                    # Preserve containment checks even for never-launched work.
+                    if not directory.is_relative_to(root) or '..' in directory.parts:
+                        raise ValueError('Rejected assignment outside worker root')
+                    with store.scheduling_round():
+                        self._submit_specification(store, spec)
+                        self._accept_retry(store, spec.job_id)
+                        store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
+                        if directory.exists():
+                            store.transition(attempt['attempt_id'], 'unknown',
+                                             reason='Existing runtime directory; launch identity uncertain')
+                        else:
+                            store.reject_launch(attempt['attempt_id'], 'not_ready',
+                                                'Worker closed to new launches', time.time() + 30)
+                    continue
                 directory = Path(attempt['directory'])
                 cancelled = next((c for c in result.get('cancellations', [])
                                   if c['attempt_id'] == attempt['attempt_id']), None)
@@ -306,9 +338,8 @@ class Worker:
                     if any(p.is_symlink() for p in (job_root, directory)):
                         raise ValueError('Unsafe staged runtime directory')
                     with store.scheduling_round():
-                        store.submit(spec)
-                        if store.job_state(spec.job_id) == 'failed':
-                            store.retry(spec.job_id)
+                        self._submit_specification(store, spec)
+                        self._accept_retry(store, spec.job_id)
                         store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id, str(directory))
                     if cancelled:
                         self._prepare_staged_directory(store, attempt['attempt_id'])
@@ -332,17 +363,24 @@ class Worker:
                     raise ValueError('Assignment outside shared job directory')
                 if result['paused'] and not cancelled:
                     continue
+                r = spec.resources
+                capacity = self.config.worker
+                incompatible = (r.cpu_slots > capacity.cpu_slots
+                                or r.memory_gib > capacity.memory_budget_gib)
                 if not cancelled and not self._can_launch(store, spec.resources, result, snapshot):
-                    continue  # Keep the manager reservation pending for a later poll.
+                    if (result.get('prelaunch_protocol') != 1
+                            or (not incompatible and store.launch_deferred(attempt['attempt_id'], time.time()))):
+                        continue
                 # Persist acceptance before the executor validates copied inputs,
                 # so pre-launch failures can be durably reported to the manager.
                 with store.scheduling_round():
-                    store.submit(spec)
-                    if store.job_state(spec.job_id) == 'failed':
-                        store.retry(spec.job_id)
+                    self._submit_specification(store, spec)
+                    self._accept_retry(store, spec.job_id)
                     accepted = store.assign(spec.job_id, attempt['attempt_id'], self.config.worker.id,
                                             str(directory))
                     can_launch = not directory.exists()
+                    if can_launch and result.get('prelaunch_protocol') == 1:
+                        store.accept_prelaunch(accepted.attempt_id)
                     if not can_launch:
                         store.transition(accepted.attempt_id, 'unknown',
                                          reason='Attempt directory already exists; launch identity uncertain')
@@ -351,10 +389,32 @@ class Worker:
                     store.transition(accepted.attempt_id, 'cancelled', reason=cancelled['reason'],
                                      termination_evidence='Launch did not start a process')
                 elif can_launch:
-                    self.futures[accepted.attempt_id] = self.pool.submit(self._execute, accepted.attempt_id)
+                    if not self._can_launch(store, spec.resources, result, snapshot, accepted.attempt_id):
+                        if result.get('prelaunch_protocol') == 1:
+                            store.reject_launch(accepted.attempt_id,
+                                                'incompatible' if incompatible else 'headroom',
+                                                'Local launch admission unavailable', time.time() + 30)
+                        continue
+                    if store.claim_launch(accepted.attempt_id):
+                        self.futures[accepted.attempt_id] = self.pool.submit(self._execute, accepted.attempt_id)
         if hasattr(self, 'cpu_admission'):
             result['local_cpu_admission'] = self.cpu_admission
         return result
+
+    def _submit_specification(self, store: Store, spec: JobSpecification) -> None:
+        """Preserve legacy local snapshots; recovery authorization lives on the manager."""
+        try:
+            existing = store.specification(spec.job_id)
+        except StoreError:
+            store.submit(spec)
+        else:
+            # Legacy transports omitted this manager-owned policy. Upgrading a
+            # worker must not rewrite its old snapshot or invalidate identical inputs.
+            store.submit(replace(spec, infrastructure_recovery=existing.infrastructure_recovery))
+
+    def _accept_retry(self, store: Store, job_id: str) -> None:
+        """Mirror a manager-authorized successor without spending budgets locally."""
+        store.accept_successor(job_id)
 
     def _prepare_staged_directory(self, store: Store, attempt_id: str) -> bool:
         """Defer filesystem failures without losing acceptance or stopping polls."""
@@ -410,10 +470,16 @@ class Worker:
     def _launch_staged(self, store: Store, attempt_id: str, result: dict, snapshot: dict) -> None:
         """Consume a durable launch right only after resource and input checks."""
         attempt = store.attempt(attempt_id)
+        if attempt.state != 'assigned' or store.launch_claimed(attempt_id):
+            return
+        closed = (result['paused'] or not self.ready or self.draining
+                  or not self.config.worker.enabled or not result['manager_capacity']['enabled'])
+        if closed and result.get('prelaunch_protocol') == 1:
+            store.reject_launch(attempt_id, 'not_ready', 'Worker closed to new launches', time.time() + 30)
+            return
         transfer = store.input_transfer(attempt_id)
-        if (attempt.state != 'assigned' or not transfer or transfer['status'] != 'ready'
-                or result['paused'] or not result.get('staged_launch_enabled')
-                or result.get('results_protocol') != 1 or store.launch_claimed(attempt_id)):
+        if (not transfer or transfer['status'] != 'ready'
+                or not result.get('staged_launch_enabled') or result.get('results_protocol') != 1):
             return
         directory = Path(attempt.directory)
         root = Path(self.config.work_root).resolve(strict=True)
@@ -422,6 +488,14 @@ class Worker:
             return
         r = store.specification(attempt.job_id).resources
         if not self._can_launch(store, r, result, snapshot, attempt_id):
+            incompatible = (r.cpu_slots > min(self.config.worker.cpu_slots,
+                                result['manager_capacity']['cpu_slots'], snapshot['detected_cpu_slots'])
+                            or r.memory_gib > min(self.config.worker.memory_budget_gib,
+                                result['manager_capacity']['memory_budget_gib'], snapshot['detected_memory_gib']))
+            if (result.get('prelaunch_protocol') == 1
+                    and (incompatible or not store.launch_deferred(attempt_id, time.time()))):
+                store.reject_launch(attempt_id, 'incompatible' if incompatible else 'headroom',
+                                    'Local launch admission unavailable', time.time() + 30)
             return
         if store.claim_launch(attempt_id):
             self.futures[attempt_id] = self.pool.submit(self._execute, attempt_id)
@@ -439,7 +513,7 @@ class Worker:
         capacity = self.config.worker
         now = time.time()
         observed = snapshot['observed_at']
-        if (result['paused'] or not capacity.enabled or not manager['enabled']
+        if (result['paused'] or not self.ready or self.draining or not capacity.enabled or not manager['enabled']
                 or observed > now or now - observed > policy['metrics_max_age_seconds']):
             return False
         reservations = [r for r in store.reservations() if r.attempt_id != candidate_id]

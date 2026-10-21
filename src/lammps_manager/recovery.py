@@ -76,6 +76,9 @@ def reconcile(store: Store, attempt: Attempt) -> bool:
     """
     if attempt.state in TERMINAL:
         return False
+    if store.prelaunch_accepted(attempt.attempt_id) and not store.launch_claimed(attempt.attempt_id):
+        store.reject_launch(attempt.attempt_id, 'not_ready', 'Worker restarted before launch claim', time.time() + 30)
+        return False
     if (store.specification(attempt.job_id).storage_mode == 'staged'
             and not store.launch_claimed(attempt.attempt_id)):
         return False  # Input preparation has not consumed a launch right.
@@ -121,10 +124,15 @@ def reconcile(store: Store, attempt: Attempt) -> bool:
             elif attempt.state != 'running':
                 store.transition(attempt.attempt_id, 'running')
         if ended:
-            store.transition(attempt.attempt_id, 'cancelled' if cancel else 'failed',
-                reason=cancel or 'Process ended during worker outage; exit status unavailable',
-                termination_evidence='Linux boot changed' if saved['boot_id'] != boot
-                    else 'Recovered identity checked; process group no longer exists')
+            with store.scheduling_round():
+                store.transition(attempt.attempt_id, 'cancelled' if cancel else 'failed',
+                    reason=cancel or 'Process ended during worker outage; exit status unavailable',
+                    termination_evidence='Linux boot changed' if saved['boot_id'] != boot
+                        else 'Recovered identity checked; process group no longer exists')
+                if not cancel:
+                    store.record_interruption(attempt.attempt_id, {
+                        'kind': 'boot_changed' if saved['boot_id'] != boot else 'session_ended',
+                        'process': saved, 'observed_boot_id': boot})
             return False
         if live:
             return True

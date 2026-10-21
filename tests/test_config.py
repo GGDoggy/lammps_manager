@@ -70,6 +70,22 @@ class ConfigurationTests(unittest.TestCase):
             with self.assertRaisesRegex(ConfigurationError, 'cleanup_staged_files'):
                 self.load(worker, 'worker')
 
+    def test_infrastructure_policy_is_validated_and_snapshotted(self):
+        config = self.load(self.manager)
+        self.assertEqual(config.infrastructure_recovery.max_retries, 1)
+        self.assertEqual(config.infrastructure_recovery.delay_seconds, 30)
+        spec = create_job_specification(config, job_id='recovery', work_directory='/work/recovery',
+                                        input_file='in', input_sha256='a' * 64)
+        self.manager['infrastructure_recovery'] = {'max_retries': 0, 'delay_seconds': 5}
+        self.assertEqual(self.load(self.manager).infrastructure_recovery.max_retries, 0)
+        self.assertEqual(spec.infrastructure_recovery.max_retries, 1)
+        for key, invalid in [('max_retries', -1), ('max_retries', True), ('max_retries', 1.5),
+                             ('delay_seconds', 0), ('delay_seconds', float('inf'))]:
+            self.manager['infrastructure_recovery'] = {'max_retries': 1, 'delay_seconds': 30}
+            self.manager['infrastructure_recovery'][key] = invalid
+            with self.assertRaisesRegex(ConfigurationError, key):
+                self.load(self.manager)
+
     def test_snapshot_and_cpu_slots(self):
         config = self.load(self.manager)
         overrides = {'mpi_ranks': 3, 'omp_threads_per_rank': 2}

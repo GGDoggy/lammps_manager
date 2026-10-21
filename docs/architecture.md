@@ -69,7 +69,7 @@ Environment differences, resource limits, and policy parameters belong in config
 | Storage | Mode, work / result locations, retention policy; staged mode transfers inputs and results; retention controls remain planned |
 | Execution | Worker configuration: LAMMPS / MPI paths, fixed argument arrays, environment; no shell command templates |
 | Communication | Endpoint, identity, heartbeat / timeout settings, protected credential references |
-| Retry policy | No retries by default; future policy needs count, delay, and allowed error classes |
+| Retry policy | Explicit application retries default to zero; new submissions snapshot one infrastructure recovery with a 30-second delay; legacy snapshots retain zero automatic recovery |
 | Simulation inputs | Job specification / generator: temperature, particle count, seed, template version, input identities |
 | Runtime history | SQLite: queue state, worker, process identity, heartbeat, exit code, attempts, times, errors |
 | Correctness | Code: atomic reservations, idempotent starts, restart reconciliation, process-group cancellation, validation |
@@ -95,7 +95,7 @@ A worker can accept a new job only when all conditions hold:
 
 Per-CPU utilization signals temporary logical CPU headroom, not exclusive core ownership. T011 counts SMT siblings separately and treats iowait as busy. Aggregate CPU utilization ranks candidates but never vetoes admission. CPU launches remain pending until a complete post-start sampling interval; durable attempt history prevents repeated spending of one sample, even after a quick completion. The reserve yields to the minimum floor; neither changes running jobs or MPI/OpenMP placement. Running jobs keep their full reservations even during low utilization. Available memory already reflects running processes' actual consumption; do not subtract all running memory reservations from it again.
 
-Rank eligible workers by CPU utilization and remaining quota, with a fixed, testable tie-break rule. The implemented ordering is ascending CPU utilization, descending remaining CPU quota, descending remaining memory quota, then lexicographic worker ID (see [scheduling.md](scheduling.md)). Create the attempt and reservation in a database transaction before dispatch to prevent oversubscription within a round. T010 polling workers execute multiple shared or staged attempts concurrently within effective CPU, memory and concurrency quotas. Each attempt owns an isolated launch session, directory and journal record. A worker rechecks aggregate unreleased reservations and fresh local conditions before each launch; pending starts consume sampled available memory until a later sample can reflect them. Recovery continues for attempts without an owned executor while other attempts run. T005 conservatively defers insufficient-resource assignments while retaining their reservations, and rechecks on later polls. Returning rejected work to the queue requires a future rejection / reassignment protocol.
+Rank eligible workers by CPU utilization and remaining quota, with a fixed, testable tie-break rule. The implemented ordering is ascending CPU utilization, descending remaining CPU quota, descending remaining memory quota, then lexicographic worker ID (see [scheduling.md](scheduling.md)). Create the attempt and reservation in a database transaction before dispatch to prevent oversubscription within a round. T010 polling workers execute multiple shared or staged attempts concurrently within effective CPU, memory and concurrency quotas. Each attempt owns an isolated launch session, directory and journal record. A worker rechecks aggregate unreleased reservations and fresh local conditions before each launch; pending starts consume sampled available memory until a later sample can reflect them. Recovery continues for attempts without an owned executor while other attempts run. T005 conservatively defers insufficient-resource assignments while retaining their reservations, and rechecks on later polls. T013 adds permanent prelaunch rejection fences, bounded headroom grace and per-worker cooldown/exhaustion before safe reassignment; uncertain launches remain reserved.
 
 Reject a job exceeding every worker's maximum capacity at submission, or expose an explicit unschedulable reason. Never leave it silently waiting forever.
 
@@ -109,7 +109,7 @@ Normal flow: `queued → assigned → running → succeeded / failed`. Also supp
 - Reconcile after manager or worker restart. Confirm the original attempt ended or was terminated before releasing reservations or retrying. If termination cannot be established, retain `unknown` and permit manual resolution.
 - Record argument arrays, working directory, start / end times, stdout, stderr, exit code, and completion evidence for each attempt. Initially exit code 0 means success; add explicit validators if required outputs or LAMMPS-specific checks become necessary.
 - Persist cancellation requests before asking the worker to terminate the complete process group gracefully, escalating after timeout. Confirm exit before marking `cancelled`. Real MPI launcher descendant cleanup requires separate verification.
-- Do not retry by default. Retry only explicitly permitted errors after confirming the old process has ended; input errors must not cause endless retries.
+- Application retries default to zero and require explicit authorization within the submitted budget. T014 new submissions separately default to one infrastructure recovery after a 30-second delay, only with conclusive session termination evidence; legacy specifications retain zero automatic recovery. Input errors never trigger automatic recovery.
 - Pause prevents new assignments while running jobs continue. Shared directory deletion and manager result retention require separate explicit operations. T012 automatically reclaims owned worker-private staged files, including failed output, only after confirmed termination and durable result acknowledgement; manager copies and journal history remain available.
 
 ## Delivery stages
@@ -136,12 +136,12 @@ Use the defaults above for planning, but confirm these before deployment and rea
 
 Local tests do not establish real worker, MPI, LAMMPS, or deployment readiness. Record external integration evidence separately in tasks.md.
 
-## Planned recovery, ordering, monitoring and simulation segmentation
+## Recovery, ordering, monitoring and simulation segmentation
 
-T013-T019 in [tasks.md](../tasks.md) specify requested extensions; none is implemented by this planning update. Existing FIFO, explicit retry and independent-job behavior remain the current interfaces.
+T013-T014 are implemented with local verification; T015-T019 remain planned in [tasks.md](../tasks.md). FIFO and independent-job behavior remain current; application retries remain explicit.
 
-- T013 adds durable prelaunch rejection/revocation and readiness-based assignment exclusion. Reassignment requires a persisted fence against the old launch; uncertain execution retains reservations.
-- T014 adds bounded automatic infrastructure recovery after worker/host restart with confirmed termination. Surviving execution is reconciled rather than duplicated; disconnection alone never permits retry.
+- Implemented T013 adds durable prelaunch rejection/revocation and readiness-based assignment exclusion. Reassignment requires a persisted fence against the old launch; uncertain execution retains reservations.
+- Implemented T014 adds bounded automatic infrastructure recovery after worker/host restart with confirmed termination. Surviving execution is reconciled rather than duplicated; disconnection alone never permits retry.
 - T015 adds manager dispatch-time priority metadata separate from immutable job inputs. Queued order becomes descending priority, descending total CPU thread demand (MPI ranks times OpenMP threads), then FIFO, subject to all admission gates. Running work is not preempted.
 - T016 adds bounded CLI/JSON operational monitoring of jobs, transfers, worker readiness/resources, recovery and actionable alerts. Process completion and result delivery remain separate.
 - T017-T019 add a restricted sequential continuation chain for one logical simulation, not a general dependency graph. Default step_max is 100000 integration steps; each completed segment durably publishes a verified checkpoint before its successor returns to the manager queue. Each return gets a fresh FIFO position. The manager may set continuation priority separately; by default it inherits the first segment's first effective dispatch priority.

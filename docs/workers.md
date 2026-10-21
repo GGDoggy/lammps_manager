@@ -47,11 +47,11 @@ Before metrics or results are accepted, the worker reads a fresh manager-created
 
 Linux monitoring reads per-logical-CPU and aggregate CPU deltas from `/proc/stat`, total and available memory from `/proc/meminfo`, and CPU affinity through `sched_getaffinity`. A sample without a measurable CPU interval reports 100% usage conservatively. Hardware measurements do not detect cgroup memory quotas; configured limits must reflect those restrictions. The manager timestamps authenticated heartbeats; sample timestamps are retained so stale/future samples fail admission. The scheduler runs on eligible polls, no more often than `manager.schedule_interval_seconds`, using persisted snapshots and the [scheduler's quota accounting](scheduling.md). There is no scheduling loop when no workers poll.
 
-`heartbeat_interval_seconds` controls worker polls. Polling and reporting continue while attempts execute in a thread pool bounded by the worker’s `max_concurrent_jobs`. Each executor uses its own SQLite connection and launch session. In staged mode, result enumeration and delivery use another dedicated thread, so slow output collection does not delay heartbeats, cancellation delivery or recovered-process monitoring; see [staged results](staged-results.md). The manager stores last metrics and pause flags in SQLite; expired heartbeats and stale metrics block new admission. Disconnection never releases reservations. T006 marks expired work `unknown` while retaining reservations and adds [Linux reconciliation, cancellation, time limits and explicit bounded retries](recovery.md). No automatic simulation retries occur.
+`heartbeat_interval_seconds` controls worker polls. Polling and reporting continue while attempts execute in a thread pool bounded by the worker’s `max_concurrent_jobs`. Each executor uses its own SQLite connection and launch session. In staged mode, result enumeration and delivery use another dedicated thread, so slow output collection does not delay heartbeats, cancellation delivery or recovered-process monitoring; see [staged results](staged-results.md). The manager stores last metrics and pause flags in SQLite; expired heartbeats and stale metrics block new admission. Disconnection never releases reservations. T006 marks expired work `unknown` while retaining reservations and adds [Linux reconciliation, cancellation, time limits and explicit bounded retries](recovery.md). Application-error retries remain explicit; T014 adds bounded infrastructure recovery only after conclusive termination evidence.
 
 T010 supports concurrent shared and staged attempts on one worker. Each launch must fit the smaller manager / worker / detected-hardware CPU and memory quotas and the smaller manager / worker concurrency limit. CPU reservations remain MPI ranks multiplied by OpenMP threads; low measured utilization never reduces them. All unreleased local reservations, including unknown and cancelling work, consume quotas. Uncertain attempts can coexist with new work only when the remaining quotas permit it.
 
-Before each launch, the worker rechecks enabled/pause flags, aggregate reservations, available memory, per-CPU load/reserve admission and sample freshness. Starts not yet reflected in the sample consume pending memory, including other launches admitted during the same poll. A running transition racing with sampling remains pending conservatively; starts already reflected in a later sample are not deducted again. Staged assignments without a launch claim do not consume sampled available memory while waiting for launch admission; their reservations still count against CPU, memory-budget and concurrency quotas. A durable launch claim consumes pending memory immediately, before its executor starts. Unknown and cancelling attempts retain conservative pending accounting. An already accepted staged candidate is excluded from its own pending deduction exactly once. A sample that becomes stale during input preparation defers launch until a later poll. When conditions deteriorate, assignments retain their reservations and are rechecked; they are never automatically reassigned. Input staging remains synchronous; background result collection retains its separate single outstanding pass.
+Before each launch, the worker rechecks enabled/pause flags, aggregate reservations, available memory, per-CPU load/reserve admission and sample freshness. Starts not yet reflected in the sample consume pending memory, including other launches admitted during the same poll. A running transition racing with sampling remains pending conservatively; starts already reflected in a later sample are not deducted again. Staged assignments without a launch claim do not consume sampled available memory while waiting for launch admission; their reservations still count against CPU, memory-budget and concurrency quotas. A durable launch claim consumes pending memory immediately, before its executor starts. Unknown and cancelling attempts retain conservative pending accounting. An already accepted staged candidate is excluded from its own pending deduction exactly once. A sample that becomes stale during input preparation defers launch until a later poll or a bounded T013 prelaunch return. When conditions deteriorate, assignments retain reservations during a bounded headroom grace period. T013 allows safe reassignment only after a durable prelaunch fence; uncertain or claimed execution remains reserved. Input staging remains synchronous; background result collection retains its separate single outstanding pass.
 
 The worker tracks execution ownership by attempt ID. Recovery inspects only attempts without an owned executor, so recovered processes still receive cancellation/time-limit handling while other attempts execute. Cancellation and timeouts target each attempt's dedicated launch session. Completed futures surface unexpected executor errors during polling; shutdown joins all executors and collection before unlocking the journal. Local fake-process tests establish concurrency and isolation; real concurrent MPI placement and affinity require separate deployment verification.
 
@@ -92,3 +92,31 @@ excludes an already accepted candidate exactly once. Unclaimed staged assignment
 consume quotas but do not consume pending launch headroom until claimed, allowing
 one fitting assignment to progress. A claim consumes headroom before executor
 startup. Polling, cancellation, timeout and result collection continue independently.
+
+## Prelaunch return and readiness (T013)
+
+Polling responses advertise `prelaunch_protocol: 1`. Workers report boolean
+`ready` and `draining` snapshot fields (default true and false for legacy peers).
+The worker Python API exposes these flags as `Worker.ready` and
+`Worker.draining`; existing CLI pause/resume still controls manager admission.
+Closed workers continue heartbeats, reconciliation, cancellation and collection.
+
+A new worker journals a rejection before reporting it. Rejection and launch claim
+are mutually exclusive SQLite writes, including in shared mode. A claimed or
+uncertain launch cannot be returned. A rejection contains `code`, `reason` and
+`retry_at`; the authenticated manager journals the same permanent fence, ends the
+old attempt and atomically requeues eligible work. Delayed reports for fenced
+attempts cannot affect successors. New assignments always receive new IDs and
+retain old directories. Existing legacy peers retain conservative deferral.
+
+Codes distinguish `headroom`, `incompatible`, `not_ready` and `invalid_input`.
+Invalid input remains failed. Other returns exclude the same job/worker pair for
+30 seconds; three returns exhaust that pair and expose
+`prelaunch_rejection_exhausted` in scheduling diagnostics. Other workers remain
+eligible. These returns consume no application or infrastructure retry budget.
+Temporary headroom shortage receives a durable 30-second grace period before
+return; admission is checked again before every launch. Worker closure bypasses
+that grace period.
+Missing shared storage cannot establish safe acceptance and stays reserved.
+Checkpoint-bearing work is not implemented; T018-T019 must extend this protocol
+before introducing continuation copies.

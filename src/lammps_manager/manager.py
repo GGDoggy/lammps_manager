@@ -119,7 +119,19 @@ class ManagerService:
                 if attempt.worker_id != worker_id:
                     raise ValueError('Attempt ownership mismatch')
             with store.scheduling_round():
+                if payload.get('recovery_protocol') == 1:
+                    generation = payload['generation']
+                    store.worker_generation(worker_id, generation['boot_id'], generation['session_id'])
                 for report in reports:
+                    if 'rejection' in report:
+                        rejected = report['rejection']
+                        if store.reject_launch(report['attempt_id'], rejected['code'],
+                                               rejected['reason'], rejected['retry_at']):
+                            store.return_rejected(report['attempt_id'])
+                        continue
+                    # A delayed report for a fenced attempt cannot affect its successor.
+                    if store.rejection(report['attempt_id']):
+                        continue
                     if 'input_transfer' in report:
                         transfer = report['input_transfer']
                         store.set_input_transfer(report['attempt_id'], transfer['directory'],
@@ -145,6 +157,9 @@ class ManagerService:
                     store.transition(old.attempt_id, state, exit_code=report.get('exit_code'),
                                      reason=report.get('reason'),
                                      termination_evidence=report.get('termination_evidence'))
+                    if 'interruption' in report:
+                        store.record_interruption(old.attempt_id, report['interruption']['evidence'])
+                        store.recover_interrupted(old.attempt_id, now)
                     if 'result_collection' in report and state in TERMINAL:
                         collection = report['result_collection']
                         status = collection['status']
@@ -167,6 +182,8 @@ class ManagerService:
                 attempt = store.attempt(reservation.attempt_id)
                 if attempt.state in {'assigned', 'unknown', 'cancelling'}:
                     specification = asdict(store.specification(attempt.job_id))
+                    if payload.get('recovery_protocol') != 1:
+                        specification.pop('infrastructure_recovery', None)
                     if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':
                         # Legacy shared workers accept only the original specification keys.
                         specification.pop('storage_mode')
@@ -179,6 +196,7 @@ class ManagerService:
                     'cancellations': [{'attempt_id': r.attempt_id, 'reason': store.cancellation(r.attempt_id)}
                                       for r in store.reservations(worker_id) if store.cancellation(r.attempt_id)],
                     'paused': store.worker_records()[worker_id]['paused'],
+                    'prelaunch_protocol': 1, 'recovery_protocol': 1,
                     'policy': asdict(policy),
                     'manager_capacity': asdict(next(w for w in self.config.workers if w.id == worker_id))}
 

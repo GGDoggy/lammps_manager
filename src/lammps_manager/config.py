@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 import yaml
 
-from .models import JobSpecification, Resources
+from .models import InfrastructureRecovery, JobSpecification, Resources
 
 
 class ConfigurationError(ValueError):
@@ -65,6 +65,7 @@ class ManagerConfig:
     workers: tuple[WorkerCapacity, ...]
     job_defaults: Resources = field(default_factory=Resources)
     scheduler: Scheduler = field(default_factory=Scheduler)
+    infrastructure_recovery: InfrastructureRecovery = field(default_factory=InfrastructureRecovery)
 
 
 @dataclass(frozen=True)
@@ -248,4 +249,5 @@ def create_job_specification(config: ManagerConfig, *, job_id: str, work_directo
             raise ConfigurationError('resource_overrides: expected a mapping')
         values.update(resource_overrides)
     return JobSpecification(job_id, work_directory, input_file, input_sha256,
-                            _parse(Resources, values, 'resources'))
+                            _parse(Resources, values, 'resources'),
+                            infrastructure_recovery=config.infrastructure_recovery)

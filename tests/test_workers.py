@@ -92,6 +92,43 @@ class WorkerTests(unittest.TestCase):
         with urlopen(request, timeout=3) as response:
             return json.load(response)
 
+    def test_readiness_race_fences_assignment_and_places_on_other_worker(self) -> None:
+        ids = self.submit((0,))
+        worker = self.worker()
+        other = self.worker(1)
+        worker.tick()
+        original = self.service.poll
+        def close_after_dispatch(worker_id: str, payload: dict) -> dict:
+            result = original(worker_id, payload)
+            worker.draining = True
+            return result
+        with patch.object(self.service, 'poll', side_effect=close_after_dispatch):
+            first = worker.tick()['assignments'][0]['attempt']['attempt_id']
+        self.assertFalse(worker.futures)
+        original_open = worker.opener.open
+        def lose_response(*args, **kwargs):
+            response = original_open(*args, **kwargs)
+            def interrupted_read():
+                raise IncompleteRead(b'{', 10)
+            response.read = interrupted_read
+            return response
+        with patch.object(worker.opener, 'open', side_effect=lose_response), self.assertRaises(IncompleteRead):
+            worker.tick()  # Manager committed the fence; response was lost.
+        worker.tick()  # Replay must neither double-release nor create another return.
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.job_state(ids[0]), 'queued')
+            self.assertIsNotNone(store.rejection(first))
+            self.assertFalse(store.reservations())
+        other.tick()
+        other.tick()
+        next(iter(other.futures.values())).result(timeout=3)
+        other.tick()
+        worker.tick()  # Delayed fence report cannot alter the new outcome.
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.job_state(ids[0]), 'succeeded')
+            self.assertEqual(len(store.job_attempts(ids[0])), 2)
+            self.assertNotEqual(store.job_attempts(ids[0])[-1].attempt_id, first)
+
     def test_two_workers_finish_batch_and_duplicate_delivery(self) -> None:
         ids = self.submit()
         workers = [self.worker(0), self.worker(1)]
@@ -246,7 +283,7 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(store.attempt(attempt_id).state, 'assigned')
             self.assertEqual(len(store.events(ids[0])), 3)  # queued, stale wait, assigned
 
-    def test_local_recheck_defers_launch_after_manager_assignment(self) -> None:
+    def test_local_recheck_returns_assignment_after_capacity_change(self) -> None:
         ids = self.submit((0,))
         worker = self.worker()
         worker.tick()
@@ -262,13 +299,17 @@ class WorkerTests(unittest.TestCase):
         self.assertTrue(result['assignments'])
         self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
-            self.assertEqual(journal.jobs(), ())
+            self.assertEqual(journal.job_state(ids[0]), 'failed')
+            self.assertIsNotNone(journal.rejection(result['assignments'][0]['attempt']['attempt_id']))
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations()), 1)
         worker.config = original_config
         worker.tick()
-        self.assertTrue(worker.futures)
+        self.assertFalse(worker.futures)
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.job_state(ids[0]), 'queued')
+            self.assertFalse(store.reservations())
 
     def test_heartbeats_continue_during_execution_and_pause(self) -> None:
         self.program.write_text(self.program.read_text().replace('time.sleep(.08)', 'time.sleep(.4)'))

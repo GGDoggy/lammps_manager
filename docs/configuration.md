@@ -76,3 +76,24 @@ fallback to host-average admission. Older managers do not enforce these settings
 ## Worker staged cleanup (T012)
 
 Worker top-level `cleanup_staged_files` is a strict boolean (default `true`). It enables bounded background reclamation of worker-owned staged attempt files only after confirmed process termination and durable manager result acknowledgement. Shared mode, manager results and retained worker journal/launch fences are unaffected. Set it to `false` and restart to retain staged files; reenable to resume pending cleanup. Existing trees without durable ownership records remain retained. Configuration changes do not rewrite submission snapshots. See [eligibility, restart, safety and diagnostics](staged-results.md#worker-staged-cleanup-t012).
+
+## Infrastructure recovery policy (T014)
+
+New manager submissions snapshot this top-level policy into each immutable job
+specification, independently of `job_defaults.max_retries`:
+
+```yaml
+infrastructure_recovery:
+  max_retries: 1
+  delay_seconds: 30
+```
+
+`max_retries` is a nonnegative integer; zero disables automatic recovery.
+`delay_seconds` is a finite positive number. Defaults are one recovery and a
+30-second delay. Configuration changes affect future submissions only. Existing
+snapshots without this field decode with zero infrastructure recoveries and are
+never rewritten or implicitly opted in. No legacy opt-in command is provided.
+Application failures and input errors do not consume this separate policy or
+trigger automatic retries. Prelaunch returns consume neither retry budget.
+See [recovery](recovery.md#automatic-infrastructure-recovery-t014) for evidence,
+inspection and limitations.

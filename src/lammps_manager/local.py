@@ -84,11 +84,21 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
         monitoring = False
         for reservation in store.reservations(worker.worker.id):
             previous = store.attempt(reservation.attempt_id)
-            if reconcile(store, previous):
-                monitoring = True
+            with store.scheduling_round():
+                if reconcile(store, previous):
+                    monitoring = True
+                if store.specification(previous.job_id).storage_mode == 'shared':
+                    store.recover_interrupted(previous.attempt_id, time.time())
         if not monitoring:
             break
         Event().wait(.05)
+    # Earlier versions (or an interrupted decision) may have persisted evidence
+    # without queuing recovery. No reservation remains to drive reconciliation.
+    for row in store.jobs():
+        attempts = store.job_attempts(row['job_id'])
+        if (attempts and attempts[-1].worker_id == worker.worker.id
+                and store.specification(row['job_id']).storage_mode == 'shared'):
+            store.recover_interrupted(attempts[-1].attempt_id, time.time())
     if store.reservations():
         for row in store.jobs():
             if row['state'] == 'queued' and store.specification(row['job_id']).storage_mode == 'staged':
@@ -97,6 +107,10 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
     completed = []
     for row in store.jobs():
         if row['state'] != 'queued':
+            continue
+        blocker = store.recovery_blocker(row['job_id'], time.time())
+        if blocker:
+            store.record_waiting(row['job_id'], blocker)
             continue
         spec = store.specification(row['job_id'])
         if spec.storage_mode == 'staged':
@@ -242,6 +256,9 @@ def inspect_job(store: Store, job_id: str) -> dict[str, object]:
                              reason='Results have not been collected') if staged else None),
                          'results_directory': str(directory) if staged and delivered else None,
                          'input_transfer': store.input_transfer(attempt.attempt_id),
-                         'worker_cleanup': store.cleanup_record(attempt.attempt_id)})
+                         'worker_cleanup': store.cleanup_record(attempt.attempt_id),
+                         'prelaunch_rejection': store.rejection(attempt.attempt_id),
+                         'infrastructure_recovery': store.interruption(attempt.attempt_id)})
     return {'specification': asdict(spec), 'state': store.job_state(job_id),
+            'infrastructure_recovery': store.recovery_status(job_id),
             'attempts': attempts, 'events': store.events(job_id)}

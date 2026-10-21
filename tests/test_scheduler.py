@@ -45,7 +45,8 @@ class SchedulerTests(unittest.TestCase):
 
     def test_worker_exclusions_and_thresholds(self):
         self.submit()
-        cases = [({'online': False}, 'offline'), ({'paused': True}, 'paused'),
+        cases = [({'ready': False}, 'not_ready'), ({'draining': True}, 'not_ready'),
+                 ({'online': False}, 'offline'), ({'paused': True}, 'paused'),
                  ({'observed_at': 69.99, 'cpu_sample_started_at': 60}, 'stale_metrics'),
                  ({'heartbeat_at': 39.99}, 'heartbeat_timeout'),
                  ({'observed_at': 101}, 'future_timestamp'),

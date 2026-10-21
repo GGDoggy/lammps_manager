@@ -20,3 +20,8 @@ workers:
     memory_budget_gib: 96
     max_concurrent_jobs: 4
     labels: [cpu]
+
+# Snapshotted for future submissions; independent of application max_retries.
+infrastructure_recovery:
+  max_retries: 1
+  delay_seconds: 30

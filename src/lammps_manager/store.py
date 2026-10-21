@@ -9,8 +9,9 @@ import re
 import sqlite3
 from pathlib import Path
 from typing import Iterator
+from uuid import UUID
 
-from .models import JobSpecification, Resources, specification_from_dict
+from .models import InfrastructureRecovery, JobSpecification, Resources, specification_from_dict
 
 
 class StoreError(ValueError):
@@ -140,6 +141,22 @@ class Store:
                 self._db.execute('CREATE TABLE IF NOT EXISTS cancellations ('
                                  'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
                                  'reason TEXT NOT NULL)')
+                self._db.execute('CREATE TABLE IF NOT EXISTS worker_generations ('
+                                 'generation INTEGER PRIMARY KEY, worker_id TEXT NOT NULL, '
+                                 'boot_id TEXT NOT NULL, session_id TEXT NOT NULL, '
+                                 'UNIQUE(worker_id, boot_id, session_id))')
+                self._db.execute('CREATE TABLE IF NOT EXISTS explicit_retries ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                self._db.execute('CREATE TABLE IF NOT EXISTS interruptions ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                 'evidence TEXT NOT NULL, status TEXT NOT NULL, retry_at REAL, reason TEXT)')
+                self._db.execute('CREATE TABLE IF NOT EXISTS launch_deferrals ('
+                                 'attempt_id TEXT PRIMARY KEY, since REAL NOT NULL)')
+                self._db.execute('CREATE TABLE IF NOT EXISTS prelaunch_acceptances ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                self._db.execute('CREATE TABLE IF NOT EXISTS rejections ('
+                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                 'code TEXT NOT NULL, reason TEXT NOT NULL, retry_at REAL NOT NULL)')
                 if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
                     raise StoreError('Database foreign key check failed')
             self._db.execute('PRAGMA foreign_keys = ON')
@@ -244,6 +261,11 @@ class Store:
             if not any(f.path == specification.input_file and f.sha256 == specification.input_sha256
                        for f in specification.input_manifest):
                 raise StoreError('Primary input missing from manifest')
+        policy = specification.infrastructure_recovery
+        if (not isinstance(policy, InfrastructureRecovery) or type(policy.max_retries) is not int or policy.max_retries < 0
+                or type(policy.delay_seconds) not in (int, float)
+                or not math.isfinite(policy.delay_seconds) or policy.delay_seconds <= 0):
+            raise StoreError('Invalid infrastructure recovery policy')
         payload = json.dumps(asdict(specification), sort_keys=True, allow_nan=False)
         with self._transaction():
             row = self._db.execute('SELECT specification FROM jobs WHERE job_id=?',
@@ -406,6 +428,11 @@ class Store:
         with self._transaction():
             attempt = self.attempt(attempt_id)
             if attempt.state in TERMINAL:
+                if (self.job_state(attempt.job_id) == 'queued'
+                        and self.job_attempts(attempt.job_id)[-1].attempt_id == attempt_id):
+                    self._db.execute('INSERT OR IGNORE INTO cancellations VALUES(?,?)', (attempt_id, reason))
+                    self._db.execute("UPDATE jobs SET state='cancelled' WHERE job_id=?", (attempt.job_id,))
+                    self._event(attempt.job_id, attempt_id, 'cancelled', reason)
                 return
             self._db.execute('INSERT OR IGNORE INTO cancellations VALUES(?,?)', (attempt_id, reason))
             if attempt.state != 'cancelling':
@@ -425,11 +452,16 @@ class Store:
                 raise StoreError('Retry requires a failed job')
             if not attempts[-1].termination_evidence:
                 raise StoreError('Retry requires confirmed termination')
-            if len(attempts) > self.specification(job_id).resources.max_retries:
+            charged = [a for a in attempts if not self.rejection(a.attempt_id)
+                       and not self.interruption(a.attempt_id)]
+            explicit = self._db.execute('SELECT COUNT(*) FROM explicit_retries e JOIN attempts a '
+                                        'USING(attempt_id) WHERE a.job_id=?', (job_id,)).fetchone()[0]
+            if max(explicit, len(charged) - 1) >= self.specification(job_id).resources.max_retries:
                 raise StoreError('Submitted max_retries budget exhausted')
             if any(a.attempt_id in {r.attempt_id for r in self.reservations()} for a in attempts):
                 raise StoreError('Retry blocked by unresolved reservation')
             self._db.execute("UPDATE jobs SET state='queued' WHERE job_id=?", (job_id,))
+            self._db.execute('INSERT INTO explicit_retries VALUES(?)', (attempts[-1].attempt_id,))
             self._event(job_id, None, 'queued', 'Explicit retry requested')
 
     def expire_workers(self, now: float, timeout: float) -> None:
@@ -471,11 +503,199 @@ class Store:
         return dict(row) if row else None
 
     def claim_launch(self, attempt_id: str) -> bool:
-        """Durably consume the staged launch right before executor submission."""
+        """Durably consume a launch right before executor submission."""
         with self._transaction():
-            self.attempt(attempt_id)
+            if self.attempt(attempt_id).state != 'assigned' or self.rejection(attempt_id):
+                return False
             cursor = self._db.execute('INSERT OR IGNORE INTO launch_claims VALUES(?)', (attempt_id,))
             return cursor.rowcount == 1
+
+    def accept_successor(self, job_id: str) -> None:
+        """Mirror an authenticated manager assignment in a worker-local journal.
+
+        This is not retry authorization on the manager. Worker history may be
+        incomplete after placement on other workers, so only the manager counts
+        the global budgets. Prior local executions must still be conclusively stopped.
+        """
+        with self._transaction():
+            if self.job_state(job_id) != 'failed':
+                return
+            attempts = self.job_attempts(job_id)
+            if not attempts or not attempts[-1].termination_evidence:
+                raise StoreError('Successor requires confirmed local termination')
+            owned = {a.attempt_id for a in attempts}
+            if any(r.attempt_id in owned for r in self.reservations()):
+                raise StoreError('Successor blocked by local reservation')
+            self._db.execute("UPDATE jobs SET state='queued' WHERE job_id=?", (job_id,))
+            self._event(job_id, None, 'queued', 'Authenticated manager assigned a successor')
+
+    def worker_generation(self, worker_id: str, boot_id: str, session_id: str) -> None:
+        """Persist authenticated generations; a change never establishes termination."""
+        UUID(boot_id)
+        UUID(session_id)
+        with self._transaction():
+            self._db.execute('INSERT OR IGNORE INTO worker_generations(worker_id,boot_id,session_id) '
+                             'VALUES(?,?,?)', (worker_id, boot_id, session_id))
+
+    def generations(self, worker_id: str) -> tuple[dict, ...]:
+        return tuple(dict(row) for row in self._db.execute(
+            'SELECT * FROM worker_generations WHERE worker_id=? ORDER BY generation', (worker_id,)))
+
+    def interruption(self, attempt_id: str) -> dict | None:
+        row = self._db.execute('SELECT * FROM interruptions WHERE attempt_id=?', (attempt_id,)).fetchone()
+        if row is None:
+            return None
+        return {**dict(row), 'evidence': json.loads(row['evidence'])}
+
+    def record_interruption(self, attempt_id: str, evidence: dict) -> None:
+        """Bind conclusive worker reconciliation evidence to a confirmed failure."""
+        if not isinstance(evidence, dict) or evidence.get('kind') not in {'boot_changed', 'session_ended'}:
+            raise StoreError('Invalid infrastructure interruption evidence')
+        saved = evidence.get('process')
+        if not isinstance(saved, dict):
+            raise StoreError('Missing process identity')
+        UUID(saved['boot_id'])
+        UUID(evidence['observed_boot_id'])
+        if (type(saved.get('pid')) is not int or saved['pid'] <= 1
+                or saved.get('session', saved['pid']) != saved['pid']
+                or saved.get('process_group') != saved['pid']
+                or not isinstance(saved.get('start_ticks'), str) or not saved['start_ticks'].isdigit()):
+            raise StoreError('Invalid interruption process identity')
+        changed = saved['boot_id'] != evidence['observed_boot_id']
+        if changed != (evidence['kind'] == 'boot_changed'):
+            raise StoreError('Contradictory interruption evidence')
+        with self._transaction():
+            old = self.interruption(attempt_id)
+            if old:
+                if old['evidence'] != evidence:
+                    raise StoreError('Conflicting interruption replay')
+                return
+            attempt = self.attempt(attempt_id)
+            expected = ('Linux boot changed' if changed else
+                        'Recovered identity checked; process group no longer exists')
+            if attempt.state != 'failed' or attempt.termination_evidence != expected:
+                raise StoreError('Interruption requires confirmed session termination')
+            self._db.execute('INSERT INTO interruptions VALUES(?,?,?,?,?)',
+                             (attempt_id, json.dumps(evidence, sort_keys=True), 'detected', None, None))
+
+    def recover_interrupted(self, attempt_id: str, now: float) -> None:
+        """Atomically consume one independent infrastructure budget and queue once."""
+        if type(now) not in (int, float) or not math.isfinite(now) or now < 0:
+            raise StoreError('Invalid recovery time')
+        with self._transaction():
+            record = self.interruption(attempt_id)
+            if not record or record['status'] != 'detected':
+                return
+            attempt = self.attempt(attempt_id)
+            attempts = self.job_attempts(attempt.job_id)
+            policy = self.specification(attempt.job_id).infrastructure_recovery
+            used = self.recovery_status(attempt.job_id)['used']
+            reason = None
+            if (attempts[-1].attempt_id != attempt_id or self.job_state(attempt.job_id) != 'failed'
+                    or self.cancellation(attempt_id)):
+                reason = 'Recovery blocked by cancellation or a newer job transition'
+            elif any(r.attempt_id in {a.attempt_id for a in attempts} for r in self.reservations()):
+                reason = 'Recovery blocked by unresolved reservations'
+            elif used >= policy.max_retries:
+                reason = 'Infrastructure recovery budget exhausted'
+            if reason:
+                self._db.execute("UPDATE interruptions SET status='blocked',reason=? WHERE attempt_id=?",
+                                 (reason, attempt_id))
+                self._event(attempt.job_id, attempt_id, attempt.state, reason)
+                return
+            self._db.execute("UPDATE interruptions SET status='queued',retry_at=?,reason=? WHERE attempt_id=?",
+                             (now + policy.delay_seconds, 'Confirmed infrastructure interruption', attempt_id))
+            self._db.execute("UPDATE jobs SET state='queued' WHERE job_id=?", (attempt.job_id,))
+            self._event(attempt.job_id, attempt_id, 'queued', 'Automatic infrastructure recovery scheduled')
+
+    def recovery_status(self, job_id: str) -> dict:
+        """Summarize the frozen budget, consumed recoveries and latest decision."""
+        records = [self.interruption(a.attempt_id) for a in self.job_attempts(job_id)]
+        records = [record for record in records if record is not None]
+        policy = self.specification(job_id).infrastructure_recovery
+        used = sum(record['status'] == 'queued' for record in records)
+        latest = records[-1] if records else None
+        return {'policy': asdict(policy), 'used': used, 'remaining': max(0, policy.max_retries - used),
+                'next_retry_at': latest['retry_at'] if (latest and latest['status'] == 'queued'
+                    and self.job_state(job_id) == 'queued') else None,
+                'latest': latest}
+
+    def recovery_blocker(self, job_id: str, now: float) -> str | None:
+        attempts = self.job_attempts(job_id)
+        record = self.interruption(attempts[-1].attempt_id) if attempts else None
+        if record and record['status'] == 'queued' and now < record['retry_at']:
+            return 'infrastructure_recovery_delay'
+        return None
+
+    def launch_deferred(self, attempt_id: str, now: float) -> bool:
+        """Allow 30 seconds for transient headroom before returning an assignment."""
+        with self._transaction():
+            self._db.execute('INSERT OR IGNORE INTO launch_deferrals VALUES(?,?)', (attempt_id, now))
+            since = self._db.execute('SELECT since FROM launch_deferrals WHERE attempt_id=?',
+                                     (attempt_id,)).fetchone()[0]
+            return now - since < 30
+
+    def accept_prelaunch(self, attempt_id: str) -> None:
+        """Identify new-protocol acceptance, unlike uncertain legacy shared journals."""
+        with self._transaction():
+            if self.attempt(attempt_id).state != 'assigned':
+                raise StoreError('Prelaunch acceptance requires assigned state')
+            self._db.execute('INSERT OR IGNORE INTO prelaunch_acceptances VALUES(?)', (attempt_id,))
+
+    def prelaunch_accepted(self, attempt_id: str) -> bool:
+        return self._db.execute('SELECT 1 FROM prelaunch_acceptances WHERE attempt_id=?',
+                                (attempt_id,)).fetchone() is not None
+
+    def rejection(self, attempt_id: str) -> dict | None:
+        """Read the permanent prelaunch fence, retained across reassignment."""
+        row = self._db.execute('SELECT * FROM rejections WHERE attempt_id=?', (attempt_id,)).fetchone()
+        return dict(row) if row else None
+
+    def reject_launch(self, attempt_id: str, code: str, reason: str, retry_at: float) -> bool:
+        """Fence an unclaimed launch atomically; a claimed launch needs reconciliation."""
+        if code not in {'headroom', 'incompatible', 'not_ready', 'invalid_input'}:
+            raise StoreError('Invalid rejection code')
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 2048:
+            raise StoreError('Invalid rejection reason')
+        if type(retry_at) not in (float, int) or not math.isfinite(retry_at) or retry_at < 0:
+            raise StoreError('Invalid rejection deadline')
+        with self._transaction():
+            previous = self.rejection(attempt_id)
+            if previous:
+                if (previous['code'], previous['reason'], previous['retry_at']) != (code, reason, retry_at):
+                    raise StoreError('Conflicting rejection replay')
+                return True
+            attempt = self.attempt(attempt_id)
+            if (attempt.state not in {'assigned', 'unknown', 'cancelling'}
+                    or attempt.started_at is not None or self.launch_claimed(attempt_id)):
+                return False
+            self._db.execute('INSERT INTO rejections VALUES(?,?,?,?)', (attempt_id, code, reason, retry_at))
+            self.transition(attempt_id, 'cancelled' if self.cancellation(attempt_id) else 'failed',
+                            reason=reason, termination_evidence='Durable prelaunch rejection fence')
+            return True
+
+    def return_rejected(self, attempt_id: str) -> None:
+        """Requeue once after receiving a durable worker fence; never spend retry budget."""
+        with self._transaction():
+            attempt = self.attempt(attempt_id)
+            rejection = self.rejection(attempt_id)
+            if not rejection or attempt.state != 'failed' or self.cancellation(attempt_id):
+                return
+            if self.job_attempts(attempt.job_id)[-1].attempt_id != attempt_id:
+                return
+            if self.job_state(attempt.job_id) != 'failed' or rejection['code'] == 'invalid_input':
+                return
+            self._db.execute("UPDATE jobs SET state='queued' WHERE job_id=?", (attempt.job_id,))
+            self._event(attempt.job_id, attempt_id, 'queued', 'Prelaunch rejection: ' + rejection['code'])
+
+    def rejection_blocker(self, job_id: str, worker_id: str, now: float) -> str | None:
+        rows = self._db.execute('SELECT r.* FROM rejections r JOIN attempts a USING(attempt_id) '
+                                'WHERE a.job_id=? AND a.worker_id=?', (job_id, worker_id)).fetchall()
+        if len(rows) >= 3:
+            return 'prelaunch_rejection_exhausted'
+        if any(row['retry_at'] > now for row in rows):
+            return 'prelaunch_rejection_cooldown'
+        return None
 
     def launch_claimed(self, attempt_id: str) -> bool:
         return self._db.execute('SELECT 1 FROM launch_claims WHERE attempt_id=?',
