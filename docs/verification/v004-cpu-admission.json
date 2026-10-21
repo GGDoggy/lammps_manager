@@ -1,0 +1,2008 @@
+{
+  "affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "decisions": [
+    {
+      "label": "busy-floor-disabled",
+      "time": 1792568422.8740053,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568422.87035,
+        "heartbeat_at": 1792568422.8706264,
+        "cpu_utilization_percent": 21.679197994987465,
+        "available_memory_gib": 26.78691864013672,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 2.0408163265306145
+        },
+        "cpu_sample_started_at": 1792568422.3694482
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "d97eba934cbb46c6b380dd308340c272": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "d22e03051f5c49f3881ef328b520e253": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}"
+        },
+        "cpu_diagnostics": {
+          "d97eba934cbb46c6b380dd308340c272": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          },
+          "d22e03051f5c49f3881ef328b520e253": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          },
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": []
+    },
+    {
+      "label": "busy-minimum-two",
+      "time": 1792568422.8771422,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568422.87035,
+        "heartbeat_at": 1792568422.8706264,
+        "cpu_utilization_percent": 21.679197994987465,
+        "available_memory_gib": 26.78691864013672,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 2.0408163265306145
+        },
+        "cpu_sample_started_at": 1792568422.3694482
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 2,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [
+          {
+            "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+            "job_id": "d97eba934cbb46c6b380dd308340c272",
+            "worker_id": "v004",
+            "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272/3116f1cbdecc42a6b975650bc238a783",
+            "state": "assigned",
+            "created_at": "2026-10-21T07:40:22.874Z",
+            "started_at": null,
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          }
+        ],
+        "waiting": {
+          "d22e03051f5c49f3881ef328b520e253": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 2, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 2, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}"
+        },
+        "cpu_diagnostics": {
+          "d97eba934cbb46c6b380dd308340c272": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 2,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          },
+          "d22e03051f5c49f3881ef328b520e253": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 2,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          },
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 1,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 2,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "stale-despite-floor-four",
+      "time": 1792568424.0277321,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568422.87035,
+        "heartbeat_at": 1792568422.8706264,
+        "cpu_utilization_percent": 21.679197994987465,
+        "available_memory_gib": 26.78691864013672,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 2.0408163265306145
+        },
+        "cpu_sample_started_at": 1792568422.3694482
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 4,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "d22e03051f5c49f3881ef328b520e253": "{\"cpu\": {}, \"status\": \"waiting\", \"workers\": {\"v004\": \"stale_metrics\"}}",
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {}, \"status\": \"waiting\", \"workers\": {\"v004\": \"stale_metrics\"}}"
+        },
+        "cpu_diagnostics": {}
+      },
+      "reservations": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "floor-memory-quota",
+      "time": 1792568424.548699,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568424.5290706,
+        "heartbeat_at": 1792568424.529351,
+        "cpu_utilization_percent": 27.38636363636363,
+        "available_memory_gib": 26.770904541015625,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 81.09756097560977
+        },
+        "cpu_sample_started_at": 1792568422.87035
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 0.15,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 4,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "d22e03051f5c49f3881ef328b520e253": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"memory_quota\"}}",
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"memory_quota\"}}"
+        },
+        "cpu_diagnostics": {
+          "d22e03051f5c49f3881ef328b520e253": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          },
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "floor-concurrency-quota",
+      "time": 1792568424.5757504,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568424.5290706,
+        "heartbeat_at": 1792568424.529351,
+        "cpu_utilization_percent": 27.38636363636363,
+        "available_memory_gib": 26.770904541015625,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 81.09756097560977
+        },
+        "cpu_sample_started_at": 1792568422.87035
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 1,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 4,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "d22e03051f5c49f3881ef328b520e253": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"concurrency_limit\"}}",
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"concurrency_limit\"}}"
+        },
+        "cpu_diagnostics": {
+          "d22e03051f5c49f3881ef328b520e253": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          },
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "fresh-floor-second-then-cpu-quota",
+      "time": 1792568424.6037571,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568424.5290706,
+        "heartbeat_at": 1792568424.529351,
+        "cpu_utilization_percent": 27.38636363636363,
+        "available_memory_gib": 26.770904541015625,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 100.0,
+          "1": 100.0,
+          "2": 100.0,
+          "3": 81.09756097560977
+        },
+        "cpu_sample_started_at": 1792568422.87035
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 4,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [
+          {
+            "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+            "job_id": "d22e03051f5c49f3881ef328b520e253",
+            "worker_id": "v004",
+            "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253/ddcc51f0d23c4550a21926b3b771b669",
+            "state": "assigned",
+            "created_at": "2026-10-21T07:40:24.577Z",
+            "started_at": null,
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          }
+        ],
+        "waiting": {
+          "a5bf203a65634dbb8de65271111d480e": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 4, \"minimum_exception\": false, \"pending\": 4, \"qualifying\": 0, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"cpu_quota\"}}"
+        },
+        "cpu_diagnostics": {
+          "d22e03051f5c49f3881ef328b520e253": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": true,
+              "reason": "minimum_floor",
+              "allowed": true
+            }
+          },
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 0,
+              "pending": 4,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 4,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        },
+        {
+          "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "load-removed-headroom",
+      "time": 1792568425.7855394,
+      "snapshot": {
+        "capacity": {
+          "id": "v004",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568425.7775064,
+        "heartbeat_at": 1792568425.778663,
+        "cpu_utilization_percent": 3.1525851197982346,
+        "available_memory_gib": 26.785106658935547,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 2.0408163265306145,
+          "1": 2.0408163265306145,
+          "2": 4.0000000000000036,
+          "3": 4.0000000000000036
+        },
+        "cpu_sample_started_at": 1792568425.276373
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 1
+        }
+      },
+      "result": {
+        "assignments": [
+          {
+            "attempt_id": "cfe6e78985d04128b596c1141b163612",
+            "job_id": "a5bf203a65634dbb8de65271111d480e",
+            "worker_id": "v004",
+            "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e/cfe6e78985d04128b596c1141b163612",
+            "state": "assigned",
+            "created_at": "2026-10-21T07:40:25.781Z",
+            "started_at": null,
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          }
+        ],
+        "waiting": {},
+        "cpu_diagnostics": {
+          "a5bf203a65634dbb8de65271111d480e": {
+            "v004": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_headroom",
+              "allowed": true
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "cfe6e78985d04128b596c1141b163612",
+          "worker_id": "v004",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "short-first-admitted",
+      "time": 1792568426.4123645,
+      "snapshot": {
+        "capacity": {
+          "id": "v004-short",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568426.403705,
+        "heartbeat_at": 1792568426.404857,
+        "cpu_utilization_percent": 4.112554112554112,
+        "available_memory_gib": 26.785686492919922,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 14.035087719298245,
+          "1": 3.4482758620689613,
+          "2": 3.508771929824561,
+          "3": 3.508771929824561
+        },
+        "cpu_sample_started_at": 1792568425.8228626
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004-short",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 10
+        }
+      },
+      "result": {
+        "assignments": [
+          {
+            "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+            "job_id": "6b113760a0004267909a7c17d0a3eb52",
+            "worker_id": "v004-short",
+            "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52/2ac1cba595de44618ca808b6ae48f421",
+            "state": "assigned",
+            "created_at": "2026-10-21T07:40:26.408Z",
+            "started_at": null,
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          }
+        ],
+        "waiting": {
+          "62093e8f757442ebb9217e921b2ac5f8": "{\"cpu\": {\"v004-short\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 4, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004-short\": \"per_cpu_load\"}}"
+        },
+        "cpu_diagnostics": {
+          "6b113760a0004267909a7c17d0a3eb52": {
+            "v004-short": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_headroom",
+              "allowed": true
+            }
+          },
+          "62093e8f757442ebb9217e921b2ac5f8": {
+            "v004-short": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+          "worker_id": "v004-short",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    },
+    {
+      "label": "completed-short-same-sample-0",
+      "time": 1792568426.8990488,
+      "snapshot": {
+        "capacity": {
+          "id": "v004-short",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568426.403705,
+        "heartbeat_at": 1792568426.404857,
+        "cpu_utilization_percent": 4.112554112554112,
+        "available_memory_gib": 26.785686492919922,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 14.035087719298245,
+          "1": 3.4482758620689613,
+          "2": 3.508771929824561,
+          "3": 3.508771929824561
+        },
+        "cpu_sample_started_at": 1792568425.8228626
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004-short",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 10
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "62093e8f757442ebb9217e921b2ac5f8": "{\"cpu\": {\"v004-short\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 4, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004-short\": \"per_cpu_load\"}}"
+        },
+        "cpu_diagnostics": {
+          "62093e8f757442ebb9217e921b2ac5f8": {
+            "v004-short": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": []
+    },
+    {
+      "label": "completed-short-same-sample-1",
+      "time": 1792568426.9007266,
+      "snapshot": {
+        "capacity": {
+          "id": "v004-short",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568426.403705,
+        "heartbeat_at": 1792568426.404857,
+        "cpu_utilization_percent": 4.112554112554112,
+        "available_memory_gib": 26.785686492919922,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 14.035087719298245,
+          "1": 3.4482758620689613,
+          "2": 3.508771929824561,
+          "3": 3.508771929824561
+        },
+        "cpu_sample_started_at": 1792568425.8228626
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004-short",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 10
+        }
+      },
+      "result": {
+        "assignments": [],
+        "waiting": {
+          "62093e8f757442ebb9217e921b2ac5f8": "{\"cpu\": {\"v004-short\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 4, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004-short\": \"per_cpu_load\"}}"
+        },
+        "cpu_diagnostics": {
+          "62093e8f757442ebb9217e921b2ac5f8": {
+            "v004-short": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 2,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_load",
+              "allowed": false
+            }
+          }
+        }
+      },
+      "reservations": []
+    },
+    {
+      "label": "complete-post-start-sample",
+      "time": 1792568427.9133432,
+      "snapshot": {
+        "capacity": {
+          "id": "v004-short",
+          "cpu_slots": 4,
+          "memory_budget_gib": 1,
+          "max_concurrent_jobs": 2,
+          "enabled": true,
+          "labels": []
+        },
+        "detected_cpu_slots": 4,
+        "detected_memory_gib": 31.154197692871094,
+        "observed_at": 1792568427.9046266,
+        "heartbeat_at": 1792568427.905765,
+        "cpu_utilization_percent": 4.613466334164585,
+        "available_memory_gib": 26.783424377441406,
+        "online": true,
+        "paused": false,
+        "per_cpu_utilization_percent": {
+          "0": 4.0000000000000036,
+          "1": 5.882352941176472,
+          "2": 4.0000000000000036,
+          "3": 4.0000000000000036
+        },
+        "cpu_sample_started_at": 1792568427.4024563
+      },
+      "config": {
+        "manager": {
+          "database_path": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/manager.sqlite",
+          "schedule_interval_seconds": 0.05,
+          "heartbeat_timeout_seconds": 2
+        },
+        "storage": {
+          "work_root": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs",
+          "mode": "shared",
+          "preserve_failed_jobs": true,
+          "max_input_files": 10000,
+          "max_input_file_bytes": 1073741824,
+          "max_input_total_bytes": 10737418240,
+          "max_output_files": 10000,
+          "max_output_file_bytes": 1073741824,
+          "max_output_total_bytes": 10737418240
+        },
+        "workers": [
+          {
+            "id": "v004-short",
+            "cpu_slots": 4,
+            "memory_budget_gib": 1,
+            "max_concurrent_jobs": 2,
+            "enabled": true,
+            "labels": []
+          }
+        ],
+        "job_defaults": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "scheduler": {
+          "policy": "fifo_least_loaded",
+          "account_external_load": true,
+          "max_cpu_utilization_percent": 80,
+          "min_slots": 0,
+          "reserve_slots": 1,
+          "reserve_memory_gib": 0.1,
+          "metrics_max_age_seconds": 10
+        }
+      },
+      "result": {
+        "assignments": [
+          {
+            "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+            "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+            "worker_id": "v004-short",
+            "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8/49b561708c4743438ff1e638ef7fe7fb",
+            "state": "assigned",
+            "created_at": "2026-10-21T07:40:27.909Z",
+            "started_at": null,
+            "ended_at": null,
+            "exit_code": null,
+            "termination_evidence": null,
+            "reason": null
+          }
+        ],
+        "waiting": {},
+        "cpu_diagnostics": {
+          "62093e8f757442ebb9217e921b2ac5f8": {
+            "v004-short": {
+              "scope": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "qualifying": 4,
+              "pending": 0,
+              "requested": 2,
+              "reserve": 1,
+              "minimum": 0,
+              "minimum_exception": false,
+              "reason": "per_cpu_headroom",
+              "allowed": true
+            }
+          }
+        }
+      },
+      "reservations": [
+        {
+          "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+          "worker_id": "v004-short",
+          "cpu_slots": 2,
+          "memory_gib": 0.1
+        }
+      ]
+    }
+  ],
+  "load_pids": [
+    145728,
+    145729,
+    145730
+  ],
+  "load_returncodes": [
+    -15,
+    -15,
+    -15
+  ],
+  "records": [
+    {
+      "specification": {
+        "job_id": "d97eba934cbb46c6b380dd308340c272",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272",
+        "input_file": "in.lmp",
+        "input_sha256": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 15,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "cancelled",
+      "attempts": [
+        {
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "worker_id": "v004",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272/3116f1cbdecc42a6b975650bc238a783",
+          "state": "cancelled",
+          "created_at": "2026-10-21T07:40:22.874Z",
+          "started_at": "2026-10-21T07:40:22.881Z",
+          "ended_at": "2026-10-21T07:40:24.768Z",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": "V004 bounded real load scenario complete",
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272/3116f1cbdecc42a6b975650bc238a783/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272/3116f1cbdecc42a6b975650bc238a783/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d97eba934cbb46c6b380dd308340c272/3116f1cbdecc42a6b975650bc238a783/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:21.853Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.871Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.875Z"
+        },
+        {
+          "event_id": 10,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.882Z"
+        },
+        {
+          "event_id": 19,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "state": "cancelling",
+          "reason": "V004 bounded real load scenario complete",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.605Z"
+        },
+        {
+          "event_id": 21,
+          "job_id": "d97eba934cbb46c6b380dd308340c272",
+          "attempt_id": "3116f1cbdecc42a6b975650bc238a783",
+          "state": "cancelled",
+          "reason": "V004 bounded real load scenario complete",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:40:24.769Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "d22e03051f5c49f3881ef328b520e253",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253",
+        "input_file": "in.lmp",
+        "input_sha256": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 15,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "cancelled",
+      "attempts": [
+        {
+          "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "worker_id": "v004",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253/ddcc51f0d23c4550a21926b3b771b669",
+          "state": "cancelled",
+          "created_at": "2026-10-21T07:40:24.577Z",
+          "started_at": null,
+          "ended_at": "2026-10-21T07:40:24.771Z",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "reason": "V004 unstarted assignment cleanup",
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253/ddcc51f0d23c4550a21926b3b771b669/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253/ddcc51f0d23c4550a21926b3b771b669/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/d22e03051f5c49f3881ef328b520e253/ddcc51f0d23c4550a21926b3b771b669/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 2,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:21.855Z"
+        },
+        {
+          "event_id": 5,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.871Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 2, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.875Z"
+        },
+        {
+          "event_id": 11,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {}, \"status\": \"waiting\", \"workers\": {\"v004\": \"stale_metrics\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.012Z"
+        },
+        {
+          "event_id": 13,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"memory_quota\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.530Z"
+        },
+        {
+          "event_id": 15,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"concurrency_limit\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.549Z"
+        },
+        {
+          "event_id": 17,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.577Z"
+        },
+        {
+          "event_id": 20,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+          "state": "cancelling",
+          "reason": "V004 unstarted assignment cleanup",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.627Z"
+        },
+        {
+          "event_id": 22,
+          "job_id": "d22e03051f5c49f3881ef328b520e253",
+          "attempt_id": "ddcc51f0d23c4550a21926b3b771b669",
+          "state": "cancelled",
+          "reason": "V004 unstarted assignment cleanup",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "created_at": "2026-10-21T07:40:24.771Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "a5bf203a65634dbb8de65271111d480e",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e",
+        "input_file": "in.lmp",
+        "input_sha256": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 15,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "cancelled",
+      "attempts": [
+        {
+          "attempt_id": "cfe6e78985d04128b596c1141b163612",
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "worker_id": "v004",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e/cfe6e78985d04128b596c1141b163612",
+          "state": "cancelled",
+          "created_at": "2026-10-21T07:40:25.781Z",
+          "started_at": null,
+          "ended_at": "2026-10-21T07:40:25.797Z",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "reason": "V004 headroom admitted; no further long execution needed",
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e/cfe6e78985d04128b596c1141b163612/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e/cfe6e78985d04128b596c1141b163612/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v004/jobs/a5bf203a65634dbb8de65271111d480e/cfe6e78985d04128b596c1141b163612/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 3,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:21.858Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 0, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.871Z"
+        },
+        {
+          "event_id": 9,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 2, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 1, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:22.875Z"
+        },
+        {
+          "event_id": 12,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {}, \"status\": \"waiting\", \"workers\": {\"v004\": \"stale_metrics\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.012Z"
+        },
+        {
+          "event_id": 14,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"memory_quota\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.530Z"
+        },
+        {
+          "event_id": 16,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": true, \"minimum\": 4, \"minimum_exception\": true, \"pending\": 2, \"qualifying\": 0, \"reason\": \"minimum_floor\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"concurrency_limit\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.550Z"
+        },
+        {
+          "event_id": 18,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004\": {\"allowed\": false, \"minimum\": 4, \"minimum_exception\": false, \"pending\": 4, \"qualifying\": 0, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004\": \"cpu_quota\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:24.577Z"
+        },
+        {
+          "event_id": 23,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": "cfe6e78985d04128b596c1141b163612",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:25.782Z"
+        },
+        {
+          "event_id": 24,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": "cfe6e78985d04128b596c1141b163612",
+          "state": "cancelling",
+          "reason": "V004 headroom admitted; no further long execution needed",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:25.793Z"
+        },
+        {
+          "event_id": 25,
+          "job_id": "a5bf203a65634dbb8de65271111d480e",
+          "attempt_id": "cfe6e78985d04128b596c1141b163612",
+          "state": "cancelled",
+          "reason": "V004 headroom admitted; no further long execution needed",
+          "exit_code": null,
+          "termination_evidence": "Launch did not start a process",
+          "created_at": "2026-10-21T07:40:25.798Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "6b113760a0004267909a7c17d0a3eb52",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 15,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "succeeded",
+      "attempts": [
+        {
+          "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+          "job_id": "6b113760a0004267909a7c17d0a3eb52",
+          "worker_id": "v004-short",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52/2ac1cba595de44618ca808b6ae48f421",
+          "state": "succeeded",
+          "created_at": "2026-10-21T07:40:26.408Z",
+          "started_at": "2026-10-21T07:40:26.426Z",
+          "ended_at": "2026-10-21T07:40:26.896Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52/2ac1cba595de44618ca808b6ae48f421/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52/2ac1cba595de44618ca808b6ae48f421/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/6b113760a0004267909a7c17d0a3eb52/2ac1cba595de44618ca808b6ae48f421/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "6b113760a0004267909a7c17d0a3eb52",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:25.893Z"
+        },
+        {
+          "event_id": 3,
+          "job_id": "6b113760a0004267909a7c17d0a3eb52",
+          "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:26.408Z"
+        },
+        {
+          "event_id": 5,
+          "job_id": "6b113760a0004267909a7c17d0a3eb52",
+          "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:26.426Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "6b113760a0004267909a7c17d0a3eb52",
+          "attempt_id": "2ac1cba595de44618ca808b6ae48f421",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:40:26.896Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 15,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "succeeded",
+      "attempts": [
+        {
+          "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "worker_id": "v004-short",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8/49b561708c4743438ff1e638ef7fe7fb",
+          "state": "succeeded",
+          "created_at": "2026-10-21T07:40:27.909Z",
+          "started_at": "2026-10-21T07:40:27.920Z",
+          "ended_at": "2026-10-21T07:40:28.358Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8/49b561708c4743438ff1e638ef7fe7fb/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8/49b561708c4743438ff1e638ef7fe7fb/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v004-short/jobs/62093e8f757442ebb9217e921b2ac5f8/49b561708c4743438ff1e638ef7fe7fb/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 2,
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:25.894Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": "{\"cpu\": {\"v004-short\": {\"allowed\": false, \"minimum\": 0, \"minimum_exception\": false, \"pending\": 2, \"qualifying\": 4, \"reason\": \"per_cpu_load\", \"requested\": 2, \"reserve\": 1, \"scope\": [\"0\", \"1\", \"2\", \"3\"]}}, \"status\": \"waiting\", \"workers\": {\"v004-short\": \"per_cpu_load\"}}",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:26.409Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:27.910Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:40:27.920Z"
+        },
+        {
+          "event_id": 9,
+          "job_id": "62093e8f757442ebb9217e921b2ac5f8",
+          "attempt_id": "49b561708c4743438ff1e638ef7fe7fb",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:40:28.358Z"
+        }
+      ]
+    }
+  ],
+  "audits": [
+    {
+      "sessions": [
+        {
+          "identity": {
+            "pid": 145732,
+            "process_group": 145732,
+            "session": 145732,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "25573489",
+            "launched_at": "2026-10-21T07:40:22.878714+00:00"
+          },
+          "members": []
+        }
+      ],
+      "reservations": []
+    },
+    {
+      "sessions": [
+        {
+          "identity": {
+            "pid": 146234,
+            "process_group": 146234,
+            "session": 146234,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "25573843",
+            "launched_at": "2026-10-21T07:40:26.421960+00:00"
+          },
+          "members": []
+        },
+        {
+          "identity": {
+            "pid": 146244,
+            "process_group": 146244,
+            "session": 146244,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "25573993",
+            "launched_at": "2026-10-21T07:40:27.916520+00:00"
+          },
+          "members": []
+        }
+      ],
+      "reservations": []
+    }
+  ],
+  "verification_context": {
+    "date": "2026-10-21",
+    "timezone": "Asia/Taipei",
+    "host": "allegro",
+    "root": "/tmp/lammps-v008-v005-eOAQn2xX",
+    "source_sha256": {
+      "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+      "src/lammps_manager/config.py": "b35c62854fc828c306872747f59aad7544a9202101740cef7768cb38cc8d5f4c",
+      "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+      "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+      "src/lammps_manager/worker.py": "b9c5e5fbb75a9870eea7432bfc7b2c98fc8235bafe1b6882f457fbae56ee5f9b",
+      "src/lammps_manager/scheduler.py": "247f84ac352b064c34170d09c11c93d2636f04b8e7591fe257e5a0453f4bc03b",
+      "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+      "src/lammps_manager/store.py": "8f186823aaa3c96f0bfaa975a7c21f5fd2d51306919ef706a413d2d5bb4b63ba",
+      "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+      "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+      "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+      "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+      "src/lammps_manager/local.py": "f6618858f5b30dd1d6f36055078aef1a33adc8f8bad84816392216b94b84a199",
+      "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+      "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a"
+    },
+    "harness_sha256": {
+      "real_acceptance.py": "d3d1e6f698bc9b3a96dc8060b7ba9698ce7d1feb5efa511785466590619fa4b1",
+      "fault_proxy.py": "deaeffe31bad36b771db26e4bf0da74d92afdc0700bb120fddfbece03a578c1e",
+      "restart_acceptance.py": "39cfd8847d7ba2db586a31528f82988de0d9f46d673d3b640f7bb9c5ca07ba93",
+      "final_audit.py": "2a9a0f7e2ae279940239db0bd32881f95c874485ee818991f8f2a66369f05980",
+      "cpu_acceptance.py": "d89fc1afa2eca6477364d6f3c7dcd70ab00899bcf490bc3f4182e7546e5432eb",
+      "distributed_acceptance.py": "b4bb325f23a85f6c83b8476dbfabae036d1e104321afaab645aa545f3fbfbb96"
+    },
+    "final_audit": "v008-v005-final-audit.json"
+  }
+}

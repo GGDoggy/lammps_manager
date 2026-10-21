@@ -1,0 +1,667 @@
+{
+  "records": [
+    {
+      "specification": {
+        "job_id": "185e2c635ee74b72819d16391cf07b9c",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "succeeded",
+      "attempts": [
+        {
+          "attempt_id": "710160ffe9d24c9495853a9c9f9d4202",
+          "job_id": "185e2c635ee74b72819d16391cf07b9c",
+          "worker_id": "v008",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202",
+          "state": "succeeded",
+          "created_at": "2026-10-21T07:36:55.890Z",
+          "started_at": "2026-10-21T07:36:55.896Z",
+          "ended_at": "2026-10-21T07:36:56.356Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "185e2c635ee74b72819d16391cf07b9c",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:55.818Z"
+        },
+        {
+          "event_id": 3,
+          "job_id": "185e2c635ee74b72819d16391cf07b9c",
+          "attempt_id": "710160ffe9d24c9495853a9c9f9d4202",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:55.890Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "185e2c635ee74b72819d16391cf07b9c",
+          "attempt_id": "710160ffe9d24c9495853a9c9f9d4202",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:55.896Z"
+        },
+        {
+          "event_id": 5,
+          "job_id": "185e2c635ee74b72819d16391cf07b9c",
+          "attempt_id": "710160ffe9d24c9495853a9c9f9d4202",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:36:56.356Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca",
+        "input_file": "in.lmp",
+        "input_sha256": "be3278b3c183342ae9b51e5adc99fcc49342eb2b520386c1c90c19aadd4897d9",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "failed",
+      "attempts": [
+        {
+          "attempt_id": "93e474ea1d4f45bda529d2aed2431378",
+          "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+          "worker_id": "v008",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378",
+          "state": "failed",
+          "created_at": "2026-10-21T07:36:56.358Z",
+          "started_at": "2026-10-21T07:36:56.361Z",
+          "ended_at": "2026-10-21T07:36:58.693Z",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": "Process exited with code 1",
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 2,
+          "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:55.820Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+          "attempt_id": "93e474ea1d4f45bda529d2aed2431378",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:56.358Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+          "attempt_id": "93e474ea1d4f45bda529d2aed2431378",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:56.361Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "1412ee38d51d497c9dbf0096a52716ca",
+          "attempt_id": "93e474ea1d4f45bda529d2aed2431378",
+          "state": "failed",
+          "reason": "Process exited with code 1",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:36:58.693Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9",
+        "input_file": "in.lmp",
+        "input_sha256": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "cancelled",
+      "attempts": [
+        {
+          "attempt_id": "f2c22da25e25484298a53c2252406816",
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "worker_id": "v008",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816",
+          "state": "cancelled",
+          "created_at": "2026-10-21T07:36:58.989Z",
+          "started_at": "2026-10-21T07:36:58.994Z",
+          "ended_at": "2026-10-21T07:37:00.141Z",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": "Cancellation requested",
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 9,
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:58.920Z"
+        },
+        {
+          "event_id": 11,
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "attempt_id": "f2c22da25e25484298a53c2252406816",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:58.990Z"
+        },
+        {
+          "event_id": 12,
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "attempt_id": "f2c22da25e25484298a53c2252406816",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:58.994Z"
+        },
+        {
+          "event_id": 13,
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "attempt_id": "f2c22da25e25484298a53c2252406816",
+          "state": "cancelling",
+          "reason": "Cancellation requested",
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:59.096Z"
+        },
+        {
+          "event_id": 14,
+          "job_id": "373032680b214dcfbe0ffb7a2cad5fc9",
+          "attempt_id": "f2c22da25e25484298a53c2252406816",
+          "state": "cancelled",
+          "reason": "Cancellation requested",
+          "exit_code": 1,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:37:00.141Z"
+        }
+      ]
+    },
+    {
+      "specification": {
+        "job_id": "8506686ab071422ebbf9a0b876b51247",
+        "work_directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "storage_mode": "shared",
+        "input_manifest": []
+      },
+      "state": "succeeded",
+      "attempts": [
+        {
+          "attempt_id": "14ab1eb0caca4f02a4d5961020fd683b",
+          "job_id": "8506686ab071422ebbf9a0b876b51247",
+          "worker_id": "v008",
+          "directory": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b",
+          "state": "succeeded",
+          "created_at": "2026-10-21T07:37:00.143Z",
+          "started_at": "2026-10-21T07:37:00.146Z",
+          "ended_at": "2026-10-21T07:37:00.582Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "stdout": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stdout",
+          "stderr": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stderr",
+          "execution_metadata": "/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/execution.json",
+          "result_collection": null,
+          "results_directory": null,
+          "input_transfer": null,
+          "worker_cleanup": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 10,
+          "job_id": "8506686ab071422ebbf9a0b876b51247",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:36:58.922Z"
+        },
+        {
+          "event_id": 15,
+          "job_id": "8506686ab071422ebbf9a0b876b51247",
+          "attempt_id": "14ab1eb0caca4f02a4d5961020fd683b",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:37:00.143Z"
+        },
+        {
+          "event_id": 16,
+          "job_id": "8506686ab071422ebbf9a0b876b51247",
+          "attempt_id": "14ab1eb0caca4f02a4d5961020fd683b",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-21T07:37:00.146Z"
+        },
+        {
+          "event_id": 17,
+          "job_id": "8506686ab071422ebbf9a0b876b51247",
+          "attempt_id": "14ab1eb0caca4f02a4d5961020fd683b",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-21T07:37:00.582Z"
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "sessions": [
+      {
+        "identity": {
+          "pid": 142250,
+          "process_group": 142250,
+          "session": 142250,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "25552790",
+          "launched_at": "2026-10-21T07:36:55.892536+00:00"
+        },
+        "members": []
+      },
+      {
+        "identity": {
+          "pid": 142260,
+          "process_group": 142260,
+          "session": 142260,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "25552837",
+          "launched_at": "2026-10-21T07:36:56.360359+00:00"
+        },
+        "members": []
+      },
+      {
+        "identity": {
+          "pid": 142274,
+          "process_group": 142274,
+          "session": 142274,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "25553100",
+          "launched_at": "2026-10-21T07:36:58.992021+00:00"
+        },
+        "members": []
+      },
+      {
+        "identity": {
+          "pid": 142286,
+          "process_group": 142286,
+          "session": 142286,
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "start_ticks": "25553216",
+          "launched_at": "2026-10-21T07:37:00.145256+00:00"
+        },
+        "members": []
+      }
+    ],
+    "reservations": []
+  },
+  "commands": [
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "submit",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/batch-1792568215748583499.json"
+      ],
+      "time": 1792568215.8289897,
+      "returncode": 0,
+      "stdout": "[\n  \"185e2c635ee74b72819d16391cf07b9c\",\n  \"1412ee38d51d497c9dbf0096a52716ca\"\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "run-local",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "--worker-config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/worker.yaml"
+      ],
+      "time": 1792568218.7087526,
+      "returncode": 0,
+      "stdout": "[\n  \"185e2c635ee74b72819d16391cf07b9c\",\n  \"1412ee38d51d497c9dbf0096a52716ca\"\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "185e2c635ee74b72819d16391cf07b9c"
+      ],
+      "time": 1792568218.7919943,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"succeeded\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-21T07:36:55.890Z\",\n      \"started_at\": \"2026-10-21T07:36:55.896Z\",\n      \"ended_at\": \"2026-10-21T07:36:56.356Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 1,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.818Z\"\n    },\n    {\n      \"event_id\": 3,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.890Z\"\n    },\n    {\n      \"event_id\": 4,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.896Z\"\n    },\n    {\n      \"event_id\": 5,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:36:56.356Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "1412ee38d51d497c9dbf0096a52716ca"
+      ],
+      "time": 1792568218.8602471,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"be3278b3c183342ae9b51e5adc99fcc49342eb2b520386c1c90c19aadd4897d9\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"failed\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"failed\",\n      \"created_at\": \"2026-10-21T07:36:56.358Z\",\n      \"started_at\": \"2026-10-21T07:36:56.361Z\",\n      \"ended_at\": \"2026-10-21T07:36:58.693Z\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": \"Process exited with code 1\",\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 2,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.820Z\"\n    },\n    {\n      \"event_id\": 6,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:56.358Z\"\n    },\n    {\n      \"event_id\": 7,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:56.361Z\"\n    },\n    {\n      \"event_id\": 8,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"failed\",\n      \"reason\": \"Process exited with code 1\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:36:58.693Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "submit",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/batch-1792568218860566317.json"
+      ],
+      "time": 1792568218.9300845,
+      "returncode": 0,
+      "stdout": "[\n  \"373032680b214dcfbe0ffb7a2cad5fc9\",\n  \"8506686ab071422ebbf9a0b876b51247\"\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "run-local",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "--worker-config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/worker.yaml"
+      ],
+      "pid": 142273,
+      "time": 1792568218.9304466
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "cancel",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "373032680b214dcfbe0ffb7a2cad5fc9"
+      ],
+      "time": 1792568219.1049714,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"cancelling\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelling\",\n      \"created_at\": \"2026-10-21T07:36:58.989Z\",\n      \"started_at\": \"2026-10-21T07:36:58.994Z\",\n      \"ended_at\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"reason\": \"Cancellation requested\",\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 9,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.920Z\"\n    },\n    {\n      \"event_id\": 11,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.990Z\"\n    },\n    {\n      \"event_id\": 12,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.994Z\"\n    },\n    {\n      \"event_id\": 13,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelling\",\n      \"reason\": \"Cancellation requested\",\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:59.096Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "373032680b214dcfbe0ffb7a2cad5fc9"
+      ],
+      "time": 1792568220.6923523,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"cancelled\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelled\",\n      \"created_at\": \"2026-10-21T07:36:58.989Z\",\n      \"started_at\": \"2026-10-21T07:36:58.994Z\",\n      \"ended_at\": \"2026-10-21T07:37:00.141Z\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": \"Cancellation requested\",\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 9,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.920Z\"\n    },\n    {\n      \"event_id\": 11,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.990Z\"\n    },\n    {\n      \"event_id\": 12,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.994Z\"\n    },\n    {\n      \"event_id\": 13,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelling\",\n      \"reason\": \"Cancellation requested\",\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:59.096Z\"\n    },\n    {\n      \"event_id\": 14,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelled\",\n      \"reason\": \"Cancellation requested\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:37:00.141Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "8506686ab071422ebbf9a0b876b51247"
+      ],
+      "time": 1792568220.7575936,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"succeeded\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-21T07:37:00.143Z\",\n      \"started_at\": \"2026-10-21T07:37:00.146Z\",\n      \"ended_at\": \"2026-10-21T07:37:00.582Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 10,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.922Z\"\n    },\n    {\n      \"event_id\": 15,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:37:00.143Z\"\n    },\n    {\n      \"event_id\": 16,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:37:00.146Z\"\n    },\n    {\n      \"event_id\": 17,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:37:00.582Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "run-local",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "--worker-config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/worker.yaml"
+      ],
+      "time": 1792568220.8234324,
+      "returncode": 0,
+      "stdout": "[]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "185e2c635ee74b72819d16391cf07b9c"
+      ],
+      "time": 1792568220.8913538,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"succeeded\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-21T07:36:55.890Z\",\n      \"started_at\": \"2026-10-21T07:36:55.896Z\",\n      \"ended_at\": \"2026-10-21T07:36:56.356Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 1,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.818Z\"\n    },\n    {\n      \"event_id\": 3,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.890Z\"\n    },\n    {\n      \"event_id\": 4,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.896Z\"\n    },\n    {\n      \"event_id\": 5,\n      \"job_id\": \"185e2c635ee74b72819d16391cf07b9c\",\n      \"attempt_id\": \"710160ffe9d24c9495853a9c9f9d4202\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:36:56.356Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "1412ee38d51d497c9dbf0096a52716ca"
+      ],
+      "time": 1792568220.956469,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"be3278b3c183342ae9b51e5adc99fcc49342eb2b520386c1c90c19aadd4897d9\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"failed\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"failed\",\n      \"created_at\": \"2026-10-21T07:36:56.358Z\",\n      \"started_at\": \"2026-10-21T07:36:56.361Z\",\n      \"ended_at\": \"2026-10-21T07:36:58.693Z\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": \"Process exited with code 1\",\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 2,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:55.820Z\"\n    },\n    {\n      \"event_id\": 6,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:56.358Z\"\n    },\n    {\n      \"event_id\": 7,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:56.361Z\"\n    },\n    {\n      \"event_id\": 8,\n      \"job_id\": \"1412ee38d51d497c9dbf0096a52716ca\",\n      \"attempt_id\": \"93e474ea1d4f45bda529d2aed2431378\",\n      \"state\": \"failed\",\n      \"reason\": \"Process exited with code 1\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:36:58.693Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "373032680b214dcfbe0ffb7a2cad5fc9"
+      ],
+      "time": 1792568221.0214546,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"cancelled\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelled\",\n      \"created_at\": \"2026-10-21T07:36:58.989Z\",\n      \"started_at\": \"2026-10-21T07:36:58.994Z\",\n      \"ended_at\": \"2026-10-21T07:37:00.141Z\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": \"Cancellation requested\",\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 9,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.920Z\"\n    },\n    {\n      \"event_id\": 11,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.990Z\"\n    },\n    {\n      \"event_id\": 12,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.994Z\"\n    },\n    {\n      \"event_id\": 13,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelling\",\n      \"reason\": \"Cancellation requested\",\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:59.096Z\"\n    },\n    {\n      \"event_id\": 14,\n      \"job_id\": \"373032680b214dcfbe0ffb7a2cad5fc9\",\n      \"attempt_id\": \"f2c22da25e25484298a53c2252406816\",\n      \"state\": \"cancelled\",\n      \"reason\": \"Cancellation requested\",\n      \"exit_code\": 1,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:37:00.141Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v008-v005-eOAQn2xX/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v008-v005-eOAQn2xX/v008/manager.yaml",
+        "8506686ab071422ebbf9a0b876b51247"
+      ],
+      "time": 1792568221.0887785,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n    \"work_directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"storage_mode\": \"shared\",\n    \"input_manifest\": []\n  },\n  \"state\": \"succeeded\",\n  \"attempts\": [\n    {\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"worker_id\": \"v008\",\n      \"directory\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-21T07:37:00.143Z\",\n      \"started_at\": \"2026-10-21T07:37:00.146Z\",\n      \"ended_at\": \"2026-10-21T07:37:00.582Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"stdout\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stdout\",\n      \"stderr\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v008-v005-eOAQn2xX/v008/jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/execution.json\",\n      \"result_collection\": null,\n      \"results_directory\": null,\n      \"input_transfer\": null,\n      \"worker_cleanup\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 10,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:36:58.922Z\"\n    },\n    {\n      \"event_id\": 15,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:37:00.143Z\"\n    },\n    {\n      \"event_id\": 16,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-21T07:37:00.146Z\"\n    },\n    {\n      \"event_id\": 17,\n      \"job_id\": \"8506686ab071422ebbf9a0b876b51247\",\n      \"attempt_id\": \"14ab1eb0caca4f02a4d5961020fd683b\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-21T07:37:00.582Z\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    }
+  ],
+  "hashes": {
+    "jobs/8506686ab071422ebbf9a0b876b51247/inputs/in.lmp": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/execution.json": "3810c782fa82905173eb10c9f91a6fbe30d6597648696f1159ceb469551ab242",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/stdout": "6c024221b8f67cce9f488cecb91607cf96dda6d67bb4817d276bdc891cc52a75",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/process.json": "8239433f1734dca7025217071145ef19c433243cb98b67e0e1010623361661a3",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/work/in.lmp": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/work/log.lammps": "fd2b43d1efeb0e7b251360ca2f9cd7b348019d18efe53ffa39727d749396caff",
+    "jobs/8506686ab071422ebbf9a0b876b51247/14ab1eb0caca4f02a4d5961020fd683b/work/output.data": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/execution.json": "87e48dff339dbc53e2a508ac28f60ad11726ed3e7bb3edaea5fb433ea2c23581",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/stdout": "ff59c2c644a43a2b5f932f7d3040b95e340b149cc1dcd62f195ee6e21438bb49",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/process.json": "5e40ac61c69eb707575a419198270bdd9bbae0abc83955d43e09d9e73a9d1305",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/work/in.lmp": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/work/log.lammps": "75d64cd42311647d6b564a7362b8ab4bf2e98c003906d3557145b17c164fc60d",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/710160ffe9d24c9495853a9c9f9d4202/work/output.data": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1",
+    "jobs/185e2c635ee74b72819d16391cf07b9c/inputs/in.lmp": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/inputs/in.lmp": "be3278b3c183342ae9b51e5adc99fcc49342eb2b520386c1c90c19aadd4897d9",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/execution.json": "ca460c49b6b0527f4c9260ddd4a35a5a2ddbccf3fc3d5ad626d7b5c5ace26ee1",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stderr": "c6c406715d8f50700864476b54649bcbcae9a721f850aac5fdc8e863436e1ee8",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/stdout": "0e7b44a2a109ecae7da12868511ed0ac796a19dacf12da1e8e110d02aab0e077",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/process.json": "9aad4079c6766dd059cfe4aaaf22fd25ab2d1274e7253786f11c3bb05214da83",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/work/in.lmp": "be3278b3c183342ae9b51e5adc99fcc49342eb2b520386c1c90c19aadd4897d9",
+    "jobs/1412ee38d51d497c9dbf0096a52716ca/93e474ea1d4f45bda529d2aed2431378/work/log.lammps": "afe796730b5b6d8c60a227ae7e8df9cdad4360a663d376fff4268beb835023e9",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/inputs/in.lmp": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/execution.json": "6d73a0d3537c056c8d04bb4dfabf8c6a100f49b3b0c82a0cf6e522127af3f67f",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/process.json": "612691ca021a54c850eb4124ee0e8e9be84d5458da25fe4606b5f3a438afc4ed",
+    "jobs/373032680b214dcfbe0ffb7a2cad5fc9/f2c22da25e25484298a53c2252406816/work/in.lmp": "fae958850af9082642c40da9f8d352449e5446cf157c27ed98404cbf3381e145"
+  },
+  "verification_context": {
+    "date": "2026-10-21",
+    "timezone": "Asia/Taipei",
+    "host": "allegro",
+    "root": "/tmp/lammps-v008-v005-eOAQn2xX",
+    "source_sha256": {
+      "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+      "src/lammps_manager/config.py": "b35c62854fc828c306872747f59aad7544a9202101740cef7768cb38cc8d5f4c",
+      "src/lammps_manager/staging.py": "45f8476163921e639d5cfffd09284b5b61e4a4cf3765ab1fbdb3cdf412871001",
+      "src/lammps_manager/results.py": "854ee47951cf9b79269a6047c0e1a61edffee9d277a925d740a375fb45be06c2",
+      "src/lammps_manager/worker.py": "b9c5e5fbb75a9870eea7432bfc7b2c98fc8235bafe1b6882f457fbae56ee5f9b",
+      "src/lammps_manager/scheduler.py": "247f84ac352b064c34170d09c11c93d2636f04b8e7591fe257e5a0453f4bc03b",
+      "src/lammps_manager/cli.py": "4d7d37389c08aff49f2fe8dedf9f3222a910b4ef4019d4017fa2fc0b8cc6d2bb",
+      "src/lammps_manager/store.py": "8f186823aaa3c96f0bfaa975a7c21f5fd2d51306919ef706a413d2d5bb4b63ba",
+      "src/lammps_manager/recovery.py": "bd7104730f67ab27dfb705c8e81cc2f7113ed8b36c21b5237a46351f0f20447e",
+      "src/lammps_manager/manager.py": "3e232c69cdbbaaea4224d57402895db98f5daea81f43d93ac77aee0576fbf32a",
+      "src/lammps_manager/models.py": "8391d0b40aa47c0d981f005aab428cb6bb43ac11767741d7ea8f9f47f7e3b407",
+      "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+      "src/lammps_manager/local.py": "f6618858f5b30dd1d6f36055078aef1a33adc8f8bad84816392216b94b84a199",
+      "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+      "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a"
+    },
+    "harness_sha256": {
+      "real_acceptance.py": "d3d1e6f698bc9b3a96dc8060b7ba9698ce7d1feb5efa511785466590619fa4b1",
+      "fault_proxy.py": "deaeffe31bad36b771db26e4bf0da74d92afdc0700bb120fddfbece03a578c1e",
+      "restart_acceptance.py": "39cfd8847d7ba2db586a31528f82988de0d9f46d673d3b640f7bb9c5ca07ba93",
+      "final_audit.py": "2a9a0f7e2ae279940239db0bd32881f95c874485ee818991f8f2a66369f05980",
+      "cpu_acceptance.py": "d89fc1afa2eca6477364d6f3c7dcd70ab00899bcf490bc3f4182e7546e5432eb",
+      "distributed_acceptance.py": "b4bb325f23a85f6c83b8476dbfabae036d1e104321afaab645aa545f3fbfbb96"
+    },
+    "final_audit": "v008-v005-final-audit.json"
+  }
+}
