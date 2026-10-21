@@ -11,6 +11,9 @@ job_defaults:
   max_retries: 0
 scheduler:
   policy: fifo_least_loaded
+  max_cpu_utilization_percent: 80
+  min_slots: 0
+  reserve_slots: 0
 workers:
   - id: node-a
     cpu_slots: 24

@@ -23,7 +23,7 @@ See [manager.yaml](../examples/manager.yaml). Every nested section rejects unkno
 | `storage` (required) | Required absolute `work_root`; `mode=shared` (`shared` or `staged`); boolean `preserve_failed_jobs=true`; positive integers `max_input_files=10000`, `max_input_file_bytes=1073741824`, `max_input_total_bytes=10737418240`; positive output limits `max_output_files=10000`, `max_output_file_bytes=1073741824`, `max_output_total_bytes=10737418240` |
 | `workers` (required nonempty list) | Each item requires unique string `id`, positive integer `cpu_slots`, positive `memory_budget_gib`, positive integer `max_concurrent_jobs`; boolean `enabled=true`, string list `labels=[]` |
 | `job_defaults` | Positive integers `mpi_ranks=4`, `omp_threads_per_rank=1`, `time_limit_seconds=86400`; positive `memory_gib=8`; nonnegative integer `max_retries=0` |
-| `scheduler` | `policy=fifo_least_loaded` (only supported policy); boolean `account_external_load=true`; `max_cpu_utilization_percent=80` in [0,100]; nonnegative `reserve_memory_gib=4`; positive `metrics_max_age_seconds=30` |
+| `scheduler` | `policy=fifo_least_loaded` (only supported policy); boolean `account_external_load=true`; `max_cpu_utilization_percent=80` in [0,100]; nonnegative integer `min_slots=0`, `reserve_slots=0`; nonnegative `reserve_memory_gib=4`; positive `metrics_max_age_seconds=30` |
 
 Memory and timing settings accept finite integers or floats except fields explicitly described as integers. Resource CPU slots equal MPI ranks multiplied by OpenMP threads per rank. These values describe reservations, not enforced OS limits. The scheduler API applies these settings to supplied snapshots; the [polling services](workers.md) supply network dispatch and Linux monitoring.
 
@@ -48,3 +48,27 @@ Overrides accept only resource fields. Reloading defaults or mutating the origin
 ## Polling services
 
 The existing worker endpoint, token, heartbeat and execution settings are consumed by the [manager / worker services](workers.md). `serve` receives the credential-file mapping and TLS listener settings as CLI arguments; `worker` requires a durable local `--state-directory`. T007 adds the storage mode and input-limit fields above, with no submission resource changes. See [staged inputs](staged-inputs.md) for protocol and migration details. Polling workers execute shared and staged attempts concurrently, bounded by effective CPU, memory and `max_concurrent_jobs` limits on both manager and worker. Each launch rechecks aggregate unreleased reservations and fresh local metrics; setting `max_concurrent_jobs: 1` retains sequential polling-worker execution. The `run-local` command remains sequential. No new configuration keys are needed for T010. T006 consumes submitted time limits and retry budgets; see [recovery and operations](recovery.md).
+
+## Per-CPU admission (T011)
+
+`max_cpu_utilization_percent` applies strictly to each eligible logical CPU,
+not to the host average. `min_slots` and `reserve_slots` default to zero. YAML
+rejects negative, boolean and noninteger slot values and a minimum above any
+configured worker CPU quota. At runtime a minimum above the smaller manager,
+worker or detected capacity blocks admission (`minimum_exceeds_capacity`).
+Configuration changes take effect on restart and never rewrite submitted jobs.
+
+When `account_external_load=true`, count CPUs below the threshold as F and deduct
+unreflected starts P. A job requesting J slots needs `max(0, F-P) >= J+reserve_slots`.
+An admission with total unreleased reservations R satisfying `R+J <= min_slots`
+may bypass that load/reserve gate, but still needs valid, fresh per-CPU monitoring
+and all quota, memory, concurrency and online/pause checks. A job crossing the
+minimum must fit normally in full. The reserve is best effort and yields to the
+minimum. No running work is stopped or resized when load increases.
+
+Setting `account_external_load=false` disables both the per-CPU load gate and its
+floor exception; quotas, memory, freshness and all other safety checks remain.
+Aggregate CPU utilization remains telemetry and a worker ranking input only.
+Upgrade managers and workers together: older metrics lacking per-CPU data fail
+closed under the enabled policy, even with a positive minimum. There is no
+fallback to host-average admission. Older managers do not enforce these settings.

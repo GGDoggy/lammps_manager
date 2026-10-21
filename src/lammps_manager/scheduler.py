@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 from uuid import uuid4
 
+from .cpu import admission, pending_slots, validate_sample
 from .config import ManagerConfig, WorkerCapacity, _parse
 from .store import Attempt, Store
 
@@ -24,8 +25,12 @@ class WorkerSnapshot:
     available_memory_gib: float
     online: bool = True
     paused: bool = False
+    per_cpu_utilization_percent: dict[str, float] | None = None
+    cpu_sample_started_at: float | None = None
 
     def __post_init__(self) -> None:
+        validate_sample(self.per_cpu_utilization_percent, self.cpu_sample_started_at,
+                        self.observed_at, self.detected_cpu_slots)
         # Direct Python callers receive the same capacity checks as YAML callers.
         _parse(WorkerCapacity, {**asdict(self.capacity),
                                'labels': list(self.capacity.labels)}, 'snapshot.capacity')
@@ -46,6 +51,7 @@ class WorkerSnapshot:
 class ScheduleResult:
     assignments: tuple[Attempt, ...]
     waiting: dict[str, str]
+    cpu_diagnostics: dict[str, dict[str, dict]]
 
 
 def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapshot, ...],
@@ -65,10 +71,12 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
         raise ValueError('Snapshots contain unregistered workers')
     assigned = []
     waiting = {}
+    diagnostics = {}
     policy = config.scheduler
     if policy.policy != 'fifo_least_loaded':
         raise ValueError('Unsupported scheduling policy')
     with store.scheduling_round():
+        pending_by_worker: dict[str, int] = {}
         for job in store.jobs():
             if job['state'] != 'queued':
                 continue
@@ -124,6 +132,16 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                                 started_at.replace('Z', '+00:00')).timestamp()
                                 >= snapshot.observed_at):
                             pending_memory += reservation.memory_gib
+                    sample_start = snapshot.cpu_sample_started_at
+                    if policy.account_external_load and worker.id not in pending_by_worker:
+                        pending_by_worker[worker.id] = pending_slots(store, worker.id, sample_start)
+                    pending_cpu = pending_by_worker.get(worker.id, 0)
+                    evidence = admission(snapshot.per_cpu_utilization_percent, sample_start,
+                                         threshold=policy.max_cpu_utilization_percent,
+                                         pending=pending_cpu, requested=r.cpu_slots, used=used_cpu,
+                                         minimum=policy.min_slots, reserve=policy.reserve_slots,
+                                         capacity=cpu, enabled=policy.account_external_load)
+                    diagnostics.setdefault(spec.job_id, {})[worker.id] = evidence
                     if used_cpu + r.cpu_slots > cpu:
                         reason = 'cpu_quota'
                     elif used_memory + r.memory_gib > memory:
@@ -133,9 +151,8 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                     elif snapshot.available_memory_gib - pending_memory < (
                             r.memory_gib + policy.reserve_memory_gib):
                         reason = 'available_memory'
-                    elif (policy.account_external_load and snapshot.cpu_utilization_percent
-                          >= policy.max_cpu_utilization_percent):
-                        reason = 'external_cpu_load'
+                    elif not evidence['allowed']:
+                        reason = evidence['reason']
                     else:
                         candidates.append((snapshot.cpu_utilization_percent, -(cpu - used_cpu),
                                            -(memory - used_memory), worker.id))
@@ -146,9 +163,15 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 attempt_id = uuid4().hex
                 assigned.append(store.assign(spec.job_id, attempt_id, worker_id,
                                               str(Path(spec.work_directory) / attempt_id)))
+                # This new unstarted assignment must consume the current sample
+                # immediately, before the next queued job is considered.
+                if (policy.account_external_load
+                        and by_id[worker_id].cpu_sample_started_at is not None):
+                    pending_by_worker[worker_id] += r.cpu_slots
             else:
                 reason = json.dumps({'status': 'waiting' if fits_any else 'unschedulable',
-                                     'workers': reasons}, sort_keys=True)
+                                     'workers': reasons,
+                                     'cpu': diagnostics.get(spec.job_id, {})}, sort_keys=True)
                 store.record_waiting(spec.job_id, reason)
                 waiting[spec.job_id] = reason
-    return ScheduleResult(tuple(assigned), waiting)
+    return ScheduleResult(tuple(assigned), waiting, diagnostics)

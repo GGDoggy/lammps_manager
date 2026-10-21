@@ -42,6 +42,8 @@ class Scheduler:
     policy: str = 'fifo_least_loaded'
     account_external_load: bool = True
     max_cpu_utilization_percent: float = 80
+    min_slots: int = 0
+    reserve_slots: int = 0
     reserve_memory_gib: float = 4
     metrics_max_age_seconds: float = 30
 
@@ -163,7 +165,7 @@ def _validate(instance: Any, location: str) -> None:
     for entry in fields(instance):
         name, value = entry.name, getattr(instance, entry.name)
         if type(value) in (int, float):
-            allow_zero = name in ('max_retries', 'reserve_memory_gib', 'max_cpu_utilization_percent')
+            allow_zero = name in ('max_retries', 'reserve_memory_gib', 'max_cpu_utilization_percent', 'min_slots', 'reserve_slots')
             if value < 0 or (value == 0 and not allow_zero):
                 reason = 'must not be negative' if allow_zero else 'must be positive'
                 raise ConfigurationError(f'{location}.{name}: {reason}')
@@ -189,6 +191,8 @@ def _validate(instance: Any, location: str) -> None:
         if not valid:
             raise ConfigurationError(f'{location}.manager_endpoint: expected HTTP(S) URL without credentials')
     if isinstance(instance, ManagerConfig):
+        if any(instance.scheduler.min_slots > w.cpu_slots for w in instance.workers):
+            raise ConfigurationError('scheduler.min_slots: exceeds worker CPU capacity')
         ids = [worker.id for worker in instance.workers]
         if not ids or len(ids) != len(set(ids)):
             raise ConfigurationError('manager.workers: require at least one worker and unique worker IDs')

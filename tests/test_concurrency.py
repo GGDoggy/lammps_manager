@@ -51,6 +51,57 @@ class ConcurrentWorkerTests(unittest.TestCase):
             time.sleep(.01)
         self.fail('Concurrent batch did not complete')
 
+    def test_per_cpu_policy_runs_concurrent_fake_jobs_without_aggregate_veto(self) -> None:
+        self.config = replace(self.config, scheduler=replace(
+            self.config.scheduler, account_external_load=True))
+        original = self.worker
+        def monitored_worker():
+            worker = original()
+            sample = worker.monitor.sample
+            def deterministic(config):
+                metrics = sample(config)
+                metrics.update(cpu_utilization_percent=100,
+                               per_cpu_utilization_percent={str(i): 0 for i in range(4)},
+                               detected_cpu_slots=4)
+                return metrics
+            worker.monitor.sample = deterministic
+            return worker
+        self.worker = monitored_worker
+        self.test_shared_attempts_overlap_and_duplicate_polls_do_not_relaunch()
+
+    def test_per_cpu_launch_defers_and_excludes_candidate_once(self) -> None:
+        from dataclasses import asdict
+        self.capacities = (WorkerCapacity('a', 8, 8, 4), self.capacities[1])
+        jobs = self.submit((0,))
+        worker = self.worker()
+        snapshot = worker.monitor.sample(worker.config)
+        snapshot.update(detected_cpu_slots=8, detected_memory_gib=8,
+                        available_memory_gib=8, observed_at=time.time(),
+                        cpu_sample_started_at=time.time() - 1,
+                        per_cpu_utilization_percent={'0': 0, '7': 0},
+                        cpu_utilization_percent=100)
+        result = dict(paused=False, manager_capacity=asdict(self.capacities[0]),
+                      policy={**asdict(self.config.scheduler), 'account_external_load': True})
+        resources = replace(self.config.job_defaults, mpi_ranks=2, memory_gib=1)
+        with Store(self.config.manager.database_path) as manager, Store(worker.database) as journal:
+            spec = replace(manager.specification(jobs[0]), resources=resources)
+            journal.submit(spec)
+            journal.assign(spec.job_id, 'pending', 'a', str(self.work / 'pending'))
+            self.assertTrue(worker._can_launch(journal, resources, result, snapshot, 'pending'))
+            self.assertFalse(worker._can_launch(journal, resources, result, snapshot))
+            self.assertEqual(worker.cpu_admission['pending'], 2)
+            self.assertFalse(worker._can_launch(journal, resources, result,
+                             {**snapshot, 'per_cpu_utilization_percent': {'0': 0}}, 'pending'))
+            self.assertEqual(len(journal.reservations()), 1)
+            # Floor can bypass load, but never absent monitoring or staleness.
+            floor = {**result, 'policy': {**result['policy'], 'min_slots': 2}}
+            self.assertTrue(worker._can_launch(journal, resources, floor,
+                            {**snapshot, 'per_cpu_utilization_percent': {'0': 100}}, 'pending'))
+            self.assertFalse(worker._can_launch(journal, resources, floor,
+                             {**snapshot, 'per_cpu_utilization_percent': None}, 'pending'))
+            self.assertFalse(worker._can_launch(journal, resources, floor,
+                             {**snapshot, 'observed_at': time.time() - 100}, 'pending'))
+
     def test_local_admission_counts_unresolved_and_pending_reservations(self) -> None:
         from dataclasses import asdict
         from lammps_manager.worker import LinuxMonitor
@@ -226,7 +277,8 @@ class ConcurrentStagedTests(unittest.TestCase):
         from lammps_manager.local import submit_batch
 
         self.capacity = replace(self.capacity, max_concurrent_jobs=2)
-        self.service.config = replace(self.config, workers=(self.capacity, self.config.workers[1]))
+        self.service.config = replace(self.config, workers=(self.capacity, self.config.workers[1]),
+            scheduler=replace(self.config.scheduler, account_external_load=True))
         launcher = self.root / 'launcher'
         launcher.write_text('#!' + sys.executable + '\nimport time\ntime.sleep(.08)\n')
         launcher.chmod(0o700)
@@ -239,7 +291,11 @@ class ConcurrentStagedTests(unittest.TestCase):
         sample = worker.monitor.sample(config)
         available = .025
         def sample_memory(_config):
-            return {**sample, 'observed_at': time.time(), 'available_memory_gib': available}
+            return {**sample, 'observed_at': time.time(),
+                    'cpu_sample_started_at': time.time() - .01,
+                    'per_cpu_utilization_percent': {'0': 0, '1': 0},
+                    'detected_cpu_slots': 2, 'cpu_utilization_percent': 100,
+                    'available_memory_gib': available}
 
         # Hold the executor before any running transition or memory consumption:
         # the durable launch claim must already consume pending headroom.

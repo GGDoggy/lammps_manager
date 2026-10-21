@@ -30,6 +30,9 @@ class ConfigurationTests(unittest.TestCase):
                  ('job_defaults', 'memory_gib', '8'), ('job_defaults', 'max_retries', -1),
                  ('scheduler', 'policy', 'arbitrary'), ('scheduler', 'reserve_memory_gib', -1),
                  ('scheduler', 'max_cpu_utilization_percent', 101),
+                 ('scheduler', 'min_slots', -1), ('scheduler', 'min_slots', True),
+                 ('scheduler', 'min_slots', 1.5), ('scheduler', 'min_slots', 1000000),
+                 ('scheduler', 'reserve_slots', -1), ('scheduler', 'reserve_slots', True),
                  ('storage', 'mode', 'unsupported'), ('storage', 'work_root', 'relative'),
                  ('manager', 'unknown', 1), ('manager', 'schedule_interval_seconds', 0)]
         for section, key, value in cases:

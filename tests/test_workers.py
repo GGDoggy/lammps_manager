@@ -229,6 +229,7 @@ class WorkerTests(unittest.TestCase):
         ids = self.submit((0,))
         snapshot = LinuxMonitor().sample(self.worker_config())
         snapshot['observed_at'] = 0
+        snapshot['cpu_sample_started_at'] = 0
         payload = {'proof': self.service.proof, 'snapshot': snapshot, 'reports': []}
         self.assertEqual(self.poll('a', 'a' * 40, payload)['assignments'], [])
         with Store(self.config.manager.database_path) as store:

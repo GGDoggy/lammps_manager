@@ -126,6 +126,8 @@ class Store:
                                  "directory TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
                 self._db.execute("CREATE TABLE IF NOT EXISTS launch_claims ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))")
+                self._db.execute('CREATE INDEX IF NOT EXISTS attempts_worker '
+                                 'ON attempts(worker_id)')
                 self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
                                  "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
                                  "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
@@ -269,6 +271,33 @@ class Store:
 
     def job_state(self, job_id: str) -> str:
         return str(self._job(job_id)['state'])
+
+    def cpu_accounting_attempts(self, worker_id: str, since: str, *,
+                                candidate_id: str | None = None,
+                                skip_unclaimed_staged: bool = False
+                                ) -> tuple[tuple[Attempt, Resources], ...]:
+        """Read recent or unresolved starts and immutable resources in one query.
+
+        ``since`` is an inclusive UTC SQLite timestamp. Callers may round it
+        down and then apply their exact sampling boundary to the returned rows.
+        Completed history still matters when its creation/start overlaps a sample.
+        """
+        rows = self._db.execute(
+            'SELECT a.*, j.specification FROM attempts a '
+            'JOIN jobs j ON j.job_id=a.job_id '
+            'WHERE a.worker_id=? '
+            'AND (a.created_at>=? OR a.started_at>=? '
+            'OR (a.ended_at IS NULL AND a.started_at IS NULL)) '
+            'AND (? IS NULL OR a.attempt_id!=?) '
+            'AND NOT (? AND a.state=\'assigned\' AND NOT EXISTS '
+            '(SELECT 1 FROM launch_claims c WHERE c.attempt_id=a.attempt_id))',
+            (worker_id, since, since, candidate_id, candidate_id, skip_unclaimed_staged))
+        result = []
+        for row in rows:
+            data = dict(row)
+            resources = specification_from_dict(json.loads(data.pop('specification'))).resources
+            result.append((Attempt(**data), resources))
+        return tuple(result)
 
     def _job(self, job_id: str) -> sqlite3.Row:
         row = self._db.execute('SELECT * FROM jobs WHERE job_id=?', (job_id,)).fetchone()

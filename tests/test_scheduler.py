@@ -27,7 +27,9 @@ class SchedulerTests(unittest.TestCase):
         self.worker = WorkerCapacity('w', 8, 32, 4)
         self.config = ManagerConfig(ManagerSettings(str(self.path)), Storage('/work'),
                                     (self.worker,))
-        self.snapshot = WorkerSnapshot(self.worker, 8, 32, 100, 100, 10, 32)
+        self.snapshot = WorkerSnapshot(self.worker, 8, 32, 100, 100, 10, 32,
+                                       per_cpu_utilization_percent={str(i): 10 for i in range(8)},
+                                       cpu_sample_started_at=99)
 
     def submit(self, name='j', cpu=4, memory=8, threads=1):
         self.store.submit(JobSpecification(name, '/work/' + name, 'in', 'a' * 64,
@@ -44,11 +46,11 @@ class SchedulerTests(unittest.TestCase):
     def test_worker_exclusions_and_thresholds(self):
         self.submit()
         cases = [({'online': False}, 'offline'), ({'paused': True}, 'paused'),
-                 ({'observed_at': 69.99}, 'stale_metrics'),
+                 ({'observed_at': 69.99, 'cpu_sample_started_at': 60}, 'stale_metrics'),
                  ({'heartbeat_at': 39.99}, 'heartbeat_timeout'),
                  ({'observed_at': 101}, 'future_timestamp'),
                  ({'heartbeat_at': 101}, 'future_timestamp'),
-                 ({'cpu_utilization_percent': 80}, 'external_cpu_load'),
+                 ({'per_cpu_utilization_percent': {str(i): 80 for i in range(8)}}, 'per_cpu_load'),
                  ({'available_memory_gib': 11.99}, 'available_memory'),
                  ({'capacity': replace(self.worker, enabled=False)}, 'disabled')]
         for changes, reason in cases:
@@ -61,7 +63,7 @@ class SchedulerTests(unittest.TestCase):
         disabled = replace(self.config, workers=(replace(self.worker, enabled=False),))
         self.assertEqual(self.reason(self.run_round(config=disabled)), 'disabled')
         # Exact age, memory and quota limits pass; CPU threshold is strict.
-        result = self.run_round(replace(self.snapshot, observed_at=70, heartbeat_at=40,
+        result = self.run_round(replace(self.snapshot, observed_at=70, cpu_sample_started_at=60, heartbeat_at=40,
                                        available_memory_gib=12, cpu_utilization_percent=79.99))
         self.assertEqual(len(result.assignments), 1)
 
@@ -145,7 +147,8 @@ class SchedulerTests(unittest.TestCase):
     def test_effective_limits_and_fifo_skip_with_durable_reasons(self):
         self.submit('j', cpu=5)
         self.submit('small', cpu=2, memory=4)
-        snapshot = replace(self.snapshot, detected_cpu_slots=4)
+        snapshot = replace(self.snapshot, detected_cpu_slots=4,
+                           per_cpu_utilization_percent={str(i): 10 for i in range(4)})
         result = self.run_round(snapshot)
         self.assertEqual([a.job_id for a in result.assignments], ['small'])
         self.assertEqual(json.loads(result.waiting['j'])['status'], 'unschedulable')

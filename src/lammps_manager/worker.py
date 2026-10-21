@@ -17,6 +17,7 @@ from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
+from .cpu import admission, pending_slots, validate_sample
 from .config import WorkerConfig
 from .local import execute_attempt
 from .manager import is_loopback, read_token
@@ -25,30 +26,53 @@ from .store import Store, TERMINAL
 
 
 class LinuxMonitor:
-    """Sample aggregate CPU deltas and MemAvailable from Linux procfs."""
+    """Sample affinity-scoped per-CPU deltas and MemAvailable from Linux procfs."""
 
     def __init__(self) -> None:
+        self.previous_at = time.time()
         self.previous = self._cpu()
+        self.previous_affinity = {cpu for cpu in os.sched_getaffinity(0)
+                                  if str(cpu) in self.previous}
 
     @staticmethod
-    def _cpu() -> tuple[int, int]:
-        values = [int(v) for v in Path('/proc/stat').read_text().splitlines()[0].split()[1:9]]
-        return sum(values), values[3] + values[4]
+    def _cpu() -> dict[str, tuple[int, ...]]:
+        return {parts[0][3:]: tuple(int(v) for v in parts[1:9])
+                for line in Path('/proc/stat').read_text().splitlines()
+                if (parts := line.split()) and parts[0].startswith('cpu')
+                and (parts[0] == 'cpu' or parts[0][3:].isdigit())}
 
     def sample(self, worker: WorkerConfig) -> dict:
-        total, idle = self._cpu()
-        old_total, old_idle = self.previous
-        self.previous = total, idle
-        delta = total - old_total
-        # No measurable interval is not evidence of an idle host.
-        utilization = 100.0 if delta <= 0 else max(0.0, min(100.0, 100 * (1 - (idle - old_idle) / delta)))
+        # Timestamp precedes the read: a racing start is never considered reflected.
+        end = time.time()
+        current = self._cpu()
+        affinity = {cpu for cpu in os.sched_getaffinity(0) if str(cpu) in current}
+        scope = affinity & self.previous_affinity
+        values = {}
+        for cpu in scope:
+            key = str(cpu)
+            old, new = self.previous.get(key), current.get(key)
+            if old is None or new is None or len(old) != 8 or len(new) != 8:
+                continue
+            deltas = [n - o for n, o in zip(new, old)]
+            total = sum(deltas)
+            # Counter reset and zero interval provide no idle evidence.
+            # Only idle is idle; iowait remains busy for conservative admission.
+            if min(deltas) >= 0 and total > 0:
+                values[key] = 100 * (1 - deltas[3] / total)
+        old, new = self.previous.get('', ()), current.get('', ())
+        delta = sum(new) - sum(old)
+        utilization = (100.0 if delta <= 0 or len(new) < 4 or len(old) < 4 else
+                       max(0.0, min(100.0, 100 * (1 - (new[3] - old[3]) / delta))))
+        start = self.previous_at
+        self.previous, self.previous_affinity, self.previous_at = current, affinity, end
         memory = {line.split(':')[0]: int(line.split()[1]) * 1024 / 2**30
                   for line in Path('/proc/meminfo').read_text().splitlines()
                   if line.startswith(('MemTotal:', 'MemAvailable:'))}
         return {'capacity': asdict(worker.worker),
-                'detected_cpu_slots': len(os.sched_getaffinity(0)),
+                'detected_cpu_slots': len(affinity),
                 'detected_memory_gib': memory['MemTotal'],
-                'observed_at': time.time(), 'heartbeat_at': time.time(),
+                'observed_at': end, 'heartbeat_at': time.time(),
+                'cpu_sample_started_at': start, 'per_cpu_utilization_percent': values,
                 'cpu_utilization_percent': utilization,
                 'available_memory_gib': memory['MemAvailable']}
 
@@ -315,6 +339,8 @@ class Worker:
                                      termination_evidence='Launch did not start a process')
                 elif can_launch:
                     self.futures[accepted.attempt_id] = self.pool.submit(self._execute, accepted.attempt_id)
+        if hasattr(self, 'cpu_admission'):
+            result['local_cpu_admission'] = self.cpu_admission
         return result
 
     def _stage(self, store: Store, attempt_id: str) -> None:
@@ -406,6 +432,24 @@ class Worker:
                     or datetime.fromisoformat(started.replace('Z', '+00:00')).timestamp()
                     >= observed):
                 pending += reservation.memory_gib
+        values = snapshot.get('per_cpu_utilization_percent')
+        start = snapshot.get('cpu_sample_started_at')
+        validate_sample(values, start, observed, snapshot['detected_cpu_slots'])
+        pending_cpu = (pending_slots(
+            store, capacity.id, start, candidate_id=candidate_id,
+            skip_unclaimed_staged=self.config.storage_mode == 'staged')
+            if policy['account_external_load'] else 0)
+        self.cpu_admission = admission(
+            values, start, threshold=policy['max_cpu_utilization_percent'],
+            pending=pending_cpu, requested=resources.cpu_slots,
+            used=sum(r.cpu_slots for r in reservations), minimum=policy.get('min_slots', 0),
+            reserve=policy.get('reserve_slots', 0),
+            capacity=min(capacity.cpu_slots, manager['cpu_slots'], snapshot['detected_cpu_slots']),
+            enabled=policy['account_external_load'])
+        if (policy['account_external_load']
+                and self.cpu_admission != getattr(self, '_last_cpu_admission', None)):
+            print('CPU admission: ' + json.dumps(self.cpu_admission, sort_keys=True), file=sys.stderr)
+            self._last_cpu_admission = self.cpu_admission
         return (sum(r.cpu_slots for r in reservations) + resources.cpu_slots
                     <= min(capacity.cpu_slots, manager['cpu_slots'], snapshot['detected_cpu_slots'])
                 and sum(r.memory_gib for r in reservations) + resources.memory_gib
@@ -416,8 +460,7 @@ class Worker:
                 and len(self.futures) < capacity.max_concurrent_jobs
                 and pending + resources.memory_gib + policy['reserve_memory_gib']
                     <= snapshot['available_memory_gib']
-                and (not policy['account_external_load'] or snapshot['cpu_utilization_percent']
-                     < policy['max_cpu_utilization_percent']))
+                and self.cpu_admission['allowed'])
 
     def _collect_results(self, attempt_ids: tuple[str, ...]) -> None:
         """Retry delivery of terminal journals; never rerun a simulation."""
