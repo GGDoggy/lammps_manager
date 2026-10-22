@@ -724,3 +724,73 @@ Translated README.md, AGENTS.md, docs/workflow.md, and this agent-facing task li
 - Execution plan: reproduce timeout and interruption with mocked external commands; move manager startup inside the existing cleanup region; verify startup and readiness failures, run focused tests and make check, then self-review.
 - Acceptance criteria: manager startup timeout/interruption triggers the existing named-unit stop and preserves the original exception; readiness failures still clean up; configuration validation failure starts/stops no services. No real services or MPI/LAMMPS are operated.
 - Verification record (2026-10-22): Before the fix, `PYTHONPATH=src:tests python3 -m unittest test_service_acceptance -v` failed both startup timeout/interruption regressions because no stop command ran. After moving startup inside the existing try/finally, `PYTHONPATH=src:tests python3 -m unittest test_service_acceptance test_artifact_acceptance -v` passed all 14 tests, verifying exact named-unit cleanup, original exception identity, readiness failure cleanup and no service operations on validation failure. Initial `make check` hit 107 sandbox socket permission errors; rerunning with local loopback permission passed all 306 tests, compileall and Git whitespace checks (`/tmp/v007-startup-cleanup-check-permitted.log`). Explicit `python3 -m py_compile tools/verification/service_acceptance.py tests/test_service_acceptance.py` and separate untracked-file whitespace checks passed. Self-review confirmed startup is protected before systemd-run can create a unit and the successful execution/cleanup path is unchanged; updated operator guidance. An attempted `service_acceptance.py --help` check revealed the script has no argument parser: it created local setup files, then failed worker executable validation before starting services. Those newly generated configuration/token/certificate files and empty roots were removed. No real services, workers or MPI/LAMMPS were started or stopped; external acceptance and historical evidence were not rerun.
+
+## D009: Specify Cartesian parameter sweeps and independent repetitions
+
+- Status: done
+- Goal and scope: translate the requested list-valued parameters, complete Cartesian expansion and per-combination repetition count into a reviewable implementation task; planning only.
+- Execution plan: inspect current submission/specification boundaries; define input, expansion, provenance, isolation and failure semantics in T020; check documentation consistency and whitespace.
+- Acceptance criteria: T020 provides an example, deterministic job-count/order rules, separate repetition/retry semantics, implementation steps and observable local verification; existing functionality is not represented as supporting sweeps.
+- Verification record (2026-10-22): inspected README, architecture, workflow, task records, local-batch documentation and current submission/specification code. Self-review checked Cartesian counts, deterministic ordering, seed bounds, immutable provenance, legacy compatibility and partial failure semantics. `git diff --check` passed. Documentation-only planning change; no runtime tests or external simulations were run. T020 remains todo.
+
+## T020: Generate parameter-sweep batches with independent repetitions
+
+- Status: todo
+- Dependencies: T003, T007, T008
+- Goal and scope: accept independent parameter value lists, generate their full Cartesian product, and submit a configurable number of independent jobs for every combination. Use existing local/shared/staged execution and scheduling; generation does not launch simulations. Preserve the existing list-form batch manifest and its CLI behavior.
+- Proposed interface: add `lammps-manager submit-sweep --config manager.yaml sweep.json` and `--dry-run`. Dry-run validates and reports combination/job counts and a bounded expansion preview without creating jobs, input directories or database state. Resolve source paths relative to the sweep manifest, as for existing batch submission.
+- Proposed version-1 manifest:
+
+  ```json
+  {
+    "version": 1,
+    "source_directory": "abp-template",
+    "input_file": "in.lmp",
+    "template_version": "ideal-abp-v1",
+    "parameters": {
+      "temperature": [0.5, 1.0],
+      "density": [0.1, 0.2, 0.3]
+    },
+    "repetitions": 4,
+    "seed_base": 1000,
+    "max_jobs": 10000,
+    "resources": {"mpi_ranks": 1, "omp_threads_per_rank": 1}
+  }
+  ```
+
+- Expansion contract:
+  - Every parameter is a nonempty JSON list. Each selected value is one scalar (finite number, boolean or string); nested lists/objects and null are rejected. A fixed parameter uses a one-element list. Reject empty parameter maps, duplicate JSON keys and unknown fields with clear field-specific errors.
+  - Independent lists form a Cartesian product, never a positional zip or combinations within one list. The example has `2 * 3 = 6` combinations and `6 * 4 = 24` jobs. `repetitions` is required and must be a positive integer, excluding booleans.
+  - Sort parameter names lexicographically, retain list order, advance the last parameter fastest and emit repetition indices `1..repetitions` inside each combination. Use 1-based combination indices and a 0-based global expansion ordinal. Identical values at separate list positions remain separate entries; do not silently deduplicate. Persist selected list indices to distinguish them.
+  - Each repetition is a fresh job with its own job ID, isolated input/output paths, resource reservation and attempt history. Repetitions are not retries; a failure does not create extra repetitions or rerun successful jobs. Scheduling may execute these jobs in any order.
+  - Compute counts before expansion and reject totals above `max_jobs` (default 10000); permit an explicit positive override. Use bounded iteration rather than materializing an unchecked Cartesian product. Apply existing per-job staged input limits and document multiplied storage use.
+- Template contract:
+  - Copy the validated source tree for each generated job, preserving auxiliary files. Render only the UTF-8 primary input with literal `{{name}}` placeholders for selected parameters and reserved `{{seed}}` / `{{repetition}}` values. Other files remain byte-for-byte copies in the first version.
+  - Parameter names use `[A-Za-z_][A-Za-z0-9_]*`; reserve `seed` and `repetition`. Reject unknown/unresolved placeholders and parameter names absent from the template, so misspellings cannot silently produce identical cases. Require a `{{seed}}` placeholder to make per-job seeds effective in the generated input.
+  - Render strings verbatim and booleans as `1`/`0`; use a documented locale-independent finite-number representation. Reject NUL and newline characters in parameter strings. LAMMPS quoting remains the template author's responsibility. No Python evaluation, expression language, shell interpolation or arbitrary script rewriting is introduced.
+  - Source trees retain current regular-file/directory and relative-path restrictions. Never render into the original tree or overwrite previous generated jobs. Render before hashing and publishing immutable shared/staged submission snapshots.
+- Seed and reproducibility contract:
+  - Require an integer `seed_base` in `1..900000000`, excluding booleans. Assign `seed = seed_base + global_ordinal`; reject the complete plan if its highest seed exceeds 900000000. This gives unique positive seeds within a sweep and deterministic replay of the same plan. Store a seed-derivation version.
+  - A seed is supplied to the template; it does not prove statistical independence or complete RNG-state capture. Models needing multiple random streams require an explicit later extension. Separate submissions may reuse seeds deliberately; they get new sweep/job identities.
+  - Persist immutable provenance with each job: sweep ID, manifest format/expansion version, combination index, selected list indices/values, repetition index/count, generated seed, template version, original template/source-tree hashes and rendered input hash. Use a canonical complete source manifest rather than relying on a machine-specific path as input identity. Record the original source locator for traceability.
+  - Expose provenance through `inspect` and the submission JSON mapping from expansion coordinates to job IDs. Runtime state stays in SQLite, configuration defaults stay in configuration, and provenance belongs to submission snapshots. Existing snapshots decode with absent sweep metadata and are never rewritten.
+- Validation and failure contract:
+  - Validate the schema, resource overrides, counts, seed range, safe source tree, template placeholders and every renderable value before registering any jobs. Invalid input leaves no submitted jobs or generated job trees. Reject a work root inside the source tree.
+  - Bind preparation to a verified source snapshot; fail if source changes would mix template identities across jobs. Recheck rendered hashes through existing snapshot publication paths.
+  - Filesystem/database failures after preparation must preserve completed job/output history and report the sweep ID, successfully registered jobs and the failed expansion coordinate. Do not imply whole-batch atomicity or automatically resubmit; document partial-submission inspection and manual recovery. An interrupted submission must remain discoverable via persisted sweep provenance. Repeating the submit command intentionally creates a fresh sweep, as existing submit creates fresh jobs; automatic submission deduplication/resume is outside this version.
+- Execution plan when authorized:
+  1. Mark T020 in_progress. Add focused schema/count/order/rendering regressions and a small pure expansion module (for example `sweeps.py`) with typed public functions using the standard library.
+  2. Add backward-compatible optional immutable sweep provenance to `models.py` and its decoder; cover old database snapshots and unchanged prior specifications. Reuse/refactor `local.py` input preparation only as needed to support generated inputs without duplicating shared/staged publication logic.
+  3. Add the CLI command, read-only preview and machine-readable submission mapping. Keep generated provenance out of user-controlled output paths and preserve subprocess argument-array execution.
+  4. Add end-to-end local tests with fake executables and shared/staged submission fixtures. Verify original inputs, per-job identities, rendered bytes, input manifests, seed uniqueness and failure history.
+  5. Document the schema, placeholder/seed rules, job ordering/counts, limits, commands and partial-submission behavior in `docs/parameter-sweeps.md`; update README, architecture and applicable CLI documentation to identify the implemented scope.
+  6. Run focused tests and `make check`, inspect tracked/new files and self-review resource accounting, snapshot compatibility, isolation and error paths. Record actual evidence and limitations before marking done.
+- Observable acceptance criteria:
+  - The example produces exactly 24 separately inspectable queued jobs, six distinct parameter coordinates with four repetitions each, in the defined expansion order, with seeds 1000..1023. Dry-run reports the same count/order without persistent writes.
+  - One-element lists, one parameter, repetitions=1, duplicate list values and reordered JSON parameter keys obey the documented rules. Invalid/empty lists, invalid scalar types, malformed placeholders, missing seed placeholder, invalid repetitions/resources, oversized plans and seed overflow fail before registration.
+  - Source template/auxiliary bytes stay unchanged. Each job contains the selected parameter values, correct repetition/seed, matching rendered digest and source provenance; changing source files or config after submission does not rewrite submitted specifications.
+  - Fake execution of a small repeated sweep produces isolated outputs and independently observable success/failure; retrying one failed job preserves its parameters/seed and does not create a replacement repetition or modify another job.
+  - Existing batch submission and legacy specifications remain compatible. Shared and staged snapshots retain valid input identities; no default test uses remote workers, credentials or real MPI/LAMMPS.
+  - Injected mid-submission failure preserves and identifies already registered jobs, reports the failed coordinate and leaves no false claim that every requested job was submitted.
+- Decisions / limitations: this is a planned feature, not an available command. User authorization in this request covers detailed task planning; implementation has not started. Parameter-dependent resource lists, correlated/zipped axes, conditional filters, multi-file templating, result analysis, automatic resume and extensions to the scientifically validated continuation matrix are outside T020.
+- Verification record: pending implementation.
