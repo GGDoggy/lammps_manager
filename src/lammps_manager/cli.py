@@ -69,6 +69,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         if name == 'run-priority':
             command.add_argument('--initial', type=int)
             command.add_argument('--continuation', type=int)
+    sweep = commands.add_parser('submit-sweep', help='Submit Cartesian parameter sweeps')
+    sweep.add_argument('--config', required=True)
+    sweep.add_argument('manifest')
+    sweep.add_argument('--dry-run', action='store_true')
     manager = commands.add_parser('serve', help='Run the authenticated manager API')
     manager.add_argument('--config', required=True)
     manager.add_argument('--credentials', required=True, help='JSON worker ID to private token-file path mapping')
@@ -148,6 +152,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 result = inspect_run(store, run_id, limit=getattr(args, 'limit', 100), after=getattr(args, 'after', -1))
             print(json.dumps(result, indent=2))
         except (ValueError, OSError, sqlite3.Error, TypeError) as exc:
+            parser.error(str(exc))
+        return 0
+
+    if args.command == 'submit-sweep':
+        from .sweeps import load_sweep, submit_sweep
+        try:
+            config = load_config(args.config, 'manager')
+            plan = load_sweep(config, args.manifest)
+            if args.dry_run:
+                result = plan.preview()
+            else:
+                with Store(config.manager.database_path) as store:
+                    result = submit_sweep(store, config, plan)
+            print(json.dumps(result, indent=2))
+        except (ValueError, OSError, sqlite3.Error) as exc:
             parser.error(str(exc))
         return 0
 

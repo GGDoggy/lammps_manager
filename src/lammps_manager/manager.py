@@ -219,6 +219,8 @@ class ManagerService:
                 attempt = store.attempt(reservation.attempt_id)
                 if attempt.state in {'assigned', 'unknown', 'cancelling'}:
                     specification = asdict(store.specification(attempt.job_id))
+                    # Submission provenance stays on the manager; workers need only rendered inputs.
+                    specification.pop('sweep', None)
                     if payload.get('recovery_protocol') != 1:
                         specification.pop('infrastructure_recovery', None)
                     if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':

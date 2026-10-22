@@ -165,3 +165,7 @@ is implied. [V007](verification/v007-service-lifecycle.md) verifies the
 TLS/authentication, CLI smoke jobs, service restarts and cleanup-setting changes
 without modifying immutable specifications. Neither acceptance includes a host
 reboot, physical power loss, multi-host performance or production deployment.
+
+## Parameter-sweep submission (T020)
+
+[Parameter sweeps](parameter-sweeps.md) generate independent jobs from a complete Cartesian product and a repetition count. The implemented submit-sweep command validates before registration, uses a verified source snapshot, renders only the primary input and persists versioned provenance with each specification. Dry-run performs no persistent writes. Each repetition uses existing scheduling, reservations and retry history; submission is not atomic across jobs. Correlated axes, multiple templated files, automatic submission resume and scientific independence guarantees remain outside this feature.

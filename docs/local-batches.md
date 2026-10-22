@@ -87,3 +87,5 @@ may be absent when preparation failed before opening output files.
 Default tests use temporary fixtures and fake executable scripts. They do not run
 real MPI / LAMMPS. Real integrations require separate explicit authorization and
 environment evidence.
+
+For Cartesian parameter lists and independent repetitions, use [submit-sweep](parameter-sweeps.md). The existing list-form submit command retains its behavior.
