@@ -64,14 +64,20 @@ def manager(root):
                '--credentials', str(root / 'credentials.json'), '--host', '127.0.0.1',
                '--port', '18448', '--tls-cert', str(ROOT / 'server.crt'),
                '--tls-key', str(ROOT / 'server.key')], root, 'manager')
-    for _ in range(80):
-        assert p.poll() is None, (root / 'manager.log').read_text()
-        try:
-            with socket.create_connection(('127.0.0.1', 18448), timeout=.1):
-                return p
-        except OSError:
-            time.sleep(.05)
-    raise AssertionError('Manager did not listen')
+    # Own the spawned process until readiness returns its handle to the caller.
+    # In particular, a timeout must not leave a process the caller cannot stop.
+    try:
+        for _ in range(80):
+            assert p.poll() is None, (root / 'manager.log').read_text()
+            try:
+                with socket.create_connection(('127.0.0.1', 18448), timeout=.1):
+                    return p
+            except OSError:
+                time.sleep(.05)
+        raise AssertionError('Manager did not listen')
+    except BaseException:
+        stop(p)
+        raise
 
 
 def worker(root):

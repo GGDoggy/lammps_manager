@@ -261,6 +261,132 @@ class StagedWorkerTests(unittest.TestCase):
             self.assertEqual(len(store.reservations()), 1)
         return transfer
 
+    def test_slow_input_transfer_keeps_authenticated_heartbeat_and_original_attempt(self) -> None:
+        import time
+        # Force expiry checks on each download. Several slow reads together take
+        # longer than the heartbeat timeout, but each read remains bounded.
+        self.service.config = replace(self.config, manager=replace(
+            self.config.manager, heartbeat_timeout_seconds=.25))
+        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
+        worker = self.worker()
+        original_open = worker.opener.open
+        snapshots = []
+
+        def slow_open(request, *args, **kwargs):
+            if '/files/' in request.full_url:
+                time.sleep(.16)
+                self.service.expire_workers()
+            if request.full_url.endswith('/v1/poll'):
+                snapshots.append(time.monotonic())
+            return original_open(request, *args, **kwargs)
+
+        with patch.object(worker.opener, 'open', side_effect=slow_open):
+            worker.tick()
+        self.assert_pending(worker, 'ready')
+        self.assertGreaterEqual(len(snapshots), 3)
+        with Store(self.config.manager.database_path) as store:
+            attempts = store.job_attempts(self.job_id)
+            self.assertEqual(len(attempts), 1)
+            self.assertNotIn('unknown', [e['state'] for e in store.events(self.job_id)])
+
+    def test_input_heartbeat_cancellation_never_publishes_or_launches(self) -> None:
+        import time
+        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
+        worker = self.worker()
+        original_open = worker.opener.open
+        cancelled = False
+
+        def cancel_during_download(request, *args, **kwargs):
+            nonlocal cancelled
+            if '/files/' in request.full_url and not cancelled:
+                cancelled = True
+                response = original_open(request, *args, **kwargs)
+                with Store(self.config.manager.database_path) as store:
+                    attempt, = store.job_attempts(self.job_id)
+                    store.request_cancel(attempt.attempt_id, 'Cancel during input transfer')
+                time.sleep(.02)
+                return response
+            return original_open(request, *args, **kwargs)
+
+        with patch.object(worker.opener, 'open', side_effect=cancel_during_download):
+            worker.tick()
+        with Store(worker.database) as store:
+            attempt, = store.job_attempts(self.job_id)
+            self.assertEqual(attempt.state, 'cancelled')
+            self.assertFalse(store.launch_claimed(attempt.attempt_id))
+            self.assertFalse((Path(attempt.directory) / 'inputs').exists())
+            self.assertFalse(store.reservations())
+        worker.tick()
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.job_state(self.job_id), 'cancelled')
+            self.assertFalse(store.reservations())
+        self.assertFalse(list(self.worker_root.rglob('process.json')))
+
+    def test_input_retry_heartbeat_defers_launch_until_normal_poll(self) -> None:
+        self._check_input_retry_heartbeat(resume=True)
+
+    def test_input_retry_heartbeat_pause_blocks_next_normal_poll(self) -> None:
+        self._check_input_retry_heartbeat(resume=False)
+
+    def _check_input_retry_heartbeat(self, *, resume: bool) -> None:
+        import time
+        from urllib.error import URLError
+
+        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
+        worker = self.worker()
+        original_open = worker.opener.open
+
+        def fail_download(request, *args, **kwargs):
+            if '/files/' in request.full_url:
+                raise URLError('Interrupted input download')
+            return original_open(request, *args, **kwargs)
+
+        with patch.object(worker.opener, 'open', side_effect=fail_download):
+            worker.tick()
+        self.assert_pending(worker, 'failed')
+        original_poll = self.service.poll
+        heartbeat_pauses = []
+
+        def record_poll(worker_id, payload):
+            reply = original_poll(worker_id, payload)
+            heartbeat_pauses.append(reply['paused'])
+            return reply
+
+        def pause_during_download(request, *args, **kwargs):
+            response = original_open(request, *args, **kwargs)
+            if '/files/' in request.full_url:
+                with Store(self.config.manager.database_path) as store:
+                    store.set_worker('a', paused=True)
+                time.sleep(.02)
+            return response
+
+        # Exercise actual admission and launch claims, but never execute a process.
+        with patch.object(worker, '_launch_staged', Worker._launch_staged.__get__(worker)), \
+                patch.object(worker, '_execute') as execute:
+            with patch.object(worker.opener, 'open', side_effect=pause_during_download), \
+                    patch.object(self.service, 'poll', side_effect=record_poll):
+                worker.tick()
+            self.assertIn(True, heartbeat_pauses)
+            execute.assert_not_called()
+            self.assert_pending(worker, 'ready')
+            with Store(worker.database) as store:
+                attempt, = store.job_attempts(self.job_id)
+                self.assertFalse(store.launch_claimed(attempt.attempt_id))
+
+            if resume:
+                with Store(self.config.manager.database_path) as store:
+                    store.set_worker('a', paused=False)
+            worker.tick()
+            if resume:
+                worker.futures[attempt.attempt_id].result(timeout=5)
+                execute.assert_called_once_with(attempt.attempt_id)
+            else:
+                execute.assert_not_called()
+                with Store(worker.database) as store:
+                    self.assertFalse(store.launch_claimed(attempt.attempt_id))
+                    self.assertEqual(store.rejection(attempt.attempt_id)['code'], 'not_ready')
+                    self.assertEqual(store.specification(self.job_id), self.spec)
+
     def test_separate_roots_replay_restart_and_input_preparation(self) -> None:
         worker = self.worker()
         result = worker.tick()

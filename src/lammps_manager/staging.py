@@ -67,7 +67,8 @@ def open_regular(root: Path, relative: str) -> BinaryIO:
         os.close(fd)
 
 
-def copy_verified(stream: BinaryIO, target: BinaryIO, item: InputFile) -> None:
+def copy_verified(stream: BinaryIO, target: BinaryIO, item: InputFile,
+                  progress: Callable[[], None] | None = None) -> None:
     """Read at most the declared size plus one byte and verify before publication."""
     digest = hashlib.sha256()
     remaining = item.size
@@ -76,6 +77,8 @@ def copy_verified(stream: BinaryIO, target: BinaryIO, item: InputFile) -> None:
         if not chunk:
             raise ValueError('Incomplete input download')
         target.write(chunk)
+        if progress:
+            progress()
         digest.update(chunk)
         remaining -= len(chunk)
     if stream.read(1) or digest.hexdigest() != item.sha256:
@@ -144,7 +147,8 @@ def snapshot_inputs(source: Path, destination: Path, limits: dict) -> tuple[Inpu
 
 def publish_inputs(destination: Path, files: tuple[InputFile, ...],
                    fetch: Callable[[int], BinaryIO], limits: dict,
-                   verified: Callable[[int], None] | None = None) -> None:
+                   verified: Callable[[int], None] | None = None,
+                   progress: Callable[[], None] | None = None) -> None:
     """Verify retries or atomically publish a fully verified temporary tree."""
     validate_manifest(files, **limits)
     if destination.is_symlink():
@@ -166,6 +170,8 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
                     if count > item.size:
                         raise ValueError('Published input size mismatch')
                     digest.update(chunk)
+                    if progress:
+                        progress()
                 if count != item.size or digest.hexdigest() != item.sha256:
                     raise ValueError('Published input hash mismatch')
             if verified:
@@ -181,7 +187,7 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
             target = temporary / safe_path(item.path)
             target.parent.mkdir(parents=True, exist_ok=True)
             with fetch(index) as incoming, target.open('xb') as outgoing:
-                copy_verified(incoming, outgoing, item)
+                copy_verified(incoming, outgoing, item, progress)
             if verified:
                 verified(index)
         for directory, _, _ in os.walk(temporary, topdown=False):

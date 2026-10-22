@@ -151,3 +151,17 @@ Continuation must preserve physical state, global step/time, parameter schedules
 ### T017 implementation status
 
 The [explicit continuation API and external comparison drivers](continuation.md) validate statistical `ideal-abp-2d-v1` on the fingerprinted mozzarella LAMMPS 2 Apr 2025 environment, one rank/thread and a measured 2000-step plan with boundaries at 600/1400. Eight pilot pairs fixed 256 confirmatory pairs; all 48 predeclared simultaneous equivalence intervals passed. The gate rejects exact mode and all unmeasured model/build/layout/range combinations. T018 provides [durable checkpoint publication](checkpoints.md); T019 queues the measured segmented plan and the measured single-segment reference under its default maximum. Same-host worker reassignment is gated by a pinned boot identity and actual build/layout checks. This does not establish arbitrary-script, interacting-ABP, unmeasured-range or cross-host compatibility.
+
+## Bounded artifact and service acceptance
+
+[V006](verification/v006-large-artifacts.md) verifies the agreed 64 MiB plus
+1000-small-file workload, streamed interruption/replay and actual test-process
+restarts within declared RSS, disk, latency and elapsed-time gates. Input
+preparation remains synchronous but now sends authenticated heartbeat-only
+polls between files and read/hash chunks, applying cancellation before launch.
+Blocking I/O may still delay polling. No broader transfer-performance guarantee
+is implied. [V007](verification/v007-service-lifecycle.md) verifies the
+[documented transient user-service lifecycle](service-lifecycle.md), protected
+TLS/authentication, CLI smoke jobs, service restarts and cleanup-setting changes
+without modifying immutable specifications. Neither acceptance includes a host
+reboot, physical power loss, multi-host performance or production deployment.

@@ -30,6 +30,10 @@ Missing/corrupt metadata, a reused PID with surviving session members, inaccessi
 
 ## Deployment and upgrade
 
+See the reproducible [isolated user-service lifecycle](service-lifecycle.md) for
+configuration validation, TLS trust, transient systemd units, service-only
+restarts, retention changes and shutdown audits without a host reboot.
+
 Use a dedicated service account and private local state/database directories. Keep SQLite on each host's local disk, and keep all attempt output. Use foreground `serve` and `worker` commands from [workers.md](workers.md) under a service supervisor such as systemd with `Restart=on-failure`. A worker unit should use `KillMode=process` so restarting the polling process does not silently kill unrelated running simulations; recovery needs their original journal. Do not use unit stop as job cancellation. Submit `cancel`, wait for confirmed terminal state and inspect reservations before maintenance that must stop simulation work. Graceful worker close waits for its executor, which may take the remaining submitted time limit.
 
 For upgrades, pause new dispatch, preserve journals and credentials, stop services without deleting simulation output, and back up local SQLite databases with SQLite's backup API. Opening schema version 1 atomically migrates attempts to version 2, removing the one-attempt-per-job constraint while preserving IDs, reservations, history, transfer records and the exact submitted JSON. Foreign-key checks run before migration commits and enforcement is re-enabled on the connection. Do not run older binaries against migrated databases. Keep manager and workers on the same release; older workers do not implement cancellation delivery or T006 reconciliation. Upgrade/restart workers using their original state directories, then restart the manager and resume after inspection.

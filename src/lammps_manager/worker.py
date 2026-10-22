@@ -297,10 +297,12 @@ class Worker:
                 self.collection_future = self.collection_pool.submit(self._collect_results, eligible)
         with Store(self.database) as store:
             if self.config.storage_mode == 'staged':
+                launch_poll_current = True
                 for reserved in store.reservations():
                     if reserved.attempt_id not in self.futures:
-                        self._stage(store, reserved.attempt_id)
-                        self._launch_staged(store, reserved.attempt_id, result, snapshot)
+                        launch_poll_current = self._stage(store, reserved.attempt_id) and launch_poll_current
+                        if launch_poll_current:
+                            self._launch_staged(store, reserved.attempt_id, result, snapshot)
             for assignment in result['assignments']:
                 spec_data = assignment['specification']
                 spec = specification_from_dict(spec_data)
@@ -447,22 +449,63 @@ class Worker:
             return False
         return True
 
-    def _stage(self, store: Store, attempt_id: str) -> None:
-        """Retry input transfer independently of process acceptance; never launch."""
+    def _stage(self, store: Store, attempt_id: str) -> bool:
+        """Prepare inputs; permit launch only if the normal poll is still current."""
         from .staging import publish_inputs
         attempt = store.attempt(attempt_id)
         if attempt.state != 'assigned':
-            return
+            return True
         previous = store.input_transfer(attempt_id)
         if previous and previous['status'] == 'ready':
-            return
+            return True
         if not self._prepare_staged_directory(store, attempt_id):
-            return
+            return True
         destination = Path(attempt.directory) / 'inputs'
         store.set_input_transfer(attempt_id, str(destination), 'downloading')
         spec = store.specification(attempt.job_id)
 
+        last_heartbeat = time.monotonic()
+        polled_during_transfer = False
+
+        def heartbeat() -> None:
+            nonlocal last_heartbeat, polled_during_transfer
+            if time.monotonic() - last_heartbeat < min(1, self.config.heartbeat_interval_seconds):
+                return
+            # Input preparation stays synchronous, but bounded read/hash chunks
+            # keep the original assignment alive. New assignments remain durable
+            # at the manager until the next normal tick accepts them.
+            snapshot = self.monitor.sample(self.config)
+            snapshot.update(ready=self.ready, draining=self.draining, continuation_ready=True)
+            import shutil
+            try:
+                snapshot['staged_free_disk_gib'] = shutil.disk_usage(self.config.work_root).free / 2**30
+            except OSError:
+                snapshot['staged_free_disk_gib'] = None
+            request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
+                data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
+                    'reports': [], 'protocol': 2, 'recovery_protocol': 1,
+                    'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
+                    'storage_mode': self.config.storage_mode}).encode(),
+                headers={'Content-Type': 'application/json', 'X-Worker-ID': self.config.worker.id,
+                         'Authorization': 'Bearer ' + self.token})
+            with self.opener.open(request, timeout=10) as response:
+                reply = json.load(response)
+            polled_during_transfer = True
+            last_heartbeat = time.monotonic()
+            for command in reply.get('cancellations', []):
+                try:
+                    current = store.attempt(command['attempt_id'])
+                except ValueError:
+                    continue  # The next normal tick accepts pending assignments.
+                store.request_cancel(current.attempt_id, command['reason'])
+                if not store.launch_claimed(current.attempt_id):
+                    store.transition(current.attempt_id, 'cancelled', reason=command['reason'],
+                                     termination_evidence='Launch did not start a process')
+            if store.attempt(attempt_id).state != 'assigned':
+                raise ValueError('Input preparation stopped after cancellation')
+
         def fetch(index: int) -> BinaryIO:
+            heartbeat()
             request = Request(self.config.manager_endpoint.rstrip('/') +
                               f'/v2/inputs/{attempt_id}/files/{index}',
                               headers={'X-Worker-ID': self.config.worker.id,
@@ -473,6 +516,7 @@ class Worker:
 
         def verified(index: int) -> None:
             nonlocal last_report
+            heartbeat()
             if time.monotonic() - last_report < 1 and index != len(spec.input_manifest) - 1:
                 return
             last_report = time.monotonic()
@@ -498,13 +542,16 @@ class Worker:
             publish_inputs(destination, spec.input_manifest, fetch,
                            dict(max_files=self.config.max_input_files,
                                 max_file_bytes=self.config.max_input_file_bytes,
-                                max_total_bytes=self.config.max_input_total_bytes), verified=verified)
+                                max_total_bytes=self.config.max_input_total_bytes), verified=verified, progress=heartbeat)
         except (OSError, ValueError, IncompleteRead, URLError) as exc:
             store.set_input_transfer(attempt_id, str(destination), 'failed',
                                      f'{type(exc).__name__}: {exc}')
-            return
+            return not polled_during_transfer
         store.set_input_transfer(attempt_id, str(destination), 'ready',
                                  'Inputs verified')
+        # Heartbeat replies may supersede pause/capacity/policy in tick's reply.
+        # Refresh both admission policy and local metrics in the next normal poll.
+        return not polled_during_transfer
 
     def _launch_staged(self, store: Store, attempt_id: str, result: dict, snapshot: dict) -> None:
         """Consume a durable launch right only after resource and input checks."""

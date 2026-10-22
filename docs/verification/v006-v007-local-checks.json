@@ -1,0 +1,11 @@
+{
+  "check_command": "make check",
+  "check_log": "/tmp/v006-v007-final-check.log",
+  "check_log_sha256": "505d492046ce38aed6f886d53da07e8fb5a59d22bddfa8d8bb9322a779f98fbd",
+  "tests": 285,
+  "source_manifests_match": true,
+  "documentation_links_and_new_file_whitespace": true,
+  "auditor_sha256": "f18934d8d719ee3f35585d701bbf5120022529957af042d7ff0113b301c7ca6c",
+  "host_key_trust": "Explicit user authorization to trust the endpoint current key; pinned for strict checking afterward",
+  "ssh_ed25519_fingerprint": "SHA256:Q79M0dKjmxWwbxYTMUkfX+rfnOvSJXCt6CWxckILL1k"
+}

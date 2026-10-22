@@ -1,0 +1,14 @@
+Started /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v007-rvzEw87u/v007/manager.yaml --credentials /tmp/lammps-v007-rvzEw87u/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v007-rvzEw87u/server.crt --tls-key /tmp/lammps-v007-rvzEw87u/server.key.
+Manager listening on 127.0.0.1:18448
+Started /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal.
+Stopping /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v007-rvzEw87u/v007/manager.yaml --credentials /tmp/lammps-v007-rvzEw87u/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v007-rvzEw87u/server.crt --tls-key /tmp/lammps-v007-rvzEw87u/server.key...
+Stopped /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v007-rvzEw87u/v007/manager.yaml --credentials /tmp/lammps-v007-rvzEw87u/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v007-rvzEw87u/server.crt --tls-key /tmp/lammps-v007-rvzEw87u/server.key.
+Started /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v007-rvzEw87u/v007/manager.yaml --credentials /tmp/lammps-v007-rvzEw87u/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v007-rvzEw87u/server.crt --tls-key /tmp/lammps-v007-rvzEw87u/server.key.
+Worker poll failed: URLError
+Stopping /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal...
+Stopped /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal.
+Started /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal.
+Stopping /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal...
+Stopped /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal.
+Started /tmp/lammps-v007-rvzEw87u/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v007-rvzEw87u/v007/worker.yaml --state-directory /tmp/lammps-v007-rvzEw87u/v007/journal.
+Manager listening on 127.0.0.1:18448

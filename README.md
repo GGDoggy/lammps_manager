@@ -42,4 +42,10 @@ Permanent repository documentation and agent-facing material use English. Tempor
 
 Real-host acceptance records: [local CLI batches (V008)](docs/verification/v008-local-batches.md), [one-worker concurrency (V003)](docs/verification/v003-concurrency.md), [per-CPU admission (V004)](docs/verification/v004-cpu-admission.md), and [OS restarts / TLS interruption (V005)](docs/verification/v005-restart-transport.md). Explicit external [harnesses](tools/verification/README.md) are retained outside default tests; these checks do not establish production deployment, large-transfer performance or power-loss durability.
 
+[Bounded large-artifact recovery (V006)](docs/verification/v006-large-artifacts.md) and
+[isolated systemd service lifecycle (V007)](docs/verification/v007-service-lifecycle.md)
+are verified with real MPI/LAMMPS. See the reproducible
+[service procedure](docs/service-lifecycle.md); these checks restart test
+processes only and do not establish physical reboot or production readiness.
+
 [Continuation contracts (T017)](docs/continuation.md) validate a restricted statistical ideal-ABP recipe on a fingerprinted LAMMPS build, with a fail-closed capability API and explicit scientific comparison drivers. [Durable checkpoint publication (T018)](docs/checkpoints.md) retains verified state independently of process/result completion. [Queued continuation runs (T019)](docs/segmentation.md) support the measured recipe/plan, parent monitoring and cancellation, priority inheritance and compatible same-host worker reassignment. Exact continuation, unmeasured ranges and cross-host continuation remain unavailable.

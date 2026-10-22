@@ -52,3 +52,69 @@ build, checkpoint, process and output inventories are retained. References are
 functional checks; scientific acceptance remains T017's independent confirmatory
 study, never a single-pair mean comparison. See [checkpoints](../../docs/checkpoints.md)
 and [segmentation](../../docs/segmentation.md).
+
+## V006/V007 bounded artifacts and isolated services
+
+`artifact_acceptance.py` and its streaming `artifact_proxy.py` reuse
+`real_acceptance.py`, `distributed_acceptance.py` and `restart_acceptance.py`.
+Copy those helpers and current `src/` into a fresh mode-0700 private root, record
+all source hashes, and use Python 3.10+ with PyYAML 6.x. V006 expects the existing
+real executable paths `/usr/bin/lmp` and `/usr/bin/mpirun.openmpi`. It uses only
+private loopback TLS ports 18448/18449; establish that they are free first.
+
+The user-approved workload is one 64 MiB file and 1000 4096-byte files, plus a
+small LAMMPS input and bounded execution artifacts. The work tree becomes the
+result workload. Gates are 2 GiB total test-root disk, 512 MiB RSS per process,
+900 seconds overall, five seconds per successful poll and ten seconds between
+successful authenticated polls, including injected service restart gaps.
+These are this workload's acceptance gates, not a universal throughput promise.
+The driver persists its budget before generation, samples RSS/disk every 0.2
+seconds, streams hashes and proxy traffic in 64 KiB chunks, rejects the same
+input under a smaller file limit before submission, interrupts both transfer
+directions, restarts actual uploader/manager processes, verifies original
+attempt identity and all manifest hashes, and enables acknowledged cleanup.
+RSS/disk are sampled peaks rather than hard OS enforcement; individual
+blocking I/O calls can still exceed heartbeat budgets. A failed gate must remain
+a failed acceptance. Raw samples, transfer events and private outputs remain.
+
+Run `PYTHONPATH=src .venv/bin/python artifact_acceptance.py` from that root.
+A failed driver must be inspected before any new run: check its original
+attempt/journal, reservations, process sessions and listener ownership. Do not
+blindly resubmit. Source or driver fixes need new source hashes and a fresh root;
+retain prior failures as evidence. V006 protects startup as well as execution:
+proxy readiness or later startup failures trigger cleanup of already returned
+service handles, and a fault-reset or stop error does not skip other cleanup.
+The shared manager startup helper owns its process until readiness succeeds;
+a readiness timeout, early exit or interruption triggers cleanup before the
+helper propagates the failure, even though its caller has no process handle yet.
+
+After V006 passes, `service_acceptance.py` verifies actual transient systemd
+user units following [service-lifecycle.md](../../docs/service-lifecycle.md).
+Use another fresh root with its helper drivers, current source and PyYAML;
+the user bus must already be available. Run
+`PYTHONPATH=src .venv/bin/python service_acceptance.py`. No unit installation,
+host reboot, system package change, existing-service restart or production
+configuration change is needed. It validates both configurations through CLI,
+starts dedicated TLS services, rejects untrusted certificates/invalid tokens,
+executes two bounded real smoke jobs, restarts named units, toggles staged
+cleanup through YAML, compares exact submitted SQLite specification strings,
+checks results/session/reservation evidence and stops its units. It retains
+sanitized logs and machine-readable `v007.json`. A prepared driver is not proof
+of successful real-host acceptance.
+
+V007 includes manager startup in its named-unit cleanup region, so a
+`systemd-run` timeout or interruption also attempts to stop the test units.
+Configuration validation runs before that region and does not start services.
+
+After a successful driver, run `PYTHONPATH=src .venv/bin/python lifecycle_audit.py PRIVATE_ROOT`
+for a separate read-only source/result/session/reservation/listener audit. Include
+the auditor in the recorded source manifest or record its identity separately.
+The auditor opens manager databases read-only and requires every recorded attempt
+to have a collected result manifest. It compares each complete publication tree
+with that manifest's file set, byte sizes and SHA-256 hashes; missing trees,
+unexpected publications and unsafe artifacts fail the audit. Run it only after
+all attempts have completed result collection. Earlier audit JSON records produced
+before this comparison was added are hash inventories, not independent manifest
+comparisons; retain them as historical evidence rather than relabeling them.
+Persistent acceptance: [V006](../../docs/verification/v006-large-artifacts.md),
+[V007](../../docs/verification/v007-service-lifecycle.md).

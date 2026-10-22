@@ -1,0 +1,108 @@
+{
+  "roots": [
+    {
+      "root": "/tmp/lammps-v006-jXBMecYE",
+      "reservations": {
+        "v006/manager.sqlite": 0,
+        "v006/journal/attempts.sqlite3": 0
+      },
+      "sessions": [],
+      "allocated_disk_bytes": 165523456
+    },
+    {
+      "root": "/tmp/lammps-v006-jRpE142p",
+      "reservations": {
+        "v006/manager.sqlite": 0,
+        "v006/journal/attempts.sqlite3": 0
+      },
+      "sessions": [
+        {
+          "identity": {
+            "pid": 221557,
+            "process_group": 221557,
+            "session": 221557,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "32121486",
+            "launched_at": "2026-10-22T01:51:42.846040+00:00"
+          },
+          "members": []
+        }
+      ],
+      "allocated_disk_bytes": 451342336
+    },
+    {
+      "root": "/tmp/lammps-v006-lh8858Dt",
+      "reservations": {
+        "v006/manager.sqlite": 0,
+        "v006/journal/attempts.sqlite3": 0
+      },
+      "sessions": [
+        {
+          "identity": {
+            "pid": 231334,
+            "process_group": 231334,
+            "session": 231334,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "32136770",
+            "launched_at": "2026-10-22T01:54:15.692260+00:00"
+          },
+          "members": []
+        }
+      ],
+      "allocated_disk_bytes": 310177792
+    },
+    {
+      "root": "/tmp/lammps-v007-rvzEw87u",
+      "reservations": {
+        "v007/manager.sqlite": 0,
+        "v007/journal/attempts.sqlite3": 0
+      },
+      "sessions": [
+        {
+          "identity": {
+            "pid": 236739,
+            "process_group": 236739,
+            "session": 236739,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "32143858",
+            "launched_at": "2026-10-22T01:55:26.567537+00:00"
+          },
+          "members": []
+        },
+        {
+          "identity": {
+            "pid": 236787,
+            "process_group": 236787,
+            "session": 236787,
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "start_ticks": "32143981",
+            "launched_at": "2026-10-22T01:55:27.799422+00:00"
+          },
+          "members": []
+        }
+      ],
+      "allocated_disk_bytes": 22556672
+    }
+  ],
+  "processes": [],
+  "ports": {
+    "18448": "closed",
+    "18449": "closed"
+  },
+  "versions": {
+    "mpi": [
+      "mpirun.openmpi (OpenRTE) 4.1.2",
+      "",
+      "Report bugs to http://www.open-mpi.org/community/help/"
+    ],
+    "lammps": [
+      "",
+      "Large-scale Atomic/Molecular Massively Parallel Simulator - 29 Sep 2021 - Update 2",
+      "",
+      "Usage example: /usr/bin/lmp -var t 300 -echo screen -in in.alloy",
+      ""
+    ]
+  },
+  "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "combined_allocated_disk_bytes": 949600256
+}

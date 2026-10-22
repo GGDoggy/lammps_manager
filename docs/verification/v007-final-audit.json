@@ -1,0 +1,135 @@
+{
+  "root": "/tmp/lammps-v007-rvzEw87u",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "2cc78dfa252dee1fa08296e6229d330f3b6722bd13c8ae2ab8dab8f35956772f",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/checkpoints.py": "79b4bb4fde03490bce8a36f4b39c1ddfd41cafd2dd757ac865b2879fbfe08f2f",
+    "src/lammps_manager/staging.py": "29907f96b8b887a4fecc780880224bcab84ebea9c77c067b2788ae45c9560f9d",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/store.py": "7197d512292583a31df9f7903f3e7893670fb45a0c0dca4e89096c9c2284cfba",
+    "src/lammps_manager/scheduler.py": "64b3a86d5d7d9deb27a697fbfe701e160bf74575fa928bc152aefadfcfe0a873",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/models.py": "3a8b88f854032515b8722223b31802d0ffd32a659778e305675a2e633b35c002",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/worker.py": "a19fb4a5300b24676f6c279dadbdccddd8b9885478945f0c74f2ad501f66d6b5",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cli.py": "ded57375ec2e586be658c782f0427762f41c8009985b6db8876536103c15c967",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "real_acceptance.py": "d3d1e6f698bc9b3a96dc8060b7ba9698ce7d1feb5efa511785466590619fa4b1",
+    "distributed_acceptance.py": "b4bb325f23a85f6c83b8476dbfabae036d1e104321afaab645aa545f3fbfbb96",
+    "restart_acceptance.py": "39cfd8847d7ba2db586a31528f82988de0d9f46d673d3b640f7bb9c5ca07ba93",
+    "artifact_acceptance.py": "88ca319f635497a72df556989dba8fa94b2c26c2775368e0f119cbbc1219add7",
+    "artifact_proxy.py": "7c317e6bb49ca44804e85c86cd36ecb8c794f25eb45b1b8c74a53db7137fd816",
+    "service_acceptance.py": "27e50aca6c4e93be949361aec6b16d3fe6d578f30982fd4c4dbe15719b901cd1",
+    "lifecycle_audit.py": "f18934d8d719ee3f35585d701bbf5120022529957af042d7ff0113b301c7ca6c"
+  },
+  "reservations": {
+    "v007/manager.sqlite": 0,
+    "v007/journal/attempts.sqlite3": 0
+  },
+  "sessions": [
+    {
+      "path": "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/process.json",
+      "identity": {
+        "pid": 236739,
+        "process_group": 236739,
+        "session": 236739,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "32143858",
+        "launched_at": "2026-10-22T01:55:26.567537+00:00"
+      },
+      "members": []
+    },
+    {
+      "path": "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/process.json",
+      "identity": {
+        "pid": 236787,
+        "process_group": 236787,
+        "session": 236787,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "32143981",
+        "launched_at": "2026-10-22T01:55:27.799422+00:00"
+      },
+      "members": []
+    }
+  ],
+  "outputs": {
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/execution.json": {
+      "size": 568,
+      "sha256": "199ff546b2529ea7813f422dc3159d43913c49fbad6f35e1d18069787447f42d"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/stderr": {
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/outcome.json": {
+      "size": 506,
+      "sha256": "b5b6d88d584d6deb6461a7f3326cf739522d9b7d806117d4d9e6a178393c320d"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/stdout": {
+      "size": 2324,
+      "sha256": "a536118734f6150cde3be29084ce1360a3f23b6643b0b0a52dd65ea90e9aad4e"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/process.json": {
+      "size": 188,
+      "sha256": "08dcaf73fa046efce7fbbc5e5f464017e30d506c69af16b6ccf8322fc5096ef8"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/work/in.lmp": {
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/work/log.lammps": {
+      "size": 2559,
+      "sha256": "3bb87f93fa776af4024a32e6ea237d2a6b9b46350b8c6392e446b544646effa7"
+    },
+    "v007/jobs/af155e9fb6c14d918331bee445f12bc0/9f9ebb6079b7471280cc1909109dcd7a/results/work/output.data": {
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/execution.json": {
+      "size": 568,
+      "sha256": "e72dddf654e148f7d9df0171349a49ac468e3625e64dbaf3e9412974e46aba6e"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/stderr": {
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/outcome.json": {
+      "size": 506,
+      "sha256": "061edfabcfa03991575eccf2db885c119f81d242fe7d3633a61d5ad07335ee7a"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/stdout": {
+      "size": 2323,
+      "sha256": "1196299cd828f2a9b80d68651d6b07cd411e8b893465ac646191399bf484895c"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/process.json": {
+      "size": 188,
+      "sha256": "ac5f9326ff2d4126f1b57506dd78f50590e12deb8e59276c869d2ace85de539f"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/work/in.lmp": {
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/work/log.lammps": {
+      "size": 2558,
+      "sha256": "f58a26dcb5cd441f43c53e007ecec4a30e95661fdc7d78a47a50adaa60d4e1da"
+    },
+    "v007/jobs/feda458fbd424166b9405cc6a74010d6/64ea10fa6b904f9faf021a00b8641a54/results/work/output.data": {
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    }
+  },
+  "processes": [],
+  "ports": {
+    "18448": "closed",
+    "18449": "closed"
+  },
+  "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "pyyaml": "6.0.3"
+}
