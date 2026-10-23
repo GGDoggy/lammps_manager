@@ -173,6 +173,8 @@ class Store:
                 initialize_segments(self)
                 from .monitoring import initialize
                 initialize(self)
+                from .multihost import initialize as initialize_multihost
+                initialize_multihost(self)
                 if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
                     raise StoreError('Database foreign key check failed')
             self._db.execute('PRAGMA foreign_keys = ON')
@@ -282,7 +284,10 @@ class Store:
                 or type(policy.delay_seconds) not in (int, float)
                 or not math.isfinite(policy.delay_seconds) or policy.delay_seconds <= 0):
             raise StoreError('Invalid infrastructure recovery policy')
-        payload = json.dumps(asdict(specification), sort_keys=True, allow_nan=False)
+        snapshot = asdict(specification)
+        if not specification.mpi_placement:
+            snapshot.pop('mpi_placement')
+        payload = json.dumps(snapshot, sort_keys=True, allow_nan=False)
         with self._transaction():
             row = self._db.execute('SELECT specification FROM jobs WHERE job_id=?',
                                    (specification.job_id,)).fetchone()
@@ -378,19 +383,27 @@ class Store:
         Completed history still matters when its creation/start overlaps a sample.
         """
         rows = self._db.execute(
-            'SELECT a.*, j.specification FROM attempts a '
+            'SELECT a.*, j.specification, m.mpi_ranks AS participant_ranks, '
+            'm.memory_gib AS participant_memory FROM attempts a '
             'JOIN jobs j ON j.job_id=a.job_id '
-            'WHERE a.worker_id=? '
+            'LEFT JOIN mpi_members m ON m.attempt_id=a.attempt_id AND m.worker_id=? '
+            'WHERE a.attempt_id IN (SELECT attempt_id FROM attempts WHERE worker_id=? '
+            'UNION SELECT attempt_id FROM mpi_members WHERE worker_id=?) '
             'AND (a.created_at>=? OR a.started_at>=? '
             'OR (a.ended_at IS NULL AND a.started_at IS NULL)) '
             'AND (? IS NULL OR a.attempt_id!=?) '
             'AND NOT (? AND a.state=\'assigned\' AND NOT EXISTS '
             '(SELECT 1 FROM launch_claims c WHERE c.attempt_id=a.attempt_id))',
-            (worker_id, since, since, candidate_id, candidate_id, skip_unclaimed_staged))
+            (worker_id, worker_id, worker_id, since, since, candidate_id, candidate_id, skip_unclaimed_staged))
         result = []
         for row in rows:
             data = dict(row)
             resources = specification_from_dict(json.loads(data.pop('specification'))).resources
+            ranks = data.pop('participant_ranks')
+            memory = data.pop('participant_memory')
+            if ranks is not None:
+                from dataclasses import replace
+                resources = replace(resources, mpi_ranks=ranks, memory_gib=memory)
             result.append((Attempt(**data), resources))
         return tuple(result)
 
@@ -415,6 +428,12 @@ class Store:
         API does not enforce capacity itself. An existing attempt ID is replayable
         only with the same assignment values.
         """
+        return self._assign(job_id, attempt_id, worker_id, directory,
+                            default_priority=default_priority)
+
+    def _assign(self, job_id: str, attempt_id: str, worker_id: str, directory: str, *,
+                default_priority: int = 0, coordinated: bool = False) -> Attempt:
+        """Common atomic assignment write; coordinated callers hold their own transaction."""
         for name, value in (('attempt_id', attempt_id), ('worker_id', worker_id),
                             ('directory', directory)):
             if not isinstance(value, str) or not value.strip() or '\x00' in value:
@@ -435,7 +454,16 @@ class Store:
                     return Attempt(**dict(existing))
                 if self.job_state(job_id) != 'queued':
                     raise StoreError('Only queued jobs can be assigned')
-                resources = self.specification(job_id).resources
+                specification = self.specification(job_id)
+                if specification.mpi_placement and not coordinated:
+                    raise StoreError('Multi-host MPI requires coordinated assignment')
+                resources = specification.resources
+                if coordinated:
+                    from dataclasses import replace
+                    if not specification.mpi_placement or specification.mpi_placement[0].worker_id != worker_id:
+                        raise StoreError('Coordinated assignment requires its declared leader')
+                    leader = specification.mpi_placement[0]
+                    resources = replace(resources, mpi_ranks=leader.mpi_ranks, memory_gib=leader.memory_gib)
                 self._db.execute(
                     'INSERT INTO attempts(attempt_id,job_id,worker_id,directory,state) '
                     'VALUES(?,?,?,?,?)', (attempt_id, job_id, worker_id, directory, 'assigned'))
@@ -483,6 +511,9 @@ class Store:
                 return old
             if state not in TRANSITIONS.get(old.state, set()):
                 raise StoreError(f'Illegal transition: {old.state} -> {state}')
+            if state in TERMINAL:
+                from .multihost import require_terminated
+                require_terminated(self, attempt_id, state)
             self._db.execute(
                 "UPDATE attempts SET state=?,exit_code=?,termination_evidence=?,reason=?, "
                 "started_at=CASE WHEN ?='running' THEN COALESCE(started_at, "
@@ -493,6 +524,7 @@ class Store:
             self._db.execute('UPDATE jobs SET state=? WHERE job_id=?', (state, old.job_id))
             if state in TERMINAL:
                 self._db.execute('DELETE FROM reservations WHERE attempt_id=?', (attempt_id,))
+                self._db.execute('UPDATE mpi_members SET released=1 WHERE attempt_id=?', (attempt_id,))
             self._event(old.job_id, attempt_id, state, reason, exit_code, termination_evidence)
         return self.attempt(attempt_id)
 
@@ -869,13 +901,17 @@ class Store:
 
     def reservations(self, worker_id: str | None = None) -> tuple[Reservation, ...]:
         """Read active reservations, including unknown and cancelling attempts."""
-        query = 'SELECT * FROM reservations'
+        query = ('SELECT attempt_id,worker_id,cpu_slots,memory_gib FROM reservations')
+        peer_query = ('SELECT m.attempt_id,m.worker_id,m.cpu_slots,m.memory_gib '
+                      'FROM mpi_members m JOIN attempts a USING(attempt_id) '
+                      'WHERE m.released=0 AND m.worker_id!=a.worker_id')
         args: tuple[str, ...] = ()
         if worker_id is not None:
             query += ' WHERE worker_id=?'
-            args = (worker_id,)
+            peer_query += ' AND m.worker_id=?'
+            args = (worker_id, worker_id)
         return tuple(Reservation(**dict(row)) for row in
-                     self._db.execute(query + ' ORDER BY attempt_id', args))
+                     self._db.execute(query + ' UNION ALL ' + peer_query + ' ORDER BY attempt_id,worker_id', args))
 
     def events(self, job_id: str, *, limit: int | None = None,
                before: int | None = None) -> tuple[dict[str, object], ...]:

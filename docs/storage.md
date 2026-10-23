@@ -24,6 +24,43 @@ with Store('/var/lib/lammps-manager/state.sqlite') as store:
 
 ## Data and transaction boundaries
 
+V010 adds an opt-in Python-model field, `JobSpecification.mpi_placement`,
+an immutable tuple of `MpiParticipant(worker_id, mpi_ranks, memory_gib)` records.
+Nonempty placement requires at least two distinct workers and staged storage;
+rank and memory shares must sum to the specification's resource totals. This
+intent is persisted and decoded for the explicit native coordinator. Ordinary
+`assign()` rejects it and the scheduler records `multi_host_protocol_unavailable`
+without creating an attempt or reservation. Empty placement is omitted from
+stored JSON and worker payloads; legacy snapshots decode with empty placement
+and are never rewritten. There is no CLI or YAML option for this contract yet.
+
+The `lammps_manager.multihost` API provides `reserve`, `prepare`,
+`authorize`, `terminate`, `finish` and retained `members` inspection. `reserve`
+checks supplied effective capacities and pinned registered generations inside
+one write transaction, creates a single leader attempt and reserves all participant
+shares. `Store.reservations(worker_id)` includes peer shares as well as ordinary
+work, while the submitted specification retains the total resources. Callers must
+add fresh metric/load admission; this low-level API performs no network/process
+checks. The explicit `mpi_runtime.Session` adds current admission and durable
+node helper RPCs; the ordinary worker protocol and CLI do not expose it.
+
+`prepare` binds each participant's boot/session, common executable digest and
+absolute execution directory. Authorization requires every participant prepared
+on its current generation and no cancellation. `terminate` accepts only fenced
+never-started, ended-session or changed-boot evidence; actual process checks and
+launch-fence closure are the caller's responsibility. No participant's terminal
+report releases resources individually. `finish` commits the combined outcome
+and releases every share atomically after all participants have termination
+evidence. Direct `Store.transition` also enforces this barrier, including all-host
+success/authorization checks. Participant metadata remains after release, so
+CPU sampling history charges each host its own rank-times-thread share even for
+a short completed group. Earlier JSON snapshots and schema version 2 remain
+unchanged; new coordinator tables are additive. These are local storage
+guarantees; [V010](deployment.md) separately records actual multi-host execution
+acceptance. Per-host `mpi_outputs` and the immutable `mpi_runtime` plan retain
+collection progress and original host bindings. Combined output publication waits
+for every participant and verifies the aggregate artifact limits.
+
 - `submit()` persists a JSON copy of the complete specification and a queued
   event. Later configuration changes do not affect that snapshot. Directly
   constructed specifications also receive structural validation. Inputs are not

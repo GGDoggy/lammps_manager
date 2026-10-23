@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-24",
+  "scope": "Retained three-host staged deployment; bounded single-job two-host MPI success, cancellation and manager transport interruption verified",
+  "root": "/home/ted/lammps_manager",
+  "tests_prior_to_placement": {
+    "count": 350,
+    "seconds": 81.165
+  },
+  "evidence_sha256": {
+    "allegro-preparation.json": "7a2c47336980fee14d6400f23866be6ce22b1810a1043f58d362b631c6b29dcb",
+    "common-lammps.json": "425d5201ebf5cd662aa2d61ac287176a9eec4b850455ad477a5e4befb1f07426",
+    "deployment-acceptance.json": "29976507e49be99f16f6c4065912902b32f4dad7b61a3984042f42aa50eeb0a7",
+    "deployment-audit.json": "08e90d825bef40f4fdea96ec3923d1f207e1c61da7c79cc0ab4e066f24627e92",
+    "mozzarella-preparation.json": "c3fa6d55dbe328871c72f374cebdc127e1142606ad442f86de7cb89cfd80c159",
+    "mpi-network-preflight.json": "28f38cf04ff814f4c65027b5e7ee0ec66209cfe7e45e3aa5a260dc10efa64b7b",
+    "remote-preflight-summary.json": "b2013e564d84900770034497ea9e86f9ed9a36bac788e1baff45a693f3090ce9",
+    "retained-deployment-status.json": "4a6dff72e2adb4eacc14f71b002ba46274282601eb8ffc24fd18aa5dfa97444d",
+    "service-start.json": "19e7c05a29ccffcdcf94e4dca4190e9127fabd08df33870fc2b33db6e81637d3",
+    "supervision.json": "a40640983ebc7342b8b7f212eb8e4b4b360232f915aa73d40703262259d5b561",
+    "three-workers.json": "cbdd14c25dbd483fe3cf56164ce1ef29eb3b9ff809b1ad36848bfd0686a72bc1",
+    "transport-topology.json": "9fb0c1b32b129c0d14ee811a0cbd66ebf6622887ee40d229c13aa62f3d743694",
+    "coordinator-development-live-status.json": "b93840958ee0be38ce408bda4d12c800fbf670a88e81adf2405af9fd69af4a50",
+    "native-upgrade.json": "613364171e90b1f15be4bdc5172d0e4e5d2465b4c20612f5147eb3c6b3137578",
+    "native-upgrade-noprefix.json": "3fe10a8c83e83ae91bd6760f06e88408ff6287c3998d71a5daf5b7e0fb8fc25c",
+    "native-ssh.json": "211344ed0b919a739db05898a4ad75ef8b03da115d78ae9bf2d6a1bf029ef29b",
+    "native-success.json": "1ce0a8cd076c413f1c4be99f1ae6822dca3847b1538fc4fe754d8becab121081",
+    "native-success-noprefix.json": "21fedf57674ddf2ce7b042c280009525ab4d9721a67f90760983ed686123f4d7",
+    "native-cancel.json": "f789078d4c1615ee595274da91926707f79033eb3e3b461cd270a398217d3df3",
+    "native-disconnect.json": "d348c00d84c65b7f19ff9e97d3a19f35de08d839cdca6e5bea1e5de68b867a5a",
+    "native-final-audit.json": "2df297f301cd277431e8152278301c14c3917cd21869328808b7bacf6a54ec04"
+  },
+  "driver_sha256": {
+    "audit_deployment.py": "8e4963241247705e71330b4c8e7d18ddbc46130b16215c6321d38ff893dfbba3",
+    "configure_transport.py": "698ccd24a9218ca81cec7a8a80922ce74042fb114da49060ade54dccea422172",
+    "deployment_acceptance.py": "72948d8a98df13ed86c4db45b22e4565c8860d4748cee120971c5e034cf54346",
+    "prepare_common_lammps.py": "ff3bf24a30951362c19052f55a9dd86eb3eac8d35ad360fef307ce870ef93329",
+    "prepare_deployment.py": "8c42f959572c10dc9f5c654caf42c8d60b4aa43ad3e183b3553e128f2b0c82ff",
+    "start_deployment.py": "aa904fb22aaefdfb8eb53d06ded0dcb40d28cc003431b818739e8094eaab7fde",
+    "three_workers_acceptance.py": "a8061eafc26ba4b7eed9b4424a8f3892e5314f603e57881485560463b909ea7c",
+    "verify_supervision.py": "096d510e5080283388eda1def5b60a1a08157e934000550112212b2bbde0f329",
+    "configure_native_ssh.py": "5865a3a8ef8625e79f9f1cf94390e5423cf980caffbf7a56761e55e13ce30d91",
+    "native_acceptance.py": "ce2dcecc3b472d1f51530dc157df6adbe84779372ac31664187b01e2869f4de3",
+    "final_native_audit.py": "27faf9692a27efa7e89778fb58b17cfe640d107010f7c3692db8889cb30f359e",
+    "upgrade_native_noprefix.py": "c540144162d558821eaeeff42668fd128d6972ddff05750e06a2eccd108f96a1"
+  },
+  "limitations": [
+    "No physical reboot or power loss exercised",
+    "Explicit Python coordinator only; no automatic multi-host scheduler or CLI submission",
+    "Measured OpenMPI 4.1.2/common LAMMPS profile and two remote participants only"
+  ],
+  "placement_source_check": {
+    "command": "make check",
+    "tests": 353,
+    "seconds": 81.556,
+    "log": "/tmp/v010-placement-final-check.log",
+    "log_sha256": "f81dc07eafe9ad8526fa941bcfe7a18c0fadc39f5d1003c4f6e9c0d4f21f89a0",
+    "coordinated_execution_available": false,
+    "deployed_to_live_services": false
+  },
+  "placement_source_sha256": {
+    "src/lammps_manager/models.py": "b8532a701a300bb98a9c7978731eb23658b6c5cbf36bb6e20d2384a7ce859fc9",
+    "src/lammps_manager/store.py": "e88d23039ac8d0eb1c4058c674a4bd65ac9ee91e11ed7f5b5ee6b61371ad8dbc",
+    "src/lammps_manager/scheduler.py": "ad159ced6e6794e0c2544deca453f155da41a1febc1d7a63e942e8a45f71d26b",
+    "src/lammps_manager/manager.py": "65134296e8fd10b461b6deea5c26559a5f529f55d2d1af79e3a1238a47e0f1a3",
+    "tests/test_mpi_placement.py": "d807a3feef08a7a63c9476a2e23d6572e7920d427047e46c4548dc49f769b3d8"
+  },
+  "coordinator_source_check": {
+    "command": "make check",
+    "tests": 367,
+    "seconds": 81.889,
+    "log": "/tmp/v010-coordinator-final-check.log",
+    "log_sha256": "4eaa75e7dd82d832546f78f60226454bbc993ad71fb6d69eb1073f8c359a5c61",
+    "coordinated_execution_available": false,
+    "deployed_to_live_services": false
+  },
+  "coordinator_source_sha256": {
+    "src/lammps_manager/multihost.py": "db2fcb00642ff417ed376e4b33556a764540097be52ecd72016ffda58a7450c7",
+    "src/lammps_manager/store.py": "1db485f958b6c14b1c87c13f29d91bbff1013b8c70d1fc9d12fa7082d471a81d",
+    "tests/test_multihost.py": "8000cc8381d3131ac16fc8a1fa849e6aea051e414501caf7fcf7b92e00c61d33"
+  },
+  "native_source_check": {
+    "command": "make check",
+    "tests": 385,
+    "seconds": 85.467,
+    "log": "/tmp/v010-native-noprefix-check.log",
+    "log_sha256": "2570b489be28bf8c07bfe4240c5bda10254cd54f28d50a73c093982446a12948",
+    "deployed_to_live_services": true,
+    "explicit_coordination_verified": true,
+    "automatic_multi_host_scheduling": false
+  },
+  "native_deployed_source_sha256": {
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "src/lammps_manager/checkpoints.py": "79b4bb4fde03490bce8a36f4b39c1ddfd41cafd2dd757ac865b2879fbfe08f2f",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/cli.py": "8c1a40d60014b29bfcc7e29f75ef89498c83da9360eaf0b00bb08998c4298378",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/manager.py": "ffade4651dc062a18942bf50dcd26f992f4d0a25217021e485aaf63807ca7cf8",
+    "src/lammps_manager/models.py": "30a6ad92e61854b574a167978ce51f3565b49ba56145621523e9f0c6221cc076",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/mpi_agent.py": "bba91791c935a41bec5f6e0a9b019b3a017ca3827409ff685a6df518becdbbdd",
+    "src/lammps_manager/mpi_runtime.py": "8d2d19223272c931eab85fec7c271a242ce1ac40a6bead2de9ec1581c0f8d89c",
+    "src/lammps_manager/multihost.py": "278367f5f0c722c1c511c8303b205acf5c046f332b4b474c6500ed30831ca08e",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/scheduler.py": "ad159ced6e6794e0c2544deca453f155da41a1febc1d7a63e942e8a45f71d26b",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/staging.py": "29907f96b8b887a4fecc780880224bcab84ebea9c77c067b2788ae45c9560f9d",
+    "src/lammps_manager/store.py": "1db485f958b6c14b1c87c13f29d91bbff1013b8c70d1fc9d12fa7082d471a81d",
+    "src/lammps_manager/sweeps.py": "051bb71c3e0c4bfa0662148da0f41f0f775ff91d6808503200e5c2b367f33a41",
+    "src/lammps_manager/worker.py": "abf85113a8c811823ee10f4e1bc4555f9bdf8db14b4bdde1cf80abac05b558b8"
+  }
+}

@@ -6,6 +6,26 @@ This is the permanent design reference for a Python / Linux dispatcher for indep
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.
 
+The user-approved [home-directory deployment](deployment.md) now runs a manager
+and three staged workers on poincare, mozzarella and allegro. Actual per-worker
+execution, retained outputs, service restart and automatic worker recovery have
+been measured. Mozzarella uses an explicitly supervised SSH reverse forward
+with end-to-end verified HTTPS because its direct manager LAN route failed.
+Ordinary polling assigns each independent job to one worker. The explicit
+[multi-host Python API](multi-host-mpi.md) now coordinates a single staged
+job/attempt with immutable `mpi_placement`, atomic per-worker reservations,
+authenticated staging/results and durable native process fences. A global terminal
+transition and release require confirmed termination on every participant.
+Actual V010 acceptance verified two ranks on distinct mozzarella/allegro hosts,
+whole-group cancellation and retained reservations during manager transport loss.
+
+Automatic multi-host scheduling and CLI submission remain unavailable. The
+ordinary scheduler intentionally returns `multi_host_protocol_unavailable` for
+nonempty placement. Empty placement preserves the prior stored and worker-message
+format; old submitted snapshots are not rewritten. The deployed source is a
+fingerprinted 23-module release with previous releases retained. See V010 for the
+bounded OpenMPI/LAMMPS profile and evidence; physical reboot was not exercised.
+
 The first deliverable must reliably complete an independent batch, respect dispatch quotas, avoid duplicate execution during disconnection, and retain traceable output. Example configuration values are illustrative and have not been validated for a real deployment.
 
 ## Components and data flow

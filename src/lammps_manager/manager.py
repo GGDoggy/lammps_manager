@@ -221,10 +221,14 @@ class ManagerService:
             assignments = []
             for reservation in (() if heartbeat_only else store.reservations(worker_id)):
                 attempt = store.attempt(reservation.attempt_id)
+                if store._db.execute('SELECT 1 FROM mpi_groups WHERE attempt_id=?',(attempt.attempt_id,)).fetchone():
+                    continue  # Native MPI groups use the explicit coordinator, not ordinary worker launches.
                 if attempt.state in {'assigned', 'unknown', 'cancelling'}:
                     specification = asdict(store.specification(attempt.job_id))
                     # Submission provenance stays on the manager; workers need only rendered inputs.
                     specification.pop('sweep', None)
+                    if not specification['mpi_placement']:
+                        specification.pop('mpi_placement')
                     if payload.get('recovery_protocol') != 1:
                         specification.pop('infrastructure_recovery', None)
                     if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':
@@ -280,7 +284,9 @@ class ManagerService:
         from .staging import open_regular, validate_manifest
         with Store(self.config.manager.database_path) as store:
             attempt = store.attempt(attempt_id)
-            if attempt.worker_id != worker_id or attempt.state != 'assigned':
+            participant = store._db.execute('SELECT 1 FROM mpi_members WHERE attempt_id=? AND worker_id=?',
+                                            (attempt_id,worker_id)).fetchone()
+            if (attempt.worker_id != worker_id and not participant) or attempt.state != 'assigned':
                 raise ValueError('Input artifact ownership or state mismatch')
             limits = self.config.storage
             key = (self.config.manager.database_path, attempt.job_id, limits.max_input_files,
@@ -316,6 +322,14 @@ class ManagerService:
             stream.close()
             raise ValueError('Stored input size differs from snapshot')
         return stream, item.size
+
+    def mpi_result_operation(self, worker_id: str, attempt_id: str, operation: str,
+                             payload: dict | None=None, stream: BinaryIO | None=None,
+                             length: int | None=None) -> dict:
+        """Bind authenticated participant output to one terminated native MPI group."""
+        from .multihost import result_operation
+        with self._result_lock,Store(self.config.manager.database_path) as store:
+            return result_operation(store,self.config.storage,worker_id,attempt_id,operation,payload,stream,length)
 
     def result_operation(self, worker_id: str, attempt_id: str, operation: str,
                          payload: dict | None = None, stream: BinaryIO | None = None,
@@ -493,13 +507,14 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if set(data) != {'index'}:
                         raise ValueError('Invalid progress fields')
                     result = service.input_verified(worker_id, self.path.split('/')[-1], data['index'])
-                elif self.path.startswith(('/v2/results/', '/v2/checkpoints/')):
+                elif self.path.startswith(('/v2/results/', '/v2/checkpoints/', '/v2/mpi-results/')):
                     parts = self.path.split('/')
                     if len(parts) != 5:
                         raise ValueError('Invalid result endpoint')
                     length = int(self.headers.get('Content-Length', '-1'))
                     operation = parts[4]
-                    handler = service.checkpoint_operation if parts[2] == 'checkpoints' else service.result_operation
+                    handler = (service.checkpoint_operation if parts[2]=='checkpoints' else
+                               service.mpi_result_operation if parts[2]=='mpi-results' else service.result_operation)
                     if self.headers.get('Transfer-Encoding'):
                         raise ValueError('Chunked requests are not supported')
                     if operation in {'manifest', 'commit'}:

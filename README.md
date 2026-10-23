@@ -51,3 +51,14 @@ processes only and do not establish physical reboot or production readiness.
 [Continuation contracts (T017)](docs/continuation.md) validate a restricted statistical ideal-ABP recipe on a fingerprinted LAMMPS build, with a fail-closed capability API and explicit scientific comparison drivers. [Durable checkpoint publication (T018)](docs/checkpoints.md) retains verified state independently of process/result completion. [Queued continuation runs (T019)](docs/segmentation.md) support the measured recipe/plan, parent monitoring and cancellation, priority inheritance and compatible same-host worker reassignment. Exact continuation, unmeasured ranges and cross-host continuation remain unavailable.
 
 [Parameter sweeps (T020)](docs/parameter-sweeps.md) generate Cartesian batches with independent repetitions, deterministic seeds, immutable provenance and read-only previews for existing shared/staged execution.
+
+The [current home-directory deployment](docs/deployment.md) runs one manager and
+three staged workers on poincare, mozzarella and allegro under `~/lammps_manager`.
+Real per-worker jobs, result integrity and automatic systemd worker restart are
+verified. Single-job multi-host MPI remains open under V010; these independent
+worker jobs do not establish that capability.
+
+The [V010 home-directory deployment](docs/deployment.md) retains a manager and
+three supervised workers. Its [explicit multi-host MPI Python API](docs/multi-host-mpi.md)
+passed bounded real two-host success, cancellation and manager-transport-loss
+acceptance. Automatic multi-host scheduling and CLI submission remain unavailable.
