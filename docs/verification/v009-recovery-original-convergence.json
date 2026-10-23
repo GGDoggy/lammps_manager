@@ -1,0 +1,64 @@
+[
+  {
+    "job": {
+      "job_id": "4d38c441b9e24202a4eae5823aa6dc0a",
+      "state": "succeeded",
+      "created_at": "2026-10-22T21:56:14.683Z"
+    },
+    "recovery": {
+      "policy": {
+        "max_retries": 1,
+        "delay_seconds": 5
+      },
+      "used": 1,
+      "remaining": 0,
+      "next_retry_at": null,
+      "latest": {
+        "attempt_id": "39d52a85f1e04a989c07d7dfb90304a2",
+        "evidence": {
+          "kind": "session_ended",
+          "observed_boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "process": {
+            "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+            "launched_at": "2026-10-22T21:56:14.868976+00:00",
+            "pid": 280000,
+            "process_group": 280000,
+            "session": 280000,
+            "start_ticks": "39348688"
+          }
+        },
+        "status": "queued",
+        "retry_at": 1792706180.5158405,
+        "reason": "Confirmed infrastructure interruption"
+      }
+    },
+    "attempts": [
+      {
+        "attempt_id": "39d52a85f1e04a989c07d7dfb90304a2",
+        "job_id": "4d38c441b9e24202a4eae5823aa6dc0a",
+        "worker_id": "recovery-shared",
+        "directory": "/tmp/lammps-v009-a4YIYETw/recovery-shared/jobs/4d38c441b9e24202a4eae5823aa6dc0a/39d52a85f1e04a989c07d7dfb90304a2",
+        "state": "failed",
+        "created_at": "2026-10-22T21:56:14.837Z",
+        "started_at": "2026-10-22T21:56:14.974Z",
+        "ended_at": "2026-10-22T21:56:15.519Z",
+        "exit_code": null,
+        "termination_evidence": "Recovered identity checked; process group no longer exists",
+        "reason": "Process ended during worker outage; exit status unavailable"
+      },
+      {
+        "attempt_id": "1bc64265895541d39ad37338bd065317",
+        "job_id": "4d38c441b9e24202a4eae5823aa6dc0a",
+        "worker_id": "recovery-shared",
+        "directory": "/tmp/lammps-v009-a4YIYETw/recovery-shared/jobs/4d38c441b9e24202a4eae5823aa6dc0a/1bc64265895541d39ad37338bd065317",
+        "state": "succeeded",
+        "created_at": "2026-10-22T21:56:20.612Z",
+        "started_at": "2026-10-22T21:56:20.749Z",
+        "ended_at": "2026-10-22T21:57:09.653Z",
+        "exit_code": 0,
+        "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+        "reason": null
+      }
+    ]
+  }
+]

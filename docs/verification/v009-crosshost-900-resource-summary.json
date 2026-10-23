@@ -1,0 +1,8 @@
+{
+  "samples": 293,
+  "scope": "Sampling began after transfer startup; maxima are sampled, not hard enforcement",
+  "max_sampled_manager_rss_kib": 38020,
+  "max_sampled_heartbeat_age": 47.31570863723755,
+  "first_time": 1792706947.0987952,
+  "last_time": 1792707534.1736362
+}

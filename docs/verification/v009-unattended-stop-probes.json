@@ -1,0 +1,301 @@
+{
+  "mozzarella": {
+    "root": "/tmp/lammps-v009-stop-probe-8BfyZcu7",
+    "cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "evidence": {
+      "normal": {
+        "status": {
+          "finished_at": 1792756525.1193233,
+          "service_result": "success",
+          "exit_code": "exited",
+          "exit_status": "0",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [],
+          "stop_verified": true,
+          "completed": true,
+          "progress": {
+            "started_at": 1792756525.0839653,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "print(\"normal completion\")"
+                ],
+                "started_at": 1792756525.08406,
+                "pid": 8051,
+                "returncode": 0,
+                "ended_at": 1792756525.0999405
+              }
+            ],
+            "completed": true,
+            "ended_at": 1792756525.1000528
+          },
+          "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9"
+        },
+        "properties": {
+          "TimeoutStopUSec": "1min 30s",
+          "RuntimeMaxUSec": "infinity",
+          "Result": "success",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "infinity",
+          "AllowedCPUs": "",
+          "KillMode": "control-group",
+          "ActiveState": "inactive"
+        }
+      },
+      "timeout": {
+        "status": {
+          "finished_at": 1792756528.1683881,
+          "service_result": "timeout",
+          "exit_code": "exited",
+          "exit_status": "1",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [
+            8053
+          ],
+          "stop_verified": true,
+          "completed": false,
+          "progress": {
+            "started_at": 1792756525.086823,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "import subprocess,time,json;from pathlib import Path;p=subprocess.Popen(['/usr/bin/python3','-c','import signal,time,os;signal.signal(signal.SIGTERM,signal.SIG_IGN);signal.signal(signal.SIGINT,signal.SIG_IGN);time.sleep(600)'],start_new_session=True);Path('/tmp/lammps-v009-stop-probe-8BfyZcu7/timeout/detached-child.json').write_text(json.dumps({'pid':p.pid}));time.sleep(600)"
+                ],
+                "started_at": 1792756525.0869067,
+                "pid": 8052
+              }
+            ],
+            "completed": false,
+            "error": "InterruptedError: Service received signal 15",
+            "ended_at": 1792756528.0893676
+          },
+          "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+          "detached_child_not_running": true
+        },
+        "properties": {
+          "TimeoutStopUSec": "2s",
+          "RuntimeMaxUSec": "3s",
+          "Result": "timeout",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "10s",
+          "AllowedCPUs": "0-9",
+          "KillMode": "control-group",
+          "ActiveState": "failed"
+        }
+      }
+    }
+  },
+  "allegro": {
+    "root": "/tmp/lammps-v009-stop-probe-56Mq2YxG",
+    "cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "evidence": {
+      "normal": {
+        "status": {
+          "finished_at": 1792756527.382459,
+          "service_result": "success",
+          "exit_code": "exited",
+          "exit_status": "0",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [],
+          "stop_verified": true,
+          "completed": true,
+          "progress": {
+            "started_at": 1792756527.3406649,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "print(\"normal completion\")"
+                ],
+                "started_at": 1792756527.3407881,
+                "pid": 341191,
+                "returncode": 0,
+                "ended_at": 1792756527.3566785
+              }
+            ],
+            "completed": true,
+            "ended_at": 1792756527.3568728
+          },
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277"
+        },
+        "properties": {
+          "TimeoutStopUSec": "1min 30s",
+          "RuntimeMaxUSec": "infinity",
+          "Result": "success",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "infinity",
+          "AllowedCPUs": "",
+          "KillMode": "control-group",
+          "ActiveState": "inactive"
+        }
+      },
+      "timeout": {
+        "status": {
+          "finished_at": 1792756530.5472646,
+          "service_result": "timeout",
+          "exit_code": "exited",
+          "exit_status": "1",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [
+            341194
+          ],
+          "stop_verified": true,
+          "completed": false,
+          "progress": {
+            "started_at": 1792756527.3449376,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "import subprocess,time,json;from pathlib import Path;p=subprocess.Popen(['/usr/bin/python3','-c','import signal,time,os;signal.signal(signal.SIGTERM,signal.SIG_IGN);signal.signal(signal.SIGINT,signal.SIG_IGN);time.sleep(600)'],start_new_session=True);Path('/tmp/lammps-v009-stop-probe-56Mq2YxG/timeout/detached-child.json').write_text(json.dumps({'pid':p.pid}));time.sleep(600)"
+                ],
+                "started_at": 1792756527.3450527,
+                "pid": 341192
+              }
+            ],
+            "completed": false,
+            "error": "InterruptedError: Service received signal 15",
+            "ended_at": 1792756530.4674602
+          },
+          "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+          "detached_child_not_running": true
+        },
+        "properties": {
+          "TimeoutStopUSec": "2s",
+          "RuntimeMaxUSec": "3s",
+          "Result": "timeout",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "8s",
+          "AllowedCPUs": "0-7",
+          "KillMode": "control-group",
+          "ActiveState": "failed"
+        }
+      }
+    }
+  },
+  "poincare": {
+    "root": "/tmp/lammps-v009-stop-probe-8RQ3fXFz",
+    "cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "evidence": {
+      "normal": {
+        "status": {
+          "finished_at": 1792756527.6879246,
+          "service_result": "success",
+          "exit_code": "exited",
+          "exit_status": "0",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [],
+          "stop_verified": true,
+          "completed": true,
+          "progress": {
+            "started_at": 1792756527.534409,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "print(\"normal completion\")"
+                ],
+                "started_at": 1792756527.5348313,
+                "pid": 2484874,
+                "returncode": 0,
+                "ended_at": 1792756527.6031215
+              }
+            ],
+            "completed": true,
+            "ended_at": 1792756527.6035707
+          },
+          "boot_id": "f7e14ebb-a590-4113-b7c9-aab361543a2e"
+        },
+        "properties": {
+          "TimeoutStopUSec": "1min 30s",
+          "RuntimeMaxUSec": "infinity",
+          "Result": "success",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "infinity",
+          "AllowedCPUs": "",
+          "KillMode": "control-group",
+          "ActiveState": "inactive"
+        }
+      },
+      "timeout": {
+        "status": {
+          "finished_at": 1792756530.683324,
+          "service_result": "timeout",
+          "exit_code": "exited",
+          "exit_status": "1",
+          "remaining_cgroup_pids": [],
+          "finalizer_killed_pids": [
+            2484876
+          ],
+          "stop_verified": true,
+          "completed": false,
+          "progress": {
+            "started_at": 1792756527.5471966,
+            "steps": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "import subprocess,time,json;from pathlib import Path;p=subprocess.Popen(['/usr/bin/python3','-c','import signal,time,os;signal.signal(signal.SIGTERM,signal.SIG_IGN);signal.signal(signal.SIGINT,signal.SIG_IGN);time.sleep(600)'],start_new_session=True);Path('/tmp/lammps-v009-stop-probe-8RQ3fXFz/timeout/detached-child.json').write_text(json.dumps({'pid':p.pid}));time.sleep(600)"
+                ],
+                "started_at": 1792756527.5475426,
+                "pid": 2484875
+              }
+            ],
+            "completed": false,
+            "error": "InterruptedError: Service received signal 15",
+            "ended_at": 1792756530.5390832
+          },
+          "boot_id": "f7e14ebb-a590-4113-b7c9-aab361543a2e",
+          "detached_child_not_running": true
+        },
+        "properties": {
+          "TimeoutStopUSec": "2s",
+          "RuntimeMaxUSec": "3s",
+          "Result": "timeout",
+          "EffectiveCPUs": "",
+          "CPUQuotaPerSecUSec": "8s",
+          "AllowedCPUs": "0-7",
+          "KillMode": "control-group",
+          "ActiveState": "failed"
+        }
+      }
+    }
+  }
+}

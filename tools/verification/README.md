@@ -118,3 +118,83 @@ before this comparison was added are hash inventories, not independent manifest
 comparisons; retain them as historical evidence rather than relabeling them.
 Persistent acceptance: [V006](../../docs/verification/v006-large-artifacts.md),
 [V007](../../docs/verification/v007-service-lifecycle.md).
+
+Use `--output NEW_FILE.json` with `lifecycle_audit.py` when auditing historical
+roots: it creates that file exclusively and preserves the historical audit.
+
+## V009 remaining checks without host reboot
+
+`sweep_acceptance.py` executes 24 shared and 24 staged real LJ jobs using
+Cartesian parameters and independent repetitions. `sweep_audit.py` reads those
+original roots without resubmitting jobs. `infrastructure_acceptance.py` tests
+shared/staged process-only recovery, durable delay through manager process
+restart, budget exhaustion and cancellation; it signals only its own isolated
+worker and MPI process groups. It never reboots a machine. These scripts reuse
+the existing helpers and executable prerequisites and require fresh roots.
+
+`wca_acceptance.py` is a separate experimental scientific driver requiring the
+fingerprinted 2025 Brownian-capable LAMMPS build. Copy
+`docs/verification/v009-wca-protocol.md` beside the driver, plus its
+`abp_acceptance.py` and `continuation_acceptance.py` helpers and current `src`.
+Run with `--lammps /absolute/lmp --root NEW_ROOT --pilot-only` for all pilot
+strata. This does not release WCA continuation. See
+[V009 progress and actual evidence](../../docs/verification/v009-remaining.md)
+and the [predeclared protocol](../../docs/verification/v009-wca-protocol.md).
+
+
+## V009 unattended plans and stopping
+
+`unattended_run.py` runs finite argv/timeout steps from `plan.json` inside a
+unique expiring systemd user service. Configure `RuntimeMaxSec`,
+`TimeoutStopSec`, `KillMode=control-group`, `SendSIGKILL=yes`, `Restart=no` and
+CPU affinity. Use the same script with `--finalize ROOT` as `ExecStopPost`;
+only its post-cleanup `status.json` establishes verified stopping. Never run
+its finalizer in a shared service cgroup. Actual CPU-controller delegation
+must be checked rather than inferred from accepted unit properties.
+
+`wca_frozen_check.py` gates reconstructed pilot raw evidence against the saved
+protocol, build and exact frozen sample table. `wca_pool.py --defer-analysis
+--enforce-rank-affinity` collects the fixed measurements and stops without
+scientific acceptance. Optional `--reuse-completed OLD_ROOT` requires complete,
+compatible, hash-verified raw chunks, never interrupted/missing directories.
+Preserve originating boot identities for reused evidence.
+
+The pool passes its selected `--lammps` executable to the affinity guard. For
+standalone guard use, run `wca_affinity_guard.py ROOT --lammps /absolute/lmp`;
+the guard matches `/proc/PID/exe` file identity, including symlinked installations,
+and only adjusts ranks within active chunk directories.
+
+See the [current frozen plan and actual stop probes](../../docs/verification/v009-unattended.md).
+`unattended_status.py LAUNCH_JSON` is read-only and distinguishes final cleanup
+markers from live/stale progress. The user will resume result analysis after
+these bounded runs; no production capability is released by launch.
+
+
+Full WCA auditing now requires all 23 declared endpoints in both arms and
+reproduces them from retained raw trajectories/thermo and frozen input/stream
+identities. `wca_audit.py --completed-only --recompute` performs partial raw
+checks without acceptance; a full audit always recomputes. When the pool used
+`--defer-analysis`, pass distinct exclusive `--analysis-output NEW_ANALYSIS.json`
+and `--output NEW_AUDIT.json` after all measurements and processes have ended.
+Run the stricter auditor from a separate recorded bundle: never edit sources
+inside a live frozen measurement root. New analyzer/auditor hashes are recorded
+separately from original execution hashes. See V009's exact prepared command.
+
+
+`wca_seed_audit.py --pilot-report FROZEN_V2.json --output NEW_FILE.json` is an
+offline-only base/processor-rank seed audit. It reproduces the frozen v2 ordinal
+mapping, rejects unsupported layouts/duplicate strata and never overwrites an
+existing output. Its literal-seed collision and range checks are conditional
+on the pinned upstream implementation; they do not prove PRNG independence or
+attest deployed binary source. Versioned manual/source links and exact evidence
+are recorded in the V009 unattended verification record.
+
+`crosshost_acceptance.py` publishes a failed report and exits nonzero if
+remote worker cleanup fails after successful transfer verification. It still
+stops the local manager and retains the cleanup diagnostic. When execution
+already failed, cleanup diagnostics supplement the original error without
+replacing it.
+Remote cleanup requires both `systemctl stop` and the bounded `systemctl show`
+query to succeed, with explicit `inactive`/`failed` state, `MainPID=0` and no
+remaining cgroup processes. Missing properties or an unavailable user bus leave
+stopping unconfirmed and fail acceptance.

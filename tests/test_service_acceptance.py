@@ -50,6 +50,11 @@ class ServiceStartupCleanupTests(unittest.TestCase):
             starts = [argv for argv in commands if argv[0] == 'systemd-run']
             self.assertEqual(len(starts), 1)
             self.assertEqual(starts[0][3], prefix + '-manager')
+            affinity, = [value.split('=', 2)[2] for value in starts[0]
+                         if value.startswith('--property=CPUAffinity=')]
+            selected = set(map(int, affinity.split()))
+            self.assertTrue(selected.issubset(service_acceptance.os.sched_getaffinity(0)))
+            self.assertLessEqual(len(selected), max(1, service_acceptance.os.cpu_count() // 2))
 
     def test_manager_startup_timeout_stops_named_units(self) -> None:
         self.check_failure(subprocess.TimeoutExpired(['systemd-run'], 60), 'startup')

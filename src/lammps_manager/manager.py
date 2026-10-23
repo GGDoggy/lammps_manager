@@ -8,6 +8,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import socket
 import ssl
 import stat
 import threading
@@ -99,6 +100,9 @@ class ManagerService:
         """Keep reports, scheduling cadence and assignments in one serialized poll."""
         if worker_id not in self.tokens:
             raise ValueError('Unregistered worker')
+        heartbeat_only = payload.get('heartbeat_only', False)
+        if type(heartbeat_only) is not bool:
+            raise ValueError('heartbeat_only must be a boolean')
         now = time.time()
         if self.config.storage.mode == 'staged':
             if payload.get('protocol') != 2 or payload.get('storage_mode') != 'staged':
@@ -215,7 +219,7 @@ class ManagerService:
                 schedule(store, self.config, tuple(snapshots), now=now)
                 self.last_schedule = now
             assignments = []
-            for reservation in store.reservations(worker_id):
+            for reservation in (() if heartbeat_only else store.reservations(worker_id)):
                 attempt = store.attempt(reservation.attempt_id)
                 if attempt.state in {'assigned', 'unknown', 'cancelling'}:
                     specification = asdict(store.specification(attempt.job_id))
@@ -554,12 +558,21 @@ def make_server(service: ManagerService, host: str, port: int, *,
         def get_request(self) -> tuple:
             connection, address = super().get_request()
             connection.settimeout(10)
+            return connection, address
+
+        def process_request_thread(self, connection: socket.socket, address: tuple) -> None:
+            # A slow TLS peer must not occupy the accept/scheduling thread.
+            # Handshakes retain the accepted socket's bounded timeout and are
+            # joined with other handlers before service storage is closed.
             if context:
                 try:
                     connection = context.wrap_socket(connection, server_side=True)
+                except OSError:
+                    connection.close()
+                    return
                 except BaseException:
                     connection.close()
                     raise
-            return connection, address
+            super().process_request_thread(connection, address)
 
     return BoundedServer((host, port), Handler)

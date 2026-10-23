@@ -1,0 +1,23 @@
+{
+  "review_date": "2026-10-23",
+  "upstream_tag": "patch_2Apr2025",
+  "upstream_tag_object": "56f6bd6a6856da985c4b8e0582f43a5197884f5a",
+  "upstream_commit": "7b4c33630d544953d2abe12eccdf0fab5ba0e7d1",
+  "measurement_build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+  "deployed_source_readable": false,
+  "upstream_commit_attested_for_binary": false,
+  "upstream_blob_ids": {
+    "doc/src/fix_brownian.rst": "cf3f7735508a393c50e9015ae4cc1aea932077fe",
+    "src/BROWNIAN/fix_brownian_base.cpp": "6b00ec2985467f9fad03372c39cd22ecc7f652bc",
+    "src/BROWNIAN/fix_brownian_base.h": "9fab2a54ce2f3a5681a0c02f8441b2eba0b9485a",
+    "src/BROWNIAN/fix_brownian_sphere.cpp": "79e3858f00b1855d2880fd3a393049de234e71e3",
+    "src/random_mars.cpp": "8f1105e0d9e336324b81de74a0488c0db138dcb0"
+  },
+  "versioned_manual_url": "https://github.com/lammps/lammps/blob/7b4c33630d544953d2abe12eccdf0fab5ba0e7d1/doc/src/fix_brownian.rst",
+  "current_manual_url": "https://docs.lammps.org/latest/fix_brownian.html",
+  "current_manual_reported_changes": {
+    "2026-02-11": "rotation integration options/default changed",
+    "2026-07-04": "RNG restart-state serialization changed"
+  },
+  "conclusion": "Use measured binary/library/CPU fingerprint and statistical continuation contract. Pinned upstream source informs conditional reasoning, not compiled-source attestation or exact/released cross-build continuity. No live protocol or source changed."
+}

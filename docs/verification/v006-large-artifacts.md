@@ -131,5 +131,20 @@ acceptance driver did perform manifest comparisons; the separate historical
 audit is only a hash inventory for output integrity. The corrected auditor now
 checks complete file sets, sizes and SHA-256 against manager SQLite manifests,
 including missing publication trees. Local regressions cover the correction;
-the corrected auditor has not been rerun on this external root. Historical JSON
+the corrected auditor had not been rerun on this external root at that checkpoint. Historical JSON
 and deployed source hashes remain unchanged.
+
+Follow-up (2026-10-23): [V009](v009-remaining.md) reran the corrected auditor on
+this original root and verified all 1009 published files against committed
+manifests, with empty reservations/sessions and closed listeners. The new
+[audit evidence](v009-v006-corrected-audit.json) is separate from historical JSON.
+
+
+V009 cross-host follow-up (2026-10-23): a distinct authenticated two-host workload
+with one 256-MiB file and 3000 small files completed in 1037.734 seconds under a
+separately declared 3600-second bound. The [completed report](v009-crosshost-3600-completed.json)
+and [two-host raw/source/session audit](v009-crosshost-3600-audit.json) verify one
+successful original attempt, 3009 result files and empty reservations/sessions.
+This does not pass the earlier 900-second gate or establish a general ten-second
+heartbeat/performance bound for larger or different workloads. See
+[V009 limitations and remaining work](v009-remaining.md).

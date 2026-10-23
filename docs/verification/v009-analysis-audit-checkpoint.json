@@ -1,0 +1,243 @@
+{
+  "observed_at": 1792773263.9106133,
+  "root": "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4",
+  "unit": "v009-wca-tcp-yield-3jff7no4-mozzarella.service",
+  "properties": {
+    "Restart": "no",
+    "RuntimeMaxUSec": "3d",
+    "MainPID": "12414",
+    "ActiveState": "active"
+  },
+  "live_supervisor_identity": {
+    "pid": 12414,
+    "process_group": 12414,
+    "session": 12414,
+    "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+    "start_ticks": "1438762"
+  },
+  "supervisor_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "classification": "verified_wait",
+  "progress.json": {
+    "started_at": 1792758187.7552304,
+    "steps": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--lammps",
+          "/usr/local/bin/lmp",
+          "--root",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot",
+          "--pilot-only"
+        ],
+        "started_at": 1792758187.7553842,
+        "pid": 12415,
+        "returncode": 0,
+        "ended_at": 1792759233.7786374
+      },
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_frozen_check.py",
+          "--pilot",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--reference",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/v009-wca-v2-pilot.json",
+          "--output",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/frozen-match.json"
+        ],
+        "started_at": 1792759233.778927,
+        "pid": 16698,
+        "returncode": 0,
+        "ended_at": 1792759233.8429418
+      },
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_pool.py",
+          "--pilot-report",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--pilot-driver",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--lammps",
+          "/usr/local/bin/lmp",
+          "--root",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation",
+          "--defer-analysis",
+          "--enforce-rank-affinity"
+        ],
+        "started_at": 1792759233.8431835,
+        "pid": 16699
+      }
+    ],
+    "completed": false
+  },
+  "frozen-match.json": {
+    "matched": true,
+    "total_pairs": 29426,
+    "rebuilt_driver_sha256": "84617c9ec34269433256d1dc7bea6426b3a0398ccb260404fe86286557af783b",
+    "frozen_driver_sha256": "7e5abe177c6214b44f517d68f4f3580788226fd47dfd091802a35316788097f9"
+  },
+  "pilot": {
+    "replicas": 80,
+    "strata": 10,
+    "error": null,
+    "seed_count": 480
+  },
+  "pool": {
+    "identity": {
+      "pid": 16699,
+      "process_group": 16699,
+      "session": 16699,
+      "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+      "start_ticks": "1543373"
+    },
+    "active": [
+      {
+        "name": "s7-1408-1472",
+        "stratum": 7,
+        "start": 1408,
+        "stop": 1472,
+        "cpus": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "pid": 169975,
+        "identity": {
+          "pid": 169975,
+          "process_group": 169975,
+          "session": 169975,
+          "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+          "start_ticks": "2766848"
+        },
+        "started": 1792771468.5858886,
+        "argv": [
+          "taskset",
+          "-c",
+          "4,5,6,7",
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--lammps",
+          "/usr/local/bin/lmp",
+          "--root",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation/chunks/s7-1408-1472",
+          "--confirm-from",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--pilot-driver",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--stratum-index",
+          "7",
+          "--replica-start",
+          "1408",
+          "--replica-stop",
+          "1472"
+        ]
+      },
+      {
+        "name": "s7-1472-1536",
+        "stratum": 7,
+        "start": 1472,
+        "stop": 1536,
+        "cpus": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "pid": 170157,
+        "identity": {
+          "pid": 170157,
+          "process_group": 170157,
+          "session": 170157,
+          "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+          "start_ticks": "2769654"
+        },
+        "started": 1792771496.654916,
+        "argv": [
+          "taskset",
+          "-c",
+          "0,1,2,3",
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--lammps",
+          "/usr/local/bin/lmp",
+          "--root",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation/chunks/s7-1472-1536",
+          "--confirm-from",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--pilot-driver",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--stratum-index",
+          "7",
+          "--replica-start",
+          "1472",
+          "--replica-stop",
+          "1536"
+        ]
+      },
+      {
+        "name": "s6-960-1024",
+        "stratum": 6,
+        "start": 960,
+        "stop": 1024,
+        "cpus": [
+          8,
+          9
+        ],
+        "pid": 178233,
+        "identity": {
+          "pid": 178233,
+          "process_group": 178233,
+          "session": 178233,
+          "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+          "start_ticks": "2866086"
+        },
+        "started": 1792772460.9700162,
+        "argv": [
+          "taskset",
+          "-c",
+          "8,9",
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--lammps",
+          "/usr/local/bin/lmp",
+          "--root",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation/chunks/s6-960-1024",
+          "--confirm-from",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--pilot-driver",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+          "--stratum-index",
+          "6",
+          "--replica-start",
+          "960",
+          "--replica-stop",
+          "1024"
+        ]
+      }
+    ],
+    "completed": 37,
+    "pending": 425,
+    "error": null
+  },
+  "verification": {
+    "full_check_tests": 338,
+    "full_check_seconds": 79.094,
+    "log": "/tmp/v009-strict-scientific-audit-check.log",
+    "analyzer_sha256": "d369ca36d8eac129e3c5ce9afd35f33849133c777ef1c6321539179774952abe",
+    "auditor_sha256": "6136f862a4d617ecbea47b2a5ddec8d45d31ed2ae470e3817ff41bd701d98eea"
+  }
+}

@@ -72,7 +72,7 @@ def audit_results(root: Path) -> dict[str, dict]:
     return outputs
 
 
-def audit(root: Path) -> None:
+def audit(root: Path, *, output: Path | None = None) -> None:
     expected = json.loads((root / 'source-sha256.json').read_text())
     for name, identity in expected.items():
         assert digest(root / name) == identity, name
@@ -118,7 +118,9 @@ def audit(root: Path) -> None:
                   sessions=sessions, outputs=outputs, processes=processes, ports=ports,
                   boot_id=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
                   python=__import__('sys').version, pyyaml=__import__('yaml').__version__)
-    (root / 'final-audit.json').write_text(json.dumps(result, indent=2))
+    destination = output if output is not None else root / 'final-audit.json'
+    with destination.open('x' if output is not None else 'w') as stream:
+        stream.write(json.dumps(result, indent=2))
     print(json.dumps(dict(root=str(root), files=len(outputs), sessions=len(sessions),
                           reservations=reservations, ports=ports)))
 
@@ -126,5 +128,7 @@ def audit(root: Path) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('root', type=Path)
+    parser.add_argument('--output', type=Path,
+                        help='Write to a new evidence file, preserving historical audits')
     args = parser.parse_args()
-    audit(args.root.resolve())
+    audit(args.root.resolve(), output=args.output)

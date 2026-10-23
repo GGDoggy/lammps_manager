@@ -1,0 +1,99 @@
+{
+  "observed_at": 1792774233.0038142,
+  "reason": "User withdrew WCA endpoint-equivalence study; retain partial data without acceptance",
+  "root": "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4",
+  "unit": "v009-wca-tcp-yield-3jff7no4-mozzarella.service",
+  "before": {
+    "MainPID": "12414",
+    "ControlGroup": "/user.slice/user-1007.slice/user@1007.service/app.slice/v009-wca-tcp-yield-3jff7no4-mozzarella.service",
+    "ActiveState": "active"
+  },
+  "identity": {
+    "pid": 12414,
+    "process_group": 12414,
+    "session": 12414,
+    "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+    "start_ticks": "1438762"
+  },
+  "stop_returncode": 0,
+  "stop_stderr": "",
+  "after": {
+    "MainPID": "0",
+    "Result": "exit-code",
+    "ControlGroup": "",
+    "ActiveState": "failed"
+  },
+  "remaining_cgroup_pids": [],
+  "status": {
+    "finished_at": 1792774232.9799056,
+    "service_result": "exit-code",
+    "exit_code": "exited",
+    "exit_status": "1",
+    "remaining_cgroup_pids": [],
+    "finalizer_killed_pids": [
+      192962
+    ],
+    "stop_verified": true,
+    "completed": false,
+    "progress": {
+      "started_at": 1792758187.7552304,
+      "steps": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+            "--lammps",
+            "/usr/local/bin/lmp",
+            "--root",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot",
+            "--pilot-only"
+          ],
+          "started_at": 1792758187.7553842,
+          "pid": 12415,
+          "returncode": 0,
+          "ended_at": 1792759233.7786374
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_frozen_check.py",
+            "--pilot",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+            "--reference",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/v009-wca-v2-pilot.json",
+            "--output",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/frozen-match.json"
+          ],
+          "started_at": 1792759233.778927,
+          "pid": 16698,
+          "returncode": 0,
+          "ended_at": 1792759233.8429418
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_pool.py",
+            "--pilot-report",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+            "--pilot-driver",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/wca_acceptance.py",
+            "--lammps",
+            "/usr/local/bin/lmp",
+            "--root",
+            "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation",
+            "--defer-analysis",
+            "--enforce-rank-affinity"
+          ],
+          "started_at": 1792759233.8431835,
+          "pid": 16699
+        }
+      ],
+      "completed": false,
+      "error": "InterruptedError: Service received signal 15",
+      "ended_at": 1792774232.9080336
+    },
+    "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9"
+  },
+  "completed_chunks": 40,
+  "pool_error": null
+}

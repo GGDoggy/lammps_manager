@@ -1,0 +1,29 @@
+{
+  "finished_at": 1792756429.1164925,
+  "service_result": "timeout",
+  "exit_code": "exited",
+  "exit_status": "1",
+  "remaining_cgroup_pids": [
+    7942
+  ],
+  "stop_verified": false,
+  "completed": false,
+  "progress": {
+    "started_at": 1792756426.0824783,
+    "steps": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "-c",
+          "import subprocess,time,json;from pathlib import Path;p=subprocess.Popen(['/usr/bin/python3','-c','import signal,time,os;signal.signal(signal.SIGTERM,signal.SIG_IGN);signal.signal(signal.SIGINT,signal.SIG_IGN);time.sleep(600)'],start_new_session=True);Path('/tmp/lammps-v009-stop-probe-gMCSpU8X/timeout/detached-child.json').write_text(json.dumps({'pid':p.pid}));time.sleep(600)"
+        ],
+        "started_at": 1792756426.08256,
+        "pid": 7941
+      }
+    ],
+    "completed": false,
+    "error": "InterruptedError: Service received signal 15",
+    "ended_at": 1792756429.0893543
+  },
+  "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9"
+}

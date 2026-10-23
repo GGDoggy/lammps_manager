@@ -1,0 +1,38 @@
+{
+  "scope": "Frozen v2 pilot/confirmation contexts and conditional upstream seed-plus-rank mapping; no independence claim",
+  "passed": true,
+  "namespace": "v009-wca-20261023-v2",
+  "frozen_confirmatory_pairs": 29426,
+  "pilot_pairs": 80,
+  "base_stream_contexts": 177036,
+  "unique_expanded_seed_values": 292665,
+  "maximum_measured_ranks": 4,
+  "minimum_expanded_seed": 38483,
+  "maximum_expanded_seed": 899943314,
+  "collisions": 0,
+  "engine_seed_bound_violations": 0,
+  "all_allowed_v2_ordinal_count": 983520,
+  "all_allowed_v2_maximum_base_seed": 899999402,
+  "rank_offset_inverse_bounds": [
+    {
+      "rank_seed_difference": 1,
+      "minimum_ordinal_distance": 292891521
+    },
+    {
+      "rank_seed_difference": 2,
+      "minimum_ordinal_distance": 314216957
+    },
+    {
+      "rank_seed_difference": 3,
+      "minimum_ordinal_distance": 21325436
+    }
+  ],
+  "upstream_ref": "7b4c33630d544953d2abe12eccdf0fab5ba0e7d1",
+  "upstream_seed_source": "https://github.com/lammps/lammps/blob/7b4c33630d544953d2abe12eccdf0fab5ba0e7d1/src/BROWNIAN/fix_brownian_base.cpp",
+  "upstream_seed_bound_source": "https://github.com/lammps/lammps/blob/7b4c33630d544953d2abe12eccdf0fab5ba0e7d1/src/random_mars.cpp",
+  "limitations": [
+    "Distinct seed integers do not prove independent/nonoverlapping PRNG sequences.",
+    "Mapping was verified in pinned upstream source; compiled deployed-source identity is unavailable.",
+    "No claim for ranks or protocols outside the frozen matrix."
+  ]
+}

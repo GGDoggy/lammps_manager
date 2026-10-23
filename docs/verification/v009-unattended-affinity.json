@@ -1,0 +1,54 @@
+{
+  "mozzarella": {
+    "unit": "v009-unattended-4zo9y9bv-mozzarella.service",
+    "cgroup": "/user.slice/user-1007.slice/user@1007.service/app.slice/v009-unattended-4zo9y9bv-mozzarella.service",
+    "allowed_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "observed_tasks": 315,
+    "violations": [],
+    "delegated_controllers": "memory pids"
+  },
+  "allegro": {
+    "unit": "v009-unattended-a1564iys-allegro.service",
+    "cgroup": "",
+    "allowed_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "observed_tasks": 0,
+    "violations": []
+  },
+  "poincare": {
+    "unit": "v009-unattended-y3rc__m8-poincare.service",
+    "cgroup": "/user.slice/user-1012.slice/user@1012.service/app.slice/v009-unattended-y3rc__m8-poincare.service",
+    "allowed_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "observed_tasks": 162,
+    "violations": [],
+    "delegated_controllers": "memory pids"
+  }
+}

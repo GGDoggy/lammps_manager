@@ -1,0 +1,18 @@
+{
+  "original_job": "1814869feafd40919bae554638ea73c3",
+  "attempt": "f1d5be3bdc274520a8ee352eda49e6b9",
+  "passed": true,
+  "local_manifest_files": 3009,
+  "local_manifest_bytes": 280763884,
+  "local_source_files": 45,
+  "source_equality": true,
+  "manager_empty_reservations": true,
+  "remote": {
+    "worker_files_verified": 3009,
+    "source_files_verified": 74,
+    "empty_reservations": true,
+    "no_live_original_session": true,
+    "boot_unchanged": true
+  },
+  "report_sha256": "825c0b5b2014b309f2a3f3eaaf778fa870bcaafd1f8630da34dcc4468b81ff00"
+}

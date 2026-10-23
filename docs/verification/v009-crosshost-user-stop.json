@@ -1,0 +1,227 @@
+{
+  "report": {
+    "root": "/tmp/lammps-v009-crosshost-beaf029w",
+    "remote_root": "/tmp/lammps-v009-crosshost-9MW2aMVw",
+    "passed": false,
+    "manager_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "configuration": {
+      "ssh_argv": "/tmp/v009-ssh-argv.json",
+      "remote_source_root": "/tmp/lammps-v009-a4YIYETw",
+      "manager_address": "192.168.50.112",
+      "port": 18446,
+      "file_mib": 256,
+      "small_files": 3000,
+      "deadline": 3600
+    },
+    "boot_id": "f7e14ebb-a590-4113-b7c9-aab361543a2e",
+    "driver_sha256": "f9751b309201379bc9c0c3985dc31894d6f20b86698e42538278e3d6c89b13c4",
+    "input_bytes": 280723782,
+    "input_files": 3002,
+    "job": "550483e11fd6454481025229f33bf041",
+    "worker_launch": {
+      "identity": {
+        "pid": 300295,
+        "process_group": 300295,
+        "session": 300295,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "39511080"
+      },
+      "affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "error": "ValueError: unexpected execution/resource outcome",
+    "worker_stop_requested": {
+      "signalled": true,
+      "original_worker_stopped": true
+    },
+    "final_boot_id": "f7e14ebb-a590-4113-b7c9-aab361543a2e"
+  },
+  "retirement": {
+    "state": "cancelled",
+    "reservations": [],
+    "attempts": [
+      {
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "worker_id": "crosshost",
+        "directory": "/tmp/lammps-v009-crosshost-beaf029w/jobs/550483e11fd6454481025229f33bf041/2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "cancelled",
+        "created_at": "2026-10-22T22:23:18.930Z",
+        "started_at": null,
+        "ended_at": "2026-10-22T22:55:05.328Z",
+        "exit_code": null,
+        "termination_evidence": "Launch did not start a process",
+        "reason": "Cancellation requested",
+        "dispatch": {
+          "priority": 0,
+          "origin": "manager_default",
+          "queue_sequence": 1
+        },
+        "transfers": {
+          "input": {
+            "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+            "direction": "input",
+            "phase": "failed",
+            "total_bytes": 280723782,
+            "total_files": 3002,
+            "last_progress_at": 1792709704.8042753,
+            "updated_at": 1792709705.328299,
+            "error": "Input transfer failed; inspect attempt diagnostics",
+            "retries": 5,
+            "transferred_bytes": 776078942,
+            "verified_bytes": 326,
+            "verified_files": 1,
+            "transferred_files": 2,
+            "acknowledged": false,
+            "network_byte_resume": false
+          },
+          "result": {
+            "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+            "direction": "result",
+            "phase": "acknowledged",
+            "total_bytes": 484,
+            "total_files": 1,
+            "last_progress_at": 1792709705.4027195,
+            "updated_at": 1792709705.4352212,
+            "error": null,
+            "retries": 0,
+            "transferred_bytes": 484,
+            "verified_bytes": 484,
+            "verified_files": 1,
+            "transferred_files": 1,
+            "acknowledged": true,
+            "network_byte_resume": false
+          }
+        },
+        "stdout": null,
+        "stderr": null,
+        "execution_metadata": null,
+        "result_collection": {
+          "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "outcome.json",
+                "size": 484,
+                "sha256": "ad6a85ed6b323210454af0ea24ebdc04a9f9a91791fdb73dfc683f09198f0029"
+              }
+            ],
+            "omitted": [
+              {
+                "path": "stdout",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "stderr",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "execution.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "process.json",
+                "reason": "Artifact unavailable: file missing"
+              },
+              {
+                "path": "work",
+                "reason": "Artifact unavailable: work directory missing"
+              }
+            ]
+          },
+          "reason": null
+        },
+        "results_directory": "/tmp/lammps-v009-crosshost-beaf029w/jobs/550483e11fd6454481025229f33bf041/2dfaa4adefe7430a8d3eb2a0654d5e49/results",
+        "input_transfer": {
+          "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+          "directory": "/tmp/lammps-v009-crosshost-9MW2aMVw/worker/550483e11fd6454481025229f33bf041/2dfaa4adefe7430a8d3eb2a0654d5e49/inputs",
+          "status": "failed",
+          "reason": "ValueError: Input preparation stopped after cancellation"
+        },
+        "worker_cleanup": null,
+        "prelaunch_rejection": null,
+        "infrastructure_recovery": null
+      }
+    ],
+    "events": [
+      {
+        "event_id": 1,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": null,
+        "state": "queued",
+        "reason": null,
+        "exit_code": null,
+        "termination_evidence": null,
+        "created_at": "2026-10-22T22:23:18.000Z"
+      },
+      {
+        "event_id": 2,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "assigned",
+        "reason": null,
+        "exit_code": null,
+        "termination_evidence": null,
+        "created_at": "2026-10-22T22:23:18.931Z"
+      },
+      {
+        "event_id": 3,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "unknown",
+        "reason": "Worker heartbeat expired",
+        "exit_code": null,
+        "termination_evidence": null,
+        "created_at": "2026-10-22T22:40:07.585Z"
+      },
+      {
+        "event_id": 4,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "assigned",
+        "reason": null,
+        "exit_code": null,
+        "termination_evidence": null,
+        "created_at": "2026-10-22T22:40:10.157Z"
+      },
+      {
+        "event_id": 5,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "cancelling",
+        "reason": "Cancellation requested",
+        "exit_code": null,
+        "termination_evidence": null,
+        "created_at": "2026-10-22T22:54:57.187Z"
+      },
+      {
+        "event_id": 6,
+        "job_id": "550483e11fd6454481025229f33bf041",
+        "attempt_id": "2dfaa4adefe7430a8d3eb2a0654d5e49",
+        "state": "cancelled",
+        "reason": "Cancellation requested",
+        "exit_code": null,
+        "termination_evidence": "Launch did not start a process",
+        "created_at": "2026-10-22T22:55:05.328Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "pilot_report": "v009-wca-v2-pilot.json",
+  "total_pairs": 29426,
+  "strata": [
+    {
+      "duration": 20000,
+      "layout": [
+        1,
+        1,
+        1
+      ],
+      "pairs": 842,
+      "estimated_seconds_per_pair": 4.019039196845813
+    },
+    {
+      "duration": 20000,
+      "layout": [
+        2,
+        2,
+        2
+      ],
+      "pairs": 727,
+      "estimated_seconds_per_pair": 3.815381740912413
+    },
+    {
+      "duration": 20000,
+      "layout": [
+        4,
+        4,
+        4
+      ],
+      "pairs": 465,
+      "estimated_seconds_per_pair": 3.8741221794715295
+    },
+    {
+      "duration": 20000,
+      "layout": [
+        1,
+        2,
+        4
+      ],
+      "pairs": 605,
+      "estimated_seconds_per_pair": 3.8789178469242196
+    },
+    {
+      "duration": 20000,
+      "layout": [
+        4,
+        2,
+        1
+      ],
+      "pairs": 1223,
+      "estimated_seconds_per_pair": 3.8737089206010866
+    },
+    {
+      "duration": 100000,
+      "layout": [
+        1,
+        1,
+        1
+      ],
+      "pairs": 5695,
+      "estimated_seconds_per_pair": 8.577191432317099
+    },
+    {
+      "duration": 100000,
+      "layout": [
+        2,
+        2,
+        2
+      ],
+      "pairs": 7140,
+      "estimated_seconds_per_pair": 7.477508722207485
+    },
+    {
+      "duration": 100000,
+      "layout": [
+        4,
+        4,
+        4
+      ],
+      "pairs": 5859,
+      "estimated_seconds_per_pair": 7.696654276970105
+    },
+    {
+      "duration": 100000,
+      "layout": [
+        1,
+        2,
+        4
+      ],
+      "pairs": 2544,
+      "estimated_seconds_per_pair": 7.942623817003691
+    },
+    {
+      "duration": 100000,
+      "layout": [
+        4,
+        2,
+        1
+      ],
+      "pairs": 4326,
+      "estimated_seconds_per_pair": 7.823420915848169
+    }
+  ]
+}

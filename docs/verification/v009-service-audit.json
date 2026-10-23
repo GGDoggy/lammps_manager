@@ -1,0 +1,143 @@
+{
+  "root": "/tmp/lammps-v009-service-8ZnSMUXy",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "79dd7e9d49090e1087ef68dbd8cbb8aee9c4dccc33e65efda15a17b5365c7f27",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/checkpoints.py": "79b4bb4fde03490bce8a36f4b39c1ddfd41cafd2dd757ac865b2879fbfe08f2f",
+    "src/lammps_manager/staging.py": "29907f96b8b887a4fecc780880224bcab84ebea9c77c067b2788ae45c9560f9d",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/sweeps.py": "051bb71c3e0c4bfa0662148da0f41f0f775ff91d6808503200e5c2b367f33a41",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/store.py": "7197d512292583a31df9f7903f3e7893670fb45a0c0dca4e89096c9c2284cfba",
+    "src/lammps_manager/scheduler.py": "64b3a86d5d7d9deb27a697fbfe701e160bf74575fa928bc152aefadfcfe0a873",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/models.py": "b0daa95c4dcbe00b7c71be9fed5ad024b30fdc89004c72c685c1a4d168bf61fa",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/worker.py": "8291e3ec7389eb4ae707f33071e274bf8c45422dcc693fafbd01d68afc3a21a0",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cli.py": "8c1a40d60014b29bfcc7e29f75ef89498c83da9360eaf0b00bb08998c4298378",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "checkpoint_acceptance.py": "e2bc86f769c585c6e08adeda503b58c2c77bceaf1d1362166be6e906f376a3ee",
+    "segmentation_acceptance.py": "7845bd40856490661161cf85fd09d37b46f8410cad2e732c8d19d6274cc9581b",
+    "continuation_acceptance.py": "cad100b06bcec4f9a536901ac3864c85cea6700c1e3e4d0fb33e8626884a4554",
+    "distributed_acceptance.py": "91f6c1c8fd753fd4e28c02080c1369c869bc497548413ae75440167c15387837",
+    "abp_acceptance.py": "102787aff1b3d096ed70174c72e8595ed6d5e3f8c0ad76e1e98726c74ebb6ff7",
+    "restart_acceptance.py": "39cfd8847d7ba2db586a31528f82988de0d9f46d673d3b640f7bb9c5ca07ba93",
+    "fault_proxy.py": "deaeffe31bad36b771db26e4bf0da74d92afdc0700bb120fddfbece03a578c1e",
+    "cpu_acceptance.py": "d89fc1afa2eca6477364d6f3c7dcd70ab00899bcf490bc3f4182e7546e5432eb",
+    "artifact_proxy.py": "7c317e6bb49ca44804e85c86cd36ecb8c794f25eb45b1b8c74a53db7137fd816",
+    "final_audit.py": "2a9a0f7e2ae279940239db0bd32881f95c874485ee818991f8f2a66369f05980",
+    "artifact_acceptance.py": "83ff073f9b62b863e3ef86640c9241705a42db4dd5e195e12c247f0c17fda1a0",
+    "real_acceptance.py": "d3d1e6f698bc9b3a96dc8060b7ba9698ce7d1feb5efa511785466590619fa4b1",
+    "lifecycle_audit.py": "8ed5293ed0d4286fb78b302e862e7b356c99d6ff73e33b0590eef657f0c451f2",
+    "service_acceptance.py": "33605d8d651589774e800531661e33b8afdc2bb9ccb395c2df4a289a36cbe887"
+  },
+  "reservations": {
+    "v007/manager.sqlite": 0,
+    "v007/journal/attempts.sqlite3": 0
+  },
+  "sessions": [
+    {
+      "path": "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/process.json",
+      "identity": {
+        "pid": 293195,
+        "process_group": 293195,
+        "session": 293195,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "39405883",
+        "launched_at": "2026-10-22T22:05:46.822627+00:00"
+      },
+      "members": []
+    },
+    {
+      "path": "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/process.json",
+      "identity": {
+        "pid": 293244,
+        "process_group": 293244,
+        "session": 293244,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "39406005",
+        "launched_at": "2026-10-22T22:05:48.036285+00:00"
+      },
+      "members": []
+    }
+  ],
+  "outputs": {
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/execution.json": {
+      "size": 592,
+      "sha256": "750ea133380912ac4cbfa10974dd7c71a6ceff673bf5de6a37b89d7cb6606e39"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/stderr": {
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/outcome.json": {
+      "size": 514,
+      "sha256": "44fca806f9545b5e9bf06f43a2a0e80dc34b53dbac4c759cefe645f714a4cda2"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/stdout": {
+      "size": 2324,
+      "sha256": "6c066fb28b209dc7cf123a54968d059ea94dc1adb46873aee1d9a98ccd82c3e8"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/process.json": {
+      "size": 188,
+      "sha256": "973876e9a64fcf1a62734fd1bb55d21f4da4997d8d894c7ac6022c781fc77569"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/work/in.lmp": {
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/work/log.lammps": {
+      "size": 2559,
+      "sha256": "799c02db4303273ae6578cb1d27b0a3e99058937783fd4ef6a9d73c1a03a7d82"
+    },
+    "v007/jobs/5914904d017748f69bc89f02447d9094/c1f444a38c9748c588cb37a5d329b383/results/work/output.data": {
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/execution.json": {
+      "size": 592,
+      "sha256": "6845e69027ed94f5a25f122c835ae39f253c3a3c3e5c14f87962f149e5f80a32"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/stderr": {
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/outcome.json": {
+      "size": 514,
+      "sha256": "dec516c2233ab310b3686169c695b5596fa5f269f1f64e5dcda73477ff4e5a2b"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/stdout": {
+      "size": 2324,
+      "sha256": "a72e02c20b5a5456a89809ef9d13d65e5fbd55497f30b718ce884dd29e1d0c0c"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/process.json": {
+      "size": 188,
+      "sha256": "44a62b5e5fa7faf8bbb1fc9385f8fb6a9de42ed6b984767d87dd025ab3041afd"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/work/in.lmp": {
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/work/log.lammps": {
+      "size": 2559,
+      "sha256": "f44da63fa1c3a9d4238a29949e2e17fd89647f77a3add33559436a8966f56e99"
+    },
+    "v007/jobs/ba5c18b7a8c64034b165af44a6156693/e8c116bc5549432681daf72bf9e39962/results/work/output.data": {
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    }
+  },
+  "processes": [],
+  "ports": {
+    "18448": "closed",
+    "18449": "closed"
+  },
+  "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "pyyaml": "6.0.3"
+}

@@ -1,15 +1,20 @@
-"""Streaming private TLS fault proxy for explicit V006 acceptance only."""
+"""Streaming private TLS fault proxy for explicit artifact acceptance only."""
+import argparse
 import http.client
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import socket
 import ssl
-import sys
 import threading
 import time
 
-ROOT = Path(sys.argv[1])
+PARSER = argparse.ArgumentParser(description=__doc__)
+PARSER.add_argument('root', type=Path)
+PARSER.add_argument('--upstream-port', type=int, default=18448)
+PARSER.add_argument('--listen-port', type=int, default=18449)
+ARGS = PARSER.parse_args()
+ROOT = ARGS.root
 CONTEXT = ssl.create_default_context(cafile=str(ROOT.parent / 'server.crt'))
 LOCK = threading.Lock()
 FIRED = set()
@@ -41,10 +46,11 @@ class Handler(BaseHTTPRequestHandler):
         is_input = self.path.startswith('/v2/inputs/')
         is_result = self.path.startswith('/v2/results/')
         is_file = self.path.rsplit('/', 1)[-1].isdigit()
-        connection = http.client.HTTPSConnection('127.0.0.1', 18448,
+        connection = http.client.HTTPSConnection('127.0.0.1', ARGS.upstream_port,
                                                   context=CONTEXT, timeout=10)
         headers = {k: v for k, v in self.headers.items()
                    if k.lower() not in {'host', 'connection'}}
+        drop_heartbeat = False
         try:
             if (mode == 'hold-input' and is_input) or (mode == 'hold-result' and is_result):
                 self.send_error(503, 'Private acceptance transfer hold')
@@ -52,6 +58,10 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get('Content-Length', 0))
             fault = None
             with LOCK:
+                if (mode == 'heartbeat' and self.path == '/v1/poll'
+                        and 'streaming_input' in FIRED and 'heartbeat' not in FIRED):
+                    FIRED.add('heartbeat')
+                    drop_heartbeat = True
                 if mode not in FIRED and is_file:
                     if mode == 'input' and is_input:
                         fault = 'partial_input'
@@ -100,12 +110,27 @@ class Handler(BaseHTTPRequestHandler):
                     self.close_connection = True
                     return
                 response = connection.getresponse()
+            if drop_heartbeat:
+                record(event='lost_input_heartbeat', path=self.path, status=response.status,
+                       delayed_seconds=2)
+                time.sleep(2)
+                self.connection.shutdown(socket.SHUT_RDWR)
+                self.close_connection = True
+                return
+            if mode == 'heartbeat' and is_input and is_file:
+                record(event='input_request', path=self.path)
+                if int(response.getheader('Content-Length', '0')) >= 65536:
+                    with LOCK:
+                        FIRED.add('streaming_input')
             self.send_response(response.status)
             self.send_header('Content-Type', response.getheader('Content-Type', 'application/octet-stream'))
             self.send_header('Content-Length', response.getheader('Content-Length', '0'))
             self.end_headers()
             while chunk := response.read(65536):
                 self.wfile.write(chunk)
+                if mode == 'heartbeat' and is_input and is_file:
+                    self.wfile.flush()
+                    time.sleep(.02)
             if self.path == '/v1/poll':
                 record(event='poll', elapsed=time.monotonic() - started, status=response.status)
         except (OSError, http.client.HTTPException):
@@ -116,10 +141,14 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    server = ThreadingHTTPServer(('127.0.0.1', 18449), Handler)
+    server = ThreadingHTTPServer(('127.0.0.1', ARGS.listen_port), Handler)
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(str(ROOT.parent / 'server.crt'), str(ROOT.parent / 'server.key'))
     server.socket = context.wrap_socket(server.socket, server_side=True)
+    listener = ROOT / 'proxy-listener.json'
+    temporary_listener = ROOT / 'proxy-listener.tmp'
+    temporary_listener.write_text(json.dumps(dict(port=server.server_port)))
+    temporary_listener.replace(listener)
     try:
         server.serve_forever(poll_interval=.05)
     except KeyboardInterrupt:

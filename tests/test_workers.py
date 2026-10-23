@@ -705,6 +705,47 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result['assignments'], [])
         self.assertEqual(worker.proof, self.service.proof)
 
+    @unittest.skipUnless(shutil.which('openssl'), 'openssl is needed to create a temporary TLS certificate')
+    def test_idle_tls_handshake_does_not_block_authenticated_poll(self) -> None:
+        import socket
+        import ssl
+        certificate = self.root / 'idle-server.crt'
+        key = self.root / 'idle-server.key'
+        subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
+                        '-keyout', str(key), '-out', str(certificate), '-days', '1',
+                        '-subj', '/CN=127.0.0.1', '-addext', 'subjectAltName=IP:127.0.0.1'],
+                       check=True, capture_output=True, timeout=10)
+        server = make_server(self.service, '127.0.0.1', 0,
+                             certfile=str(certificate), keyfile=str(key))
+        thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': .01})
+        thread.start()
+        def stop() -> None:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+        self.addCleanup(stop)
+        config = replace(self.worker_config(), manager_endpoint=f'https://127.0.0.1:{server.server_port}')
+        worker = Worker(config, self.root / 'idle-tls-journal')
+        self.addCleanup(worker.close)
+        accepted = threading.Event()
+        original_wrap = ssl.SSLContext.wrap_socket
+        def wrap(context, *args, **kwargs):
+            if kwargs.get('server_side'):
+                accepted.set()
+            return original_wrap(context, *args, **kwargs)
+        original_open = worker.opener.open
+        with patch.object(ssl.SSLContext, 'wrap_socket', wrap), \
+                patch.object(worker.opener, 'open', side_effect=lambda request, timeout: original_open(request, timeout=.5)), \
+                patch.dict(os.environ, {'SSL_CERT_FILE': str(certificate)}):
+            idle = socket.create_connection(('127.0.0.1', server.server_port), timeout=1)
+            try:
+                self.assertTrue(accepted.wait(1), 'Idle peer must reach the server TLS handshake')
+                result = worker.tick()
+                self.assertEqual(result['assignments'], [])
+                self.assertEqual(worker.proof, self.service.proof)
+            finally:
+                idle.close()
+
     def test_transport_and_credential_checks(self) -> None:
         path = Path(self.tokens['a'])
         path.chmod(0o644)

@@ -289,6 +289,111 @@ class StagedWorkerTests(unittest.TestCase):
             self.assertEqual(len(attempts), 1)
             self.assertNotIn('unknown', [e['state'] for e in store.events(self.job_id)])
 
+    def test_failed_input_heartbeats_preserve_stream_but_require_fresh_launch_policy(self) -> None:
+        import time
+        from urllib.error import URLError
+        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
+        worker = self.worker()
+        original_open = worker.opener.open
+        def fail_initial_download(request, *args, **kwargs):
+            if '/files/' in request.full_url:
+                raise URLError('Initial transfer interruption')
+            return original_open(request, *args, **kwargs)
+        with patch.object(worker.opener, 'open', side_effect=fail_initial_download):
+            worker.tick()
+        self.assert_pending(worker, 'failed')
+        downloads = []
+        failures = []
+        def lose_heartbeat(request, *args, **kwargs):
+            if request.full_url.endswith('/v1/poll') and downloads:
+                failures.append(request.full_url)
+                with Store(self.config.manager.database_path) as manager:
+                    manager.set_worker('a', paused=True)
+                raise URLError('Transient heartbeat outage during intact download')
+            response = original_open(request, *args, **kwargs)
+            if '/files/' in request.full_url:
+                downloads.append(request.full_url)
+                time.sleep(.02)
+            return response
+        with patch.object(worker, '_launch_staged', Worker._launch_staged.__get__(worker)), \
+                patch.object(worker, '_execute') as execute:
+            with patch.object(worker.opener, 'open', side_effect=lose_heartbeat), patch('sys.stderr'):
+                worker.tick()
+            self.assert_pending(worker, 'ready')
+            self.assertTrue(failures)
+            self.assertEqual(len(downloads), len(self.spec.input_manifest))
+            self.assertEqual(len(set(downloads)), len(downloads))
+            execute.assert_not_called()
+            with Store(worker.database) as journal:
+                attempt, = journal.job_attempts(self.job_id)
+                self.assertFalse(journal.launch_claimed(attempt.attempt_id))
+            # All transfer-time heartbeats failed; the fresh normal reply must
+            # still observe the pause and prevent launch using old policy.
+            worker.tick()
+            execute.assert_not_called()
+            with Store(worker.database) as journal:
+                self.assertFalse(journal.launch_claimed(attempt.attempt_id))
+                self.assertEqual(journal.rejection(attempt.attempt_id)['code'], 'not_ready')
+
+    def test_input_heartbeat_authentication_failure_still_aborts_publication(self) -> None:
+        import time
+        from urllib.error import HTTPError
+        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
+        worker = self.worker()
+        original_open = worker.opener.open
+        opened = False
+        def unauthorized_heartbeat(request, *args, **kwargs):
+            nonlocal opened
+            if request.full_url.endswith('/v1/poll') and opened:
+                raise HTTPError(request.full_url, 401, 'Unauthorized', {}, None)
+            response = original_open(request, *args, **kwargs)
+            if '/files/' in request.full_url:
+                opened = True
+                time.sleep(.02)
+            return response
+        with patch.object(worker.opener, 'open', side_effect=unauthorized_heartbeat):
+            worker.tick()
+        transfer = self.assert_pending(worker, 'failed')
+        self.assertIn('401', transfer['reason'])
+        self.assertFalse(Path(transfer['directory']).exists())
+
+    def test_compact_heartbeat_keeps_reservation_and_replays_manifest_on_normal_poll(self) -> None:
+        worker = self.worker()
+        worker.tick()
+        self.assert_pending(worker, 'ready')
+        payload = dict(proof=worker.proof, snapshot=worker.monitor.sample(worker.config),
+                       reports=[], protocol=2, recovery_protocol=1, storage_mode='staged',
+                       generation=dict(boot_id=worker.boot_id, session_id=worker.session_id),
+                       heartbeat_only=True)
+        reply = self.service.poll('a', payload)
+        self.assertEqual(reply['assignments'], [])
+        self.assertIn('cancellations', reply)
+        self.assertIn('policy', reply)
+        with Store(self.config.manager.database_path) as manager:
+            attempt, = manager.job_attempts(self.job_id)
+            self.assertEqual(len(manager.reservations()), 1)
+            self.assertEqual(manager.specification(self.job_id), self.spec)
+            manager.request_cancel(attempt.attempt_id, 'Compact poll cancellation')
+        reply = self.service.poll('a', payload)
+        self.assertEqual(reply['cancellations'][0]['attempt_id'], attempt.attempt_id)
+        payload.pop('heartbeat_only')
+        normal = self.service.poll('a', payload)
+        self.assertEqual(len(normal['assignments']), 1)
+        assignment = normal['assignments'][0]
+        self.assertEqual(assignment['attempt']['attempt_id'], attempt.attempt_id)
+        self.assertEqual(len(assignment['specification']['input_manifest']), len(self.spec.input_manifest))
+
+    def test_compact_heartbeat_flag_rejects_nonboolean_before_state_changes(self) -> None:
+        worker = self.worker()
+        worker.tick()
+        payload = dict(proof=worker.proof, snapshot=worker.monitor.sample(worker.config),
+                       reports=[], protocol=2, recovery_protocol=1, storage_mode='staged',
+                       generation=dict(boot_id=worker.boot_id, session_id=worker.session_id),
+                       heartbeat_only='true')
+        with self.assertRaisesRegex(ValueError, 'heartbeat_only'):
+            self.service.poll('a', payload)
+        self.assert_pending(worker, 'ready')
+
     def test_input_heartbeat_cancellation_never_publishes_or_launches(self) -> None:
         import time
         self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)

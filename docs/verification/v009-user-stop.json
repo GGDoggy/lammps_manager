@@ -1,0 +1,790 @@
+{
+  "reason": "User requested stopping all tests",
+  "local_wrapper_pids_signalled": [
+    2429372,
+    2429378,
+    2429399
+  ],
+  "hosts": {
+    "mozzarella": {
+      "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+      "processes": [],
+      "pool": {
+        "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+        "identity": {
+          "pid": 19450,
+          "process_group": 19450,
+          "session": 19450,
+          "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+          "start_ticks": "2079562"
+        },
+        "allowed_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "host_logical_cpus": 20,
+        "pilot_report_sha256": "1a1d047f5eecf2829f54daa0ccf3bf487e151d0923fc04a02a9bae829bf42f4c",
+        "driver_sha256": "84617c9ec34269433256d1dc7bea6426b3a0398ccb260404fe86286557af783b",
+        "pool_sha256": "d38d51cc4a7c13e55887c753817b77cb295976942ae746399d7217a92bdda68c",
+        "completed": [
+          {
+            "name": "s7-64-128",
+            "stratum": 7,
+            "start": 64,
+            "stop": 128,
+            "cpus": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "pid": 19452,
+            "identity": {
+              "pid": 19452,
+              "process_group": 19452,
+              "session": 19452,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2079567"
+            },
+            "started": 1792707447.7752664,
+            "argv": [
+              "taskset",
+              "-c",
+              "4,5,6,7",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-64-128",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "64",
+              "--replica-stop",
+              "128"
+            ],
+            "returncode": 0,
+            "ended": 1792707976.625293
+          },
+          {
+            "name": "s7-0-64",
+            "stratum": 7,
+            "start": 0,
+            "stop": 64,
+            "cpus": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pid": 19451,
+            "identity": {
+              "pid": 19451,
+              "process_group": 19451,
+              "session": 19451,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2079567"
+            },
+            "started": 1792707447.7749135,
+            "argv": [
+              "taskset",
+              "-c",
+              "0,1,2,3",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-0-64",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "0",
+              "--replica-stop",
+              "64"
+            ],
+            "returncode": 0,
+            "ended": 1792707980.6360848
+          },
+          {
+            "name": "s6-0-64",
+            "stratum": 6,
+            "start": 0,
+            "stop": 64,
+            "cpus": [
+              8,
+              9
+            ],
+            "pid": 19453,
+            "identity": {
+              "pid": 19453,
+              "process_group": 19453,
+              "session": 19453,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2079567"
+            },
+            "started": 1792707447.7756412,
+            "argv": [
+              "taskset",
+              "-c",
+              "8,9",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s6-0-64",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "6",
+              "--replica-start",
+              "0",
+              "--replica-stop",
+              "64"
+            ],
+            "returncode": 0,
+            "ended": 1792708022.70535
+          },
+          {
+            "name": "s7-128-192",
+            "stratum": 7,
+            "start": 128,
+            "stop": 192,
+            "cpus": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "pid": 30216,
+            "identity": {
+              "pid": 30216,
+              "process_group": 30216,
+              "session": 30216,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2132653"
+            },
+            "started": 1792707978.6326668,
+            "argv": [
+              "taskset",
+              "-c",
+              "4,5,6,7",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-128-192",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "128",
+              "--replica-stop",
+              "192"
+            ],
+            "returncode": 0,
+            "ended": 1792708517.5687897
+          },
+          {
+            "name": "s7-192-256",
+            "stratum": 7,
+            "start": 192,
+            "stop": 256,
+            "cpus": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pid": 30274,
+            "identity": {
+              "pid": 30274,
+              "process_group": 30274,
+              "session": 30274,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2133054"
+            },
+            "started": 1792707982.641846,
+            "argv": [
+              "taskset",
+              "-c",
+              "0,1,2,3",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-192-256",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "192",
+              "--replica-stop",
+              "256"
+            ],
+            "returncode": 0,
+            "ended": 1792708519.576306
+          },
+          {
+            "name": "s6-64-128",
+            "stratum": 6,
+            "start": 64,
+            "stop": 128,
+            "cpus": [
+              8,
+              9
+            ],
+            "pid": 31109,
+            "identity": {
+              "pid": 31109,
+              "process_group": 31109,
+              "session": 31109,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2137261"
+            },
+            "started": 1792708024.712985,
+            "argv": [
+              "taskset",
+              "-c",
+              "8,9",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s6-64-128",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "6",
+              "--replica-start",
+              "64",
+              "--replica-stop",
+              "128"
+            ],
+            "returncode": 0,
+            "ended": 1792708605.733297
+          },
+          {
+            "name": "s7-256-320",
+            "stratum": 7,
+            "start": 256,
+            "stop": 320,
+            "cpus": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "pid": 44331,
+            "identity": {
+              "pid": 44331,
+              "process_group": 44331,
+              "session": 44331,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2186747"
+            },
+            "started": 1792708519.5762472,
+            "argv": [
+              "taskset",
+              "-c",
+              "4,5,6,7",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-256-320",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "256",
+              "--replica-stop",
+              "320"
+            ],
+            "returncode": 0,
+            "ended": 1792709058.6565666
+          },
+          {
+            "name": "s7-320-384",
+            "stratum": 7,
+            "start": 320,
+            "stop": 384,
+            "cpus": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pid": 44378,
+            "identity": {
+              "pid": 44378,
+              "process_group": 44378,
+              "session": 44378,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2186948"
+            },
+            "started": 1792708521.5829163,
+            "argv": [
+              "taskset",
+              "-c",
+              "0,1,2,3",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-320-384",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "320",
+              "--replica-stop",
+              "384"
+            ],
+            "returncode": 0,
+            "ended": 1792709062.6773527
+          },
+          {
+            "name": "s6-128-192",
+            "stratum": 6,
+            "start": 128,
+            "stop": 192,
+            "cpus": [
+              8,
+              9
+            ],
+            "pid": 46069,
+            "identity": {
+              "pid": 46069,
+              "process_group": 46069,
+              "session": 46069,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2195564"
+            },
+            "started": 1792708607.748128,
+            "argv": [
+              "taskset",
+              "-c",
+              "8,9",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s6-128-192",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "6",
+              "--replica-start",
+              "128",
+              "--replica-stop",
+              "192"
+            ],
+            "returncode": 0,
+            "ended": 1792709190.923659
+          },
+          {
+            "name": "s7-384-448",
+            "stratum": 7,
+            "start": 384,
+            "stop": 448,
+            "cpus": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "pid": 55711,
+            "identity": {
+              "pid": 55711,
+              "process_group": 55711,
+              "session": 55711,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2240857"
+            },
+            "started": 1792709060.6738188,
+            "argv": [
+              "taskset",
+              "-c",
+              "4,5,6,7",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-384-448",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "384",
+              "--replica-stop",
+              "448"
+            ],
+            "returncode": 0,
+            "ended": 1792709599.761673
+          },
+          {
+            "name": "s7-448-512",
+            "stratum": 7,
+            "start": 448,
+            "stop": 512,
+            "cpus": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pid": 55773,
+            "identity": {
+              "pid": 55773,
+              "process_group": 55773,
+              "session": 55773,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2241258"
+            },
+            "started": 1792709064.6843598,
+            "argv": [
+              "taskset",
+              "-c",
+              "0,1,2,3",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-448-512",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "448",
+              "--replica-stop",
+              "512"
+            ],
+            "returncode": 0,
+            "ended": 1792709605.7882
+          }
+        ],
+        "passed": false,
+        "active": [
+          {
+            "name": "s6-192-256",
+            "stratum": 6,
+            "start": 192,
+            "stop": 256,
+            "cpus": [
+              8,
+              9
+            ],
+            "pid": 58363,
+            "identity": {
+              "pid": 58363,
+              "process_group": 58363,
+              "session": 58363,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2254083"
+            },
+            "started": 1792709192.9315367,
+            "argv": [
+              "taskset",
+              "-c",
+              "8,9",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s6-192-256",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "6",
+              "--replica-start",
+              "192",
+              "--replica-stop",
+              "256"
+            ]
+          },
+          {
+            "name": "s7-512-576",
+            "stratum": 7,
+            "start": 512,
+            "stop": 576,
+            "cpus": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "pid": 66466,
+            "identity": {
+              "pid": 66466,
+              "process_group": 66466,
+              "session": 66466,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2294967"
+            },
+            "started": 1792709601.777803,
+            "argv": [
+              "taskset",
+              "-c",
+              "4,5,6,7",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-512-576",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "512",
+              "--replica-stop",
+              "576"
+            ]
+          },
+          {
+            "name": "s7-576-640",
+            "stratum": 7,
+            "start": 576,
+            "stop": 640,
+            "cpus": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pid": 66575,
+            "identity": {
+              "pid": 66575,
+              "process_group": 66575,
+              "session": 66575,
+              "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+              "start_ticks": "2295569"
+            },
+            "started": 1792709607.7978172,
+            "argv": [
+              "taskset",
+              "-c",
+              "0,1,2,3",
+              "/usr/bin/python3",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/tmp/lammps-v009-confirm-O7zrjHxK/confirmation/chunks/s7-576-640",
+              "--confirm-from",
+              "/tmp/lammps-v009-wca-xhPSfWoe/study/report.json",
+              "--pilot-driver",
+              "/tmp/lammps-v009-wca-xhPSfWoe/wca_acceptance.py",
+              "--stratum-index",
+              "7",
+              "--replica-start",
+              "576",
+              "--replica-stop",
+              "640"
+            ]
+          }
+        ],
+        "pending": 451,
+        "free_cpus": [],
+        "updated_at": 1792709697.5274286,
+        "events": [
+          {
+            "event": "started",
+            "name": "s7-0-64",
+            "time": 1792707447.774916
+          },
+          {
+            "event": "started",
+            "name": "s7-64-128",
+            "time": 1792707447.7752686
+          },
+          {
+            "event": "started",
+            "name": "s6-0-64",
+            "time": 1792707447.7756789
+          },
+          {
+            "event": "completed",
+            "name": "s7-64-128",
+            "time": 1792707976.6279936
+          },
+          {
+            "event": "started",
+            "name": "s7-128-192",
+            "time": 1792707978.6326702
+          },
+          {
+            "event": "completed",
+            "name": "s7-0-64",
+            "time": 1792707980.6389701
+          },
+          {
+            "event": "started",
+            "name": "s7-192-256",
+            "time": 1792707982.6418495
+          },
+          {
+            "event": "completed",
+            "name": "s6-0-64",
+            "time": 1792708022.7079215
+          },
+          {
+            "event": "started",
+            "name": "s6-64-128",
+            "time": 1792708024.713025
+          },
+          {
+            "event": "completed",
+            "name": "s7-128-192",
+            "time": 1792708517.571431
+          },
+          {
+            "event": "started",
+            "name": "s7-256-320",
+            "time": 1792708519.5762506
+          },
+          {
+            "event": "completed",
+            "name": "s7-192-256",
+            "time": 1792708519.5789874
+          },
+          {
+            "event": "started",
+            "name": "s7-320-384",
+            "time": 1792708521.5829196
+          },
+          {
+            "event": "completed",
+            "name": "s6-64-128",
+            "time": 1792708605.7359726
+          },
+          {
+            "event": "started",
+            "name": "s6-128-192",
+            "time": 1792708607.7481687
+          },
+          {
+            "event": "completed",
+            "name": "s7-256-320",
+            "time": 1792709058.6608038
+          },
+          {
+            "event": "started",
+            "name": "s7-384-448",
+            "time": 1792709060.6738222
+          },
+          {
+            "event": "completed",
+            "name": "s7-320-384",
+            "time": 1792709062.6799805
+          },
+          {
+            "event": "started",
+            "name": "s7-448-512",
+            "time": 1792709064.6843638
+          },
+          {
+            "event": "completed",
+            "name": "s6-128-192",
+            "time": 1792709190.926297
+          },
+          {
+            "event": "started",
+            "name": "s6-192-256",
+            "time": 1792709192.9315765
+          },
+          {
+            "event": "completed",
+            "name": "s7-384-448",
+            "time": 1792709599.7733967
+          },
+          {
+            "event": "started",
+            "name": "s7-512-576",
+            "time": 1792709601.7778063
+          },
+          {
+            "event": "completed",
+            "name": "s7-448-512",
+            "time": 1792709605.792472
+          },
+          {
+            "event": "started",
+            "name": "s7-576-640",
+            "time": 1792709607.7978342
+          }
+        ],
+        "error": "KeyboardInterrupt: "
+      },
+      "active_test_units": []
+    },
+    "allegro": {
+      "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+      "processes": [],
+      "active_test_units": []
+    }
+  },
+  "completed_pairs_in_complete_chunks": 704,
+  "local_test_ports": {
+    "18446": "closed",
+    "18448": "closed",
+    "18449": "closed"
+  }
+}

@@ -1,0 +1,1228 @@
+{
+  "protocol": {
+    "version": 1,
+    "namespace": "v009-wca-20261023-v1",
+    "particles": 256,
+    "density": 0.5,
+    "dt": 0.0001,
+    "preparation_steps": 20000,
+    "strata": [
+      [
+        20000,
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        20000,
+        [
+          2,
+          2,
+          2
+        ]
+      ],
+      [
+        20000,
+        [
+          4,
+          4,
+          4
+        ]
+      ],
+      [
+        20000,
+        [
+          1,
+          2,
+          4
+        ]
+      ],
+      [
+        20000,
+        [
+          4,
+          2,
+          1
+        ]
+      ],
+      [
+        100000,
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      [
+        100000,
+        [
+          2,
+          2,
+          2
+        ]
+      ],
+      [
+        100000,
+        [
+          4,
+          4,
+          4
+        ]
+      ],
+      [
+        100000,
+        [
+          1,
+          2,
+          4
+        ]
+      ],
+      [
+        100000,
+        [
+          4,
+          2,
+          1
+        ]
+      ]
+    ],
+    "pilot_pairs": 8,
+    "minimum_pairs": 64,
+    "maximum_pairs": 512,
+    "family_alpha": 0.05,
+    "target_power": 0.9,
+    "variance_inflation": 4,
+    "endpoints": 23,
+    "protocol": "docs/verification/v009-wca-protocol.md"
+  },
+  "protocol_sha256": "879bcbb9ef4bebd54a3a31def73351cf4a613c60068008c4732fa8b70ae1fdcd",
+  "driver_sha256": "d06d829e40aae22ac5b624d2010e6371d15dc454fb74503bf499a649b4a194fc",
+  "build": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+  "boot_id": "c1c9b90b-bc7d-464c-bac8-f1b5a809b9fb",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-0-prepare",
+      "started": 1792706431.2942147,
+      "pid": 14917,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-0-reference-0",
+      "started": 1792706432.2609966,
+      "pid": 14925,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-0-segmented-0",
+      "started": 1792706433.38306,
+      "pid": 14932,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-0-segmented-1",
+      "started": 1792706434.0153363,
+      "pid": 14939,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-0-segmented-2",
+      "started": 1792706434.6621127,
+      "pid": 14946,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-1-prepare",
+      "started": 1792706435.3413987,
+      "pid": 14953,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-1-reference-0",
+      "started": 1792706436.257854,
+      "pid": 14960,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-1-segmented-0",
+      "started": 1792706437.3770306,
+      "pid": 14967,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-1-segmented-1",
+      "started": 1792706437.9702706,
+      "pid": 14974,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-1-segmented-2",
+      "started": 1792706438.6179855,
+      "pid": 14981,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-2-prepare",
+      "started": 1792706439.3122537,
+      "pid": 14988,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-2-reference-0",
+      "started": 1792706440.2287273,
+      "pid": 14996,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-2-segmented-0",
+      "started": 1792706441.3993137,
+      "pid": 15004,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-2-segmented-1",
+      "started": 1792706442.0312574,
+      "pid": 15011,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-2-segmented-2",
+      "started": 1792706442.715811,
+      "pid": 15018,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-3-prepare",
+      "started": 1792706443.408409,
+      "pid": 15025,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-3-reference-0",
+      "started": 1792706444.3254015,
+      "pid": 15032,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-3-segmented-0",
+      "started": 1792706445.3941514,
+      "pid": 15039,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-3-segmented-1",
+      "started": 1792706446.0254714,
+      "pid": 15046,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-3-segmented-2",
+      "started": 1792706446.618931,
+      "pid": 15053,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-4-prepare",
+      "started": 1792706447.2640145,
+      "pid": 15060,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-4-reference-0",
+      "started": 1792706448.1808739,
+      "pid": 15067,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-4-segmented-0",
+      "started": 1792706449.2997868,
+      "pid": 15074,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-4-segmented-1",
+      "started": 1792706449.891094,
+      "pid": 15081,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-4-segmented-2",
+      "started": 1792706450.5336533,
+      "pid": 15089,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-5-prepare",
+      "started": 1792706451.225496,
+      "pid": 15096,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-5-reference-0",
+      "started": 1792706452.1922328,
+      "pid": 15104,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-5-segmented-0",
+      "started": 1792706453.311529,
+      "pid": 15111,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-5-segmented-1",
+      "started": 1792706453.9565225,
+      "pid": 15118,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-5-segmented-2",
+      "started": 1792706454.55322,
+      "pid": 15125,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-6-prepare",
+      "started": 1792706455.1977336,
+      "pid": 15132,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-6-reference-0",
+      "started": 1792706456.1145144,
+      "pid": 15139,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-6-segmented-0",
+      "started": 1792706457.23369,
+      "pid": 15146,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-6-segmented-1",
+      "started": 1792706457.9160738,
+      "pid": 15153,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-6-segmented-2",
+      "started": 1792706458.511043,
+      "pid": 15160,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-7-prepare",
+      "started": 1792706459.2043178,
+      "pid": 15181,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-7-reference-0",
+      "started": 1792706460.1711898,
+      "pid": 15188,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-7-segmented-0",
+      "started": 1792706461.2776184,
+      "pid": 15197,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-7-segmented-1",
+      "started": 1792706461.9229553,
+      "pid": 15205,
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/mpirun.openmpi",
+        "-np",
+        "1",
+        "--bind-to",
+        "none",
+        "/usr/local/bin/lmp",
+        "-in",
+        "in.lmp"
+      ],
+      "directory": "/tmp/lammps-v009-wca-UpFwFJ8A/study/20000-111-pilot-7-segmented-2",
+      "started": 1792706462.5692587,
+      "pid": 15212,
+      "returncode": 0
+    }
+  ],
+  "replicas": [
+    {
+      "key": "20000-111-pilot-0",
+      "observables": {
+        "reference": {
+          "energy": 0.2551413029555517,
+          "shell-0": 0.171875,
+          "shell-1": 0.928125,
+          "shell-2": 1.971875,
+          "shell-3": 2.35,
+          "structure-0": 0.12474832097012563,
+          "structure-1": 0.22381468530527893,
+          "lag-1000-msd": 0.7550582941691674,
+          "lag-1000-acf": 0.9079652171610331,
+          "lag-2000-msd": 0.6997024338727369,
+          "lag-2000-acf": 0.8262295929434199,
+          "boundary-0.3-before-msd": 0.8394722911608938,
+          "boundary-0.3-before-acf": 0.9797792789915416,
+          "boundary-0.3-cross-msd": 0.7899971264323961,
+          "boundary-0.3-cross-acf": 0.9546332533697143,
+          "boundary-0.3-after-msd": 0.910857584929715,
+          "boundary-0.3-after-acf": 0.9802018017634916,
+          "boundary-0.7-before-msd": 0.9663551107715751,
+          "boundary-0.7-before-acf": 0.9800337418834684,
+          "boundary-0.7-cross-msd": 0.8537795296877417,
+          "boundary-0.7-cross-acf": 0.9586759817272054,
+          "boundary-0.7-after-msd": 0.7783655136396578,
+          "boundary-0.7-after-acf": 0.9807058572649897
+        },
+        "segmented": {
+          "energy": 0.2583828406945561,
+          "shell-0": 0.16875,
+          "shell-1": 0.959375,
+          "shell-2": 1.9796875,
+          "shell-3": 2.2984375,
+          "structure-0": 0.46231937579154064,
+          "structure-1": 0.16074445682272837,
+          "lag-1000-msd": 0.7620353251227996,
+          "lag-1000-acf": 0.9067882728349629,
+          "lag-2000-msd": 0.6902037619703836,
+          "lag-2000-acf": 0.8202175518369775,
+          "boundary-0.3-before-msd": 0.9304620529195821,
+          "boundary-0.3-before-acf": 0.9768535046158467,
+          "boundary-0.3-cross-msd": 0.8869846680418605,
+          "boundary-0.3-cross-acf": 0.9575228401257047,
+          "boundary-0.3-after-msd": 0.9380723955346718,
+          "boundary-0.3-after-acf": 0.9797121200549548,
+          "boundary-0.7-before-msd": 0.9204752853136667,
+          "boundary-0.7-before-acf": 0.982236492784109,
+          "boundary-0.7-cross-msd": 0.8857694976030539,
+          "boundary-0.7-cross-acf": 0.9627294724663534,
+          "boundary-0.7-after-msd": 0.8252403513588964,
+          "boundary-0.7-after-acf": 0.9809602583252086
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-1",
+      "observables": {
+        "reference": {
+          "energy": 0.2775507609292668,
+          "shell-0": 0.1671875,
+          "shell-1": 0.915625,
+          "shell-2": 2.10625,
+          "shell-3": 2.2796875,
+          "structure-0": 0.4670794342285592,
+          "structure-1": 0.21899772415997842,
+          "lag-1000-msd": 0.7499710666118616,
+          "lag-1000-acf": 0.9048588557984449,
+          "lag-2000-msd": 0.6801992693695073,
+          "lag-2000-acf": 0.8171630236613874,
+          "boundary-0.3-before-msd": 0.9172761969269296,
+          "boundary-0.3-before-acf": 0.9794957196686558,
+          "boundary-0.3-cross-msd": 0.8288572941848614,
+          "boundary-0.3-cross-acf": 0.962777371253734,
+          "boundary-0.3-after-msd": 0.9382918929353562,
+          "boundary-0.3-after-acf": 0.9811943887746667,
+          "boundary-0.7-before-msd": 0.9231216995226885,
+          "boundary-0.7-before-acf": 0.9807421433883147,
+          "boundary-0.7-cross-msd": 0.7991259501842899,
+          "boundary-0.7-cross-acf": 0.9628513123542529,
+          "boundary-0.7-after-msd": 0.8619712664575506,
+          "boundary-0.7-after-acf": 0.9822619816400134
+        },
+        "segmented": {
+          "energy": 0.2712664045851236,
+          "shell-0": 0.159375,
+          "shell-1": 1.0796875,
+          "shell-2": 1.9203125,
+          "shell-3": 2.3359375,
+          "structure-0": 0.16824845069193495,
+          "structure-1": 0.04502927424886735,
+          "lag-1000-msd": 0.7476038788010055,
+          "lag-1000-acf": 0.9072267309639076,
+          "lag-2000-msd": 0.6811856033616944,
+          "lag-2000-acf": 0.8231729686661641,
+          "boundary-0.3-before-msd": 0.8894597172214441,
+          "boundary-0.3-before-acf": 0.980771098644812,
+          "boundary-0.3-cross-msd": 0.9342348637707033,
+          "boundary-0.3-cross-acf": 0.9591387958730008,
+          "boundary-0.3-after-msd": 0.9539342814856044,
+          "boundary-0.3-after-acf": 0.9829828545341068,
+          "boundary-0.7-before-msd": 0.8989492539248399,
+          "boundary-0.7-before-acf": 0.9782622871811072,
+          "boundary-0.7-cross-msd": 0.7632086419490387,
+          "boundary-0.7-cross-acf": 0.9652430906916492,
+          "boundary-0.7-after-msd": 0.9499495776058691,
+          "boundary-0.7-after-acf": 0.982997375065565
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-2",
+      "observables": {
+        "reference": {
+          "energy": 0.26795094949456566,
+          "shell-0": 0.1453125,
+          "shell-1": 0.9515625,
+          "shell-2": 2.0203125,
+          "shell-3": 2.43125,
+          "structure-0": 0.05456972254871977,
+          "structure-1": 0.30734471446412115,
+          "lag-1000-msd": 0.73287238485522,
+          "lag-1000-acf": 0.9056574036129182,
+          "lag-2000-msd": 0.6546823941663864,
+          "lag-2000-acf": 0.8222217793239901,
+          "boundary-0.3-before-msd": 0.9106262033995042,
+          "boundary-0.3-before-acf": 0.9824905678056061,
+          "boundary-0.3-cross-msd": 0.8510490445938037,
+          "boundary-0.3-cross-acf": 0.9646614309861865,
+          "boundary-0.3-after-msd": 0.8930859066226756,
+          "boundary-0.3-after-acf": 0.9799846054342516,
+          "boundary-0.7-before-msd": 0.8730675308797026,
+          "boundary-0.7-before-acf": 0.9798562562701024,
+          "boundary-0.7-cross-msd": 0.8001793724245508,
+          "boundary-0.7-cross-acf": 0.9605286393349625,
+          "boundary-0.7-after-msd": 0.9601963584995271,
+          "boundary-0.7-after-acf": 0.9786684923405574
+        },
+        "segmented": {
+          "energy": 0.2750265363824296,
+          "shell-0": 0.1921875,
+          "shell-1": 0.9625,
+          "shell-2": 1.934375,
+          "shell-3": 2.38125,
+          "structure-0": 0.39902307666778164,
+          "structure-1": 0.1346649199747586,
+          "lag-1000-msd": 0.7592068577274572,
+          "lag-1000-acf": 0.9042864288093575,
+          "lag-2000-msd": 0.6935581843650416,
+          "lag-2000-acf": 0.8169114368107308,
+          "boundary-0.3-before-msd": 0.822325731458057,
+          "boundary-0.3-before-acf": 0.9792004014651116,
+          "boundary-0.3-cross-msd": 0.7389033001082239,
+          "boundary-0.3-cross-acf": 0.9534842776086817,
+          "boundary-0.3-after-msd": 0.9165972007902551,
+          "boundary-0.3-after-acf": 0.982238676885425,
+          "boundary-0.7-before-msd": 0.8579931523588614,
+          "boundary-0.7-before-acf": 0.9803049004353213,
+          "boundary-0.7-cross-msd": 0.8269999136409049,
+          "boundary-0.7-cross-acf": 0.9581275836466567,
+          "boundary-0.7-after-msd": 0.8725645145574003,
+          "boundary-0.7-after-acf": 0.9818058357016516
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-3",
+      "observables": {
+        "reference": {
+          "energy": 0.2626233783230595,
+          "shell-0": 0.1390625,
+          "shell-1": 0.875,
+          "shell-2": 2.025,
+          "shell-3": 2.4953125,
+          "structure-0": 0.23917484408837494,
+          "structure-1": 0.26716562670591465,
+          "lag-1000-msd": 0.7503199407607068,
+          "lag-1000-acf": 0.9059517649904527,
+          "lag-2000-msd": 0.6794746897258281,
+          "lag-2000-acf": 0.8135789207098458,
+          "boundary-0.3-before-msd": 0.8302286923777694,
+          "boundary-0.3-before-acf": 0.9831588296851262,
+          "boundary-0.3-cross-msd": 0.8338980688393788,
+          "boundary-0.3-cross-acf": 0.9664672789355107,
+          "boundary-0.3-after-msd": 0.9184943729163673,
+          "boundary-0.3-after-acf": 0.9781934888021481,
+          "boundary-0.7-before-msd": 1.0140411752490748,
+          "boundary-0.7-before-acf": 0.9821935390489781,
+          "boundary-0.7-cross-msd": 0.8386921162729511,
+          "boundary-0.7-cross-acf": 0.9593150012631666,
+          "boundary-0.7-after-msd": 0.9269215712926305,
+          "boundary-0.7-after-acf": 0.9763802035592724
+        },
+        "segmented": {
+          "energy": 0.2665785646365117,
+          "shell-0": 0.15625,
+          "shell-1": 0.9546875,
+          "shell-2": 2.0609375,
+          "shell-3": 2.3359375,
+          "structure-0": 0.5664224241400097,
+          "structure-1": 0.29032560551672343,
+          "lag-1000-msd": 0.7504594186741966,
+          "lag-1000-acf": 0.905528111367115,
+          "lag-2000-msd": 0.6931127255875934,
+          "lag-2000-acf": 0.8176835034573882,
+          "boundary-0.3-before-msd": 0.8809671985037095,
+          "boundary-0.3-before-acf": 0.9786484055901729,
+          "boundary-0.3-cross-msd": 0.8869657301040654,
+          "boundary-0.3-cross-acf": 0.9600367100481151,
+          "boundary-0.3-after-msd": 0.8479005274666955,
+          "boundary-0.3-after-acf": 0.9773992722888057,
+          "boundary-0.7-before-msd": 0.9100438951833706,
+          "boundary-0.7-before-acf": 0.980252780213638,
+          "boundary-0.7-cross-msd": 0.8517065398269488,
+          "boundary-0.7-cross-acf": 0.956938245507517,
+          "boundary-0.7-after-msd": 0.8136865939956502,
+          "boundary-0.7-after-acf": 0.9795671254898625
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-4",
+      "observables": {
+        "reference": {
+          "energy": 0.2785553350151865,
+          "shell-0": 0.1921875,
+          "shell-1": 1.0859375,
+          "shell-2": 1.8609375,
+          "shell-3": 2.4796875,
+          "structure-0": 0.5015332713741784,
+          "structure-1": 0.9492970709417461,
+          "lag-1000-msd": 0.7378044964424549,
+          "lag-1000-acf": 0.9071731370904849,
+          "lag-2000-msd": 0.652634590600774,
+          "lag-2000-acf": 0.825280980959561,
+          "boundary-0.3-before-msd": 0.8798979910165726,
+          "boundary-0.3-before-acf": 0.9815670831514418,
+          "boundary-0.3-cross-msd": 0.8152880083466679,
+          "boundary-0.3-cross-acf": 0.9627806711844349,
+          "boundary-0.3-after-msd": 0.8628396269533863,
+          "boundary-0.3-after-acf": 0.9785772571401621,
+          "boundary-0.7-before-msd": 0.9323247988998956,
+          "boundary-0.7-before-acf": 0.9805897098788234,
+          "boundary-0.7-cross-msd": 0.7186379801014078,
+          "boundary-0.7-cross-acf": 0.959213509475173,
+          "boundary-0.7-after-msd": 0.8991576893239013,
+          "boundary-0.7-after-acf": 0.9814278746385998
+        },
+        "segmented": {
+          "energy": 0.2633527757894671,
+          "shell-0": 0.1765625,
+          "shell-1": 0.9390625,
+          "shell-2": 2.0796875,
+          "shell-3": 2.2796875,
+          "structure-0": 0.09807996734987044,
+          "structure-1": 0.21401044968709124,
+          "lag-1000-msd": 0.7301123363919882,
+          "lag-1000-acf": 0.9062294600245981,
+          "lag-2000-msd": 0.6530083034288636,
+          "lag-2000-acf": 0.8205150206201612,
+          "boundary-0.3-before-msd": 0.9140775677059763,
+          "boundary-0.3-before-acf": 0.9811432103211702,
+          "boundary-0.3-cross-msd": 0.863953969816332,
+          "boundary-0.3-cross-acf": 0.9607661125973812,
+          "boundary-0.3-after-msd": 0.8485738495504286,
+          "boundary-0.3-after-acf": 0.9813337242042192,
+          "boundary-0.7-before-msd": 0.8705603472112485,
+          "boundary-0.7-before-acf": 0.9826731800915943,
+          "boundary-0.7-cross-msd": 0.8299567785558519,
+          "boundary-0.7-cross-acf": 0.9617094406521218,
+          "boundary-0.7-after-msd": 0.9601070836879592,
+          "boundary-0.7-after-acf": 0.9846808120296432
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-5",
+      "observables": {
+        "reference": {
+          "energy": 0.2725746685865736,
+          "shell-0": 0.146875,
+          "shell-1": 1.034375,
+          "shell-2": 1.9703125,
+          "shell-3": 2.3078125,
+          "structure-0": 0.07492032564712571,
+          "structure-1": 0.28366586168667285,
+          "lag-1000-msd": 0.757882717129456,
+          "lag-1000-acf": 0.906394197658853,
+          "lag-2000-msd": 0.6838043824458381,
+          "lag-2000-acf": 0.8243162199566604,
+          "boundary-0.3-before-msd": 0.7535845116340288,
+          "boundary-0.3-before-acf": 0.9792279713031864,
+          "boundary-0.3-cross-msd": 0.7260970729072969,
+          "boundary-0.3-cross-acf": 0.962096727752729,
+          "boundary-0.3-after-msd": 0.8982873443946068,
+          "boundary-0.3-after-acf": 0.9787582325009752,
+          "boundary-0.7-before-msd": 0.9179902591836244,
+          "boundary-0.7-before-acf": 0.9800018389518922,
+          "boundary-0.7-cross-msd": 0.9545907257626902,
+          "boundary-0.7-cross-acf": 0.9633529974640913,
+          "boundary-0.7-after-msd": 0.8460573449023941,
+          "boundary-0.7-after-acf": 0.9827389239898336
+        },
+        "segmented": {
+          "energy": 0.2601072378825047,
+          "shell-0": 0.1796875,
+          "shell-1": 1.0171875,
+          "shell-2": 1.965625,
+          "shell-3": 2.15,
+          "structure-0": 0.16811325769203048,
+          "structure-1": 0.2214898635803166,
+          "lag-1000-msd": 0.7548011607139228,
+          "lag-1000-acf": 0.9063471387214272,
+          "lag-2000-msd": 0.6885187718204232,
+          "lag-2000-acf": 0.8224393135995645,
+          "boundary-0.3-before-msd": 0.9789365866499524,
+          "boundary-0.3-before-acf": 0.9802863980518605,
+          "boundary-0.3-cross-msd": 0.8020966017892965,
+          "boundary-0.3-cross-acf": 0.9665600175827807,
+          "boundary-0.3-after-msd": 1.00442486859097,
+          "boundary-0.3-after-acf": 0.980836639026187,
+          "boundary-0.7-before-msd": 0.8993417319988753,
+          "boundary-0.7-before-acf": 0.9782237244499672,
+          "boundary-0.7-cross-msd": 0.7717915745703491,
+          "boundary-0.7-cross-acf": 0.9645129074935357,
+          "boundary-0.7-after-msd": 0.817617003832588,
+          "boundary-0.7-after-acf": 0.9813084690218246
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-6",
+      "observables": {
+        "reference": {
+          "energy": 0.25073738346390156,
+          "shell-0": 0.1625,
+          "shell-1": 0.96875,
+          "shell-2": 2.0671875,
+          "shell-3": 2.2328125,
+          "structure-0": 0.23492458942605807,
+          "structure-1": 0.09446219109081434,
+          "lag-1000-msd": 0.7689072425908948,
+          "lag-1000-acf": 0.9039654831072977,
+          "lag-2000-msd": 0.7002948278320084,
+          "lag-2000-acf": 0.8161375851115158,
+          "boundary-0.3-before-msd": 0.9442344571930057,
+          "boundary-0.3-before-acf": 0.9790505675056663,
+          "boundary-0.3-cross-msd": 0.8917916845221254,
+          "boundary-0.3-cross-acf": 0.9586364466159532,
+          "boundary-0.3-after-msd": 0.9916433910816306,
+          "boundary-0.3-after-acf": 0.9810028327590263,
+          "boundary-0.7-before-msd": 0.9234838083622734,
+          "boundary-0.7-before-acf": 0.9796340416916226,
+          "boundary-0.7-cross-msd": 0.8027004974243094,
+          "boundary-0.7-cross-acf": 0.9617249435153847,
+          "boundary-0.7-after-msd": 0.9447330739530279,
+          "boundary-0.7-after-acf": 0.982597496570024
+        },
+        "segmented": {
+          "energy": 0.24470594371366367,
+          "shell-0": 0.153125,
+          "shell-1": 0.9953125,
+          "shell-2": 1.9765625,
+          "shell-3": 2.3015625,
+          "structure-0": 0.42617022725019127,
+          "structure-1": 0.028116112123207405,
+          "lag-1000-msd": 0.7650945394662982,
+          "lag-1000-acf": 0.9007070158175621,
+          "lag-2000-msd": 0.6974911772840784,
+          "lag-2000-acf": 0.8071691402913888,
+          "boundary-0.3-before-msd": 0.9184780076750059,
+          "boundary-0.3-before-acf": 0.9809134439097892,
+          "boundary-0.3-cross-msd": 0.8127268645875643,
+          "boundary-0.3-cross-acf": 0.954949800034071,
+          "boundary-0.3-after-msd": 0.9022163015455075,
+          "boundary-0.3-after-acf": 0.9815185734368974,
+          "boundary-0.7-before-msd": 0.835517484652829,
+          "boundary-0.7-before-acf": 0.9802702590058848,
+          "boundary-0.7-cross-msd": 0.9124446519731787,
+          "boundary-0.7-cross-acf": 0.9615054631736564,
+          "boundary-0.7-after-msd": 0.9554479596985335,
+          "boundary-0.7-after-acf": 0.980017208317557
+        }
+      }
+    },
+    {
+      "key": "20000-111-pilot-7",
+      "observables": {
+        "reference": {
+          "energy": 0.24588359030510076,
+          "shell-0": 0.16875,
+          "shell-1": 0.940625,
+          "shell-2": 1.9171875,
+          "shell-3": 2.3515625,
+          "structure-0": 0.1614160638983723,
+          "structure-1": 0.18208033751332087,
+          "lag-1000-msd": 0.7625769610571124,
+          "lag-1000-acf": 0.902953016821626,
+          "lag-2000-msd": 0.6994735092722405,
+          "lag-2000-acf": 0.8149542817276958,
+          "boundary-0.3-before-msd": 0.9312774001790978,
+          "boundary-0.3-before-acf": 0.9790148829836001,
+          "boundary-0.3-cross-msd": 0.8314781316984566,
+          "boundary-0.3-cross-acf": 0.9566845119825961,
+          "boundary-0.3-after-msd": 0.8649214293309961,
+          "boundary-0.3-after-acf": 0.9825181017834417,
+          "boundary-0.7-before-msd": 0.8800160088695389,
+          "boundary-0.7-before-acf": 0.9804827708549028,
+          "boundary-0.7-cross-msd": 0.7820210089632811,
+          "boundary-0.7-cross-acf": 0.9584649062419641,
+          "boundary-0.7-after-msd": 0.9115839866674635,
+          "boundary-0.7-after-acf": 0.9787203270874992
+        },
+        "segmented": {
+          "energy": 0.26432915791118805,
+          "shell-0": 0.1578125,
+          "shell-1": 0.928125,
+          "shell-2": 1.94375,
+          "shell-3": 2.4734375,
+          "structure-0": 0.13288358511501985,
+          "structure-1": 0.11936094150186675,
+          "lag-1000-msd": 0.7503575881822611,
+          "lag-1000-acf": 0.9047319775501979,
+          "lag-2000-msd": 0.6697618411710914,
+          "lag-2000-acf": 0.8169045181254148,
+          "boundary-0.3-before-msd": 0.8806313031877239,
+          "boundary-0.3-before-acf": 0.9791848650319196,
+          "boundary-0.3-cross-msd": 0.8348012280828944,
+          "boundary-0.3-cross-acf": 0.9639862242607266,
+          "boundary-0.3-after-msd": 0.8650305245899581,
+          "boundary-0.3-after-acf": 0.9780985076432637,
+          "boundary-0.7-before-msd": 0.8881044550405766,
+          "boundary-0.7-before-acf": 0.9815420897846329,
+          "boundary-0.7-cross-msd": 0.8469218929615442,
+          "boundary-0.7-cross-acf": 0.9626317453816952,
+          "boundary-0.7-after-msd": 0.9511711026523145,
+          "boundary-0.7-after-acf": 0.9796677251523834
+        }
+      }
+    }
+  ],
+  "strata": [
+    {
+      "duration": 20000,
+      "layout": [
+        1,
+        1,
+        1
+      ],
+      "pairs": 848,
+      "required": {
+        "energy": 5,
+        "shell-0": 6,
+        "shell-1": 78,
+        "shell-2": 141,
+        "shell-3": 143,
+        "structure-0": 848,
+        "structure-1": 570,
+        "lag-1000-msd": 6,
+        "lag-1000-acf": 1,
+        "lag-2000-msd": 16,
+        "lag-2000-acf": 2,
+        "boundary-0.3-before-msd": 392,
+        "boundary-0.3-before-acf": 1,
+        "boundary-0.3-cross-msd": 259,
+        "boundary-0.3-cross-acf": 2,
+        "boundary-0.3-after-msd": 148,
+        "boundary-0.3-after-acf": 1,
+        "boundary-0.7-before-msd": 60,
+        "boundary-0.7-before-acf": 1,
+        "boundary-0.7-cross-msd": 357,
+        "boundary-0.7-cross-acf": 1,
+        "boundary-0.7-after-msd": 208,
+        "boundary-0.7-after-acf": 1
+      },
+      "feasible": false
+    }
+  ],
+  "passed": false,
+  "error": "ValueError: predeclared sample cap insufficient; retain inconclusive study",
+  "seed_count": 48
+}

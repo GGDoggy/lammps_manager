@@ -1,0 +1,22 @@
+{
+  "root": "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation",
+  "complete_family": false,
+  "scientific_passed": false,
+  "pool_updated_at": 1792760349.8616788,
+  "chunks": [
+    {
+      "name": "s6-0-64",
+      "report_sha256": "8074ed57be75a9988ea5db278229ed9d6bca188891a8992c1f3f985bdecef6be",
+      "files": 1921,
+      "bytes": 161959813,
+      "replicas": 64,
+      "raw_endpoints_recomputed": true
+    }
+  ],
+  "verified_replicas": 64,
+  "verified_files": 1921,
+  "verified_bytes": 161959813,
+  "auditor_sha256": "6136f862a4d617ecbea47b2a5ddec8d45d31ed2ae470e3817ff41bd701d98eea",
+  "analyzer_sha256": "d369ca36d8eac129e3c5ce9afd35f33849133c777ef1c6321539179774952abe",
+  "raw_endpoints_recomputed": true
+}

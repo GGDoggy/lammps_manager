@@ -1,0 +1,48 @@
+{
+  "root": "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd",
+  "unit": "partial-raw-audit-7xtk78qd.service",
+  "measurement_root": "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4",
+  "analysis_bundle": "/home/ted/lammps-verification/v009-strict-auditor-ienin65o",
+  "plan": {
+    "cwd": "/home/ted/lammps-verification/v009-strict-auditor-ienin65o",
+    "environment": {
+      "PYTHONPATH": "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/src"
+    },
+    "steps": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/wca_audit.py",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation",
+          "--pilot-report",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--completed-only",
+          "--recompute",
+          "--output",
+          "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd/audit.json"
+        ],
+        "timeout_seconds": 840
+      }
+    ]
+  },
+  "launch_argv": [
+    "systemd-run",
+    "--user",
+    "--unit=partial-raw-audit-7xtk78qd.service",
+    "--property=Restart=no",
+    "--property=RuntimeMaxSec=900",
+    "--property=TimeoutStopSec=15",
+    "--property=KillMode=control-group",
+    "--property=SendSIGKILL=yes",
+    "--property=CPUAffinity=0 1 2 3 4 5 6 7 8 9",
+    "--property=ExecStopPost=/usr/bin/python3 /home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/unattended_run.py --finalize /home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd",
+    "--property=StandardOutput=append:/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd/unit.log",
+    "--property=StandardError=append:/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd/unit.log",
+    "/usr/bin/python3",
+    "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/unattended_run.py",
+    "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd"
+  ],
+  "snapshot_completed_chunks": 1,
+  "launch_observed_at": "2026-10-23T12:59:10.566318+00:00",
+  "hard_runtime_deadline": "2026-10-23T13:14:10.566334+00:00"
+}

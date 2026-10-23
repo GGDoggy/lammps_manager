@@ -1,0 +1,32 @@
+{
+  "root": "/home/ted/lammps-verification/v009-strict-auditor-ienin65o",
+  "measurement_root": "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4",
+  "source_sha256": {
+    "src/lammps_manager/manager.py": "b1f6b4484c1782c657c69b7474dc8d60ff58cf173341cc37c489ed845871b523",
+    "src/lammps_manager/local.py": "890fbed5fa387768eb7bcc97fb955026ea526018b907b99ee58ee52e909e1dce",
+    "src/lammps_manager/config.py": "4381c2b26a2fe89bb5f56a12d4e4a67d7916dc33cb84b5fc658f733840f983bf",
+    "src/lammps_manager/checkpoints.py": "79b4bb4fde03490bce8a36f4b39c1ddfd41cafd2dd757ac865b2879fbfe08f2f",
+    "src/lammps_manager/staging.py": "29907f96b8b887a4fecc780880224bcab84ebea9c77c067b2788ae45c9560f9d",
+    "src/lammps_manager/results.py": "51219cf367f39c3bd9fc05cb5e878eaf9557024986b6407f396f20508f2dfee1",
+    "src/lammps_manager/sweeps.py": "051bb71c3e0c4bfa0662148da0f41f0f775ff91d6808503200e5c2b367f33a41",
+    "src/lammps_manager/segments.py": "4b24d44c6a3aa5cb2ac8b4e27b3fb4214b2051e517ec2c85caef73580ce8aefe",
+    "src/lammps_manager/store.py": "7197d512292583a31df9f7903f3e7893670fb45a0c0dca4e89096c9c2284cfba",
+    "src/lammps_manager/scheduler.py": "64b3a86d5d7d9deb27a697fbfe701e160bf74575fa928bc152aefadfcfe0a873",
+    "src/lammps_manager/cpu.py": "426dc65b2bfc2f9491529b97d0a35f67ca5acddbf7e3f19bd688298d461978ea",
+    "src/lammps_manager/models.py": "b0daa95c4dcbe00b7c71be9fed5ad024b30fdc89004c72c685c1a4d168bf61fa",
+    "src/lammps_manager/__init__.py": "61da296283301587587ab66bb09f32842fb5729c8435b946f691f4a1fcf8e20d",
+    "src/lammps_manager/cleanup.py": "99a23cead1f57ee655e1b8f83e752065f2a9a48f8faef3ef6b19be73fa7b945a",
+    "src/lammps_manager/worker.py": "abf85113a8c811823ee10f4e1bc4555f9bdf8db14b4bdde1cf80abac05b558b8",
+    "src/lammps_manager/recovery.py": "285f2f6c5ec8aeee0d7b163b1a6a35f16b66932569accf3f1b3437f8b0725a98",
+    "src/lammps_manager/monitoring.py": "1b63809bc4119c8a7dc3ba0a0afe72dd2f8d9340b9a3f600c7999b23e4b94ce5",
+    "src/lammps_manager/continuation.py": "b1ab4c597d225fa9ad806a1a32e0cb2786a6d0e7600ae145397dd95ed916e21c",
+    "src/lammps_manager/cli.py": "8c1a40d60014b29bfcc7e29f75ef89498c83da9360eaf0b00bb08998c4298378",
+    "src/lammps_manager/__main__.py": "dc7d4c57210da7a48910eb57bb49c2025f92ff9d46f563a85afa7a9c1eed56b1",
+    "wca_audit.py": "6136f862a4d617ecbea47b2a5ddec8d45d31ed2ae470e3817ff41bd701d98eea",
+    "wca_pool.py": "d369ca36d8eac129e3c5ce9afd35f33849133c777ef1c6321539179774952abe",
+    "wca_acceptance.py": "84617c9ec34269433256d1dc7bea6426b3a0398ccb260404fe86286557af783b",
+    "abp_acceptance.py": "102787aff1b3d096ed70174c72e8595ed6d5e3f8c0ad76e1e98726c74ebb6ff7",
+    "continuation_acceptance.py": "cad100b06bcec4f9a536901ac3864c85cea6700c1e3e4d0fb33e8626884a4554"
+  },
+  "original_kernel_matches": true
+}

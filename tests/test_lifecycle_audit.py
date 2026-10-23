@@ -108,6 +108,14 @@ class LifecycleAuditTests(unittest.TestCase):
                 patch.object(lifecycle_audit.socket, 'create_connection',
                              side_effect=ConnectionRefusedError), patch('builtins.print'):
             lifecycle_audit.audit(self.root)
+            historical = (self.root / 'final-audit.json').read_bytes()
+            separate = self.root / 'corrected-audit.json'
+            lifecycle_audit.audit(self.root, output=separate)
+            self.assertEqual((self.root / 'final-audit.json').read_bytes(), historical)
+            self.assertEqual(json.loads(separate.read_text())['outputs'],
+                             json.loads(historical)['outputs'])
+            with self.assertRaises(FileExistsError):
+                lifecycle_audit.audit(self.root, output=separate)
             (self.output / 'stdout').write_bytes(b'corrupted data!')
             with self.assertRaises(ValueError):
                 lifecycle_audit.audit(self.root)

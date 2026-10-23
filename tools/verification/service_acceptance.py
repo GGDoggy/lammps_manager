@@ -20,6 +20,7 @@ from lammps_manager.recovery import session_members
 
 
 def run():
+    allowed_cpus = sorted(os.sched_getaffinity(0))[:max(1, (os.cpu_count() or 1) // 2)]
     root = setup('v007', mode='staged')
     prepare(root)
     boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
@@ -53,6 +54,7 @@ def run():
         unit = prefix + '-' + kind
         return command(['systemd-run', '--user', '--unit', unit,
                         '--property=WorkingDirectory=' + str(ROOT),
+                        '--property=CPUAffinity=' + ' '.join(map(str, allowed_cpus)),
                         '--property=Restart=on-failure', '--property=KillMode=process',
                         '--property=TimeoutStopSec=45', '--property=RuntimeMaxSec=900',
                         '--setenv=PYTHONPATH=' + str(ROOT / 'src'),
@@ -65,7 +67,8 @@ def run():
     restarts = []
     identities = []
     jobs = []
-    evidence = dict(root=str(root), boot_before=boot)
+    evidence = dict(root=str(root), boot_before=boot, allowed_cpus=allowed_cpus,
+                    host_logical_cpus=os.cpu_count())
     try:
         # systemd may create the unit before its client times out or is interrupted.
         start_unit('manager', [PYTHON, '-m', 'lammps_manager', 'serve', '--config',

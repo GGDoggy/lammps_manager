@@ -1,0 +1,1300 @@
+{
+  "root": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007",
+  "boot_before": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "allowed_cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "host_logical_cpus": 16,
+  "untrusted_certificate_rejected": true,
+  "invalid_credential_status": 401,
+  "records": [
+    {
+      "specification": {
+        "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+        "work_directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "sweep": null,
+        "storage_mode": "staged",
+        "input_manifest": [
+          {
+            "path": "in.lmp",
+            "size": 326,
+            "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+          }
+        ],
+        "infrastructure_recovery": {
+          "max_retries": 1,
+          "delay_seconds": 30
+        }
+      },
+      "state": "succeeded",
+      "infrastructure_recovery": {
+        "policy": {
+          "max_retries": 1,
+          "delay_seconds": 30
+        },
+        "used": 0,
+        "remaining": 1,
+        "next_retry_at": null,
+        "latest": null
+      },
+      "attempts": [
+        {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "worker_id": "v007",
+          "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "succeeded",
+          "created_at": "2026-10-22T22:30:08.096Z",
+          "started_at": "2026-10-22T22:30:08.371Z",
+          "ended_at": "2026-10-22T22:30:08.805Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "dispatch": {
+            "priority": 0,
+            "origin": "manager_default",
+            "queue_sequence": 1
+          },
+          "transfers": {
+            "input": {
+              "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+              "direction": "input",
+              "phase": "ready",
+              "total_bytes": 326,
+              "total_files": 1,
+              "last_progress_at": 1792708208.128302,
+              "updated_at": 1792708208.259318,
+              "error": null,
+              "retries": 0,
+              "transferred_bytes": 326,
+              "verified_bytes": 326,
+              "verified_files": 1,
+              "transferred_files": 1,
+              "acknowledged": false,
+              "network_byte_resume": false
+            },
+            "result": {
+              "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+              "direction": "result",
+              "phase": "acknowledged",
+              "total_bytes": 40279,
+              "total_files": 8,
+              "last_progress_at": 1792708208.8880346,
+              "updated_at": 1792708208.9022207,
+              "error": null,
+              "retries": 0,
+              "transferred_bytes": 40279,
+              "verified_bytes": 40279,
+              "verified_files": 8,
+              "transferred_files": 8,
+              "acknowledged": true,
+              "network_byte_resume": false
+            }
+          },
+          "stdout": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stdout",
+          "stderr": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stderr",
+          "execution_metadata": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/execution.json",
+          "result_collection": {
+            "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+            "status": "collected",
+            "manifest": {
+              "files": [
+                {
+                  "path": "execution.json",
+                  "size": 604,
+                  "sha256": "9cd8ea58a986c34ef1624f79a5442b8675d731ebeef1c74e13f16beb9e4cc396"
+                },
+                {
+                  "path": "outcome.json",
+                  "size": 518,
+                  "sha256": "9ddb0cf5878b1f0a7e923c19eba76dfacbd6b61594f5d8160d50a96cfefe4809"
+                },
+                {
+                  "path": "process.json",
+                  "size": 188,
+                  "sha256": "aa6579758327254182c64877e9d5cbc4cabfe799fb2871ec20e03cabd39bb8fd"
+                },
+                {
+                  "path": "stderr",
+                  "size": 256,
+                  "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+                },
+                {
+                  "path": "stdout",
+                  "size": 2324,
+                  "sha256": "b24b3b2faf4d06bf1db84635039b57099ee6d4db0d7cf4b4d595905b40b35ff4"
+                },
+                {
+                  "path": "work/in.lmp",
+                  "size": 326,
+                  "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+                },
+                {
+                  "path": "work/log.lammps",
+                  "size": 2559,
+                  "sha256": "510ac2fdeeb09440fe26d14674f2fa3a39fac782c1dc7d21e5a5b30e39905fda"
+                },
+                {
+                  "path": "work/output.data",
+                  "size": 33504,
+                  "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+                }
+              ],
+              "omitted": []
+            },
+            "reason": null
+          },
+          "results_directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results",
+          "input_transfer": {
+            "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+            "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/inputs",
+            "status": "ready",
+            "reason": "Inputs verified"
+          },
+          "worker_cleanup": null,
+          "prelaunch_rejection": null,
+          "infrastructure_recovery": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 1,
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:08.037Z"
+        },
+        {
+          "event_id": 2,
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:08.096Z"
+        },
+        {
+          "event_id": 3,
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:08.371Z"
+        },
+        {
+          "event_id": 4,
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-22T22:30:08.805Z"
+        }
+      ],
+      "history_cursors": {
+        "attempt_before": null,
+        "event_before": null
+      },
+      "monitoring": {
+        "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+        "state": "succeeded",
+        "attempt_count": 1,
+        "queue_age_seconds": null,
+        "wait_reason": null,
+        "dispatch": {
+          "priority": 0,
+          "origin": "manager_default",
+          "queue_sequence": 1
+        },
+        "cpu_demand": 2,
+        "reservations": [],
+        "worker_id": "v007",
+        "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+        "attempt_state": "succeeded",
+        "execution_elapsed_seconds": 0.43400001525878906,
+        "latest_error": null,
+        "rejection": null,
+        "infrastructure_recovery": {
+          "policy": {
+            "max_retries": 1,
+            "delay_seconds": 30
+          },
+          "used": 0,
+          "remaining": 1,
+          "next_retry_at": null,
+          "latest": null
+        },
+        "process_outcome": "succeeded",
+        "result_collection": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "status": "collected",
+          "reason": null,
+          "has_manifest": 1
+        },
+        "transfers": {
+          "input": {
+            "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+            "direction": "input",
+            "phase": "ready",
+            "total_bytes": 326,
+            "total_files": 1,
+            "last_progress_at": 1792708208.128302,
+            "updated_at": 1792708208.259318,
+            "error": null,
+            "retries": 0,
+            "transferred_bytes": 326,
+            "verified_bytes": 326,
+            "verified_files": 1,
+            "transferred_files": 1,
+            "acknowledged": false,
+            "network_byte_resume": false
+          },
+          "result": {
+            "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+            "direction": "result",
+            "phase": "acknowledged",
+            "total_bytes": 40279,
+            "total_files": 8,
+            "last_progress_at": 1792708208.8880346,
+            "updated_at": 1792708208.9022207,
+            "error": null,
+            "retries": 0,
+            "transferred_bytes": 40279,
+            "verified_bytes": 40279,
+            "verified_files": 8,
+            "transferred_files": 8,
+            "acknowledged": true,
+            "network_byte_resume": false
+          }
+        },
+        "continuation": null
+      }
+    },
+    {
+      "specification": {
+        "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+        "work_directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f",
+        "input_file": "in.lmp",
+        "input_sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb",
+        "resources": {
+          "mpi_ranks": 2,
+          "omp_threads_per_rank": 1,
+          "memory_gib": 0.1,
+          "time_limit_seconds": 30,
+          "max_retries": 0
+        },
+        "sweep": null,
+        "storage_mode": "staged",
+        "input_manifest": [
+          {
+            "path": "in.lmp",
+            "size": 326,
+            "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+          }
+        ],
+        "infrastructure_recovery": {
+          "max_retries": 1,
+          "delay_seconds": 30
+        }
+      },
+      "state": "succeeded",
+      "infrastructure_recovery": {
+        "policy": {
+          "max_retries": 1,
+          "delay_seconds": 30
+        },
+        "used": 0,
+        "remaining": 1,
+        "next_retry_at": null,
+        "latest": null
+      },
+      "attempts": [
+        {
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "worker_id": "v007",
+          "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236",
+          "state": "succeeded",
+          "created_at": "2026-10-22T22:30:09.330Z",
+          "started_at": "2026-10-22T22:30:09.593Z",
+          "ended_at": "2026-10-22T22:30:10.034Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null,
+          "dispatch": {
+            "priority": 0,
+            "origin": "manager_default",
+            "queue_sequence": 5
+          },
+          "transfers": {
+            "input": {
+              "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+              "direction": "input",
+              "phase": "ready",
+              "total_bytes": 326,
+              "total_files": 1,
+              "last_progress_at": 1792708209.3678095,
+              "updated_at": 1792708209.4814801,
+              "error": null,
+              "retries": 0,
+              "transferred_bytes": 326,
+              "verified_bytes": 326,
+              "verified_files": 1,
+              "transferred_files": 1,
+              "acknowledged": false,
+              "network_byte_resume": false
+            },
+            "result": {
+              "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+              "direction": "result",
+              "phase": "acknowledged",
+              "total_bytes": 40279,
+              "total_files": 8,
+              "last_progress_at": 1792708210.1162374,
+              "updated_at": 1792708210.1342418,
+              "error": null,
+              "retries": 0,
+              "transferred_bytes": 40279,
+              "verified_bytes": 40279,
+              "verified_files": 8,
+              "transferred_files": 8,
+              "acknowledged": true,
+              "network_byte_resume": false
+            }
+          },
+          "stdout": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stdout",
+          "stderr": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stderr",
+          "execution_metadata": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/execution.json",
+          "result_collection": {
+            "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+            "status": "collected",
+            "manifest": {
+              "files": [
+                {
+                  "path": "execution.json",
+                  "size": 604,
+                  "sha256": "03d0e3c745009dd91894a0911415c1bad286b1245420781209526d6f0bf60274"
+                },
+                {
+                  "path": "outcome.json",
+                  "size": 518,
+                  "sha256": "38b1b43f6eec12a1c590197917db28cc3422b336fe3076fe432ce9faef719c54"
+                },
+                {
+                  "path": "process.json",
+                  "size": 188,
+                  "sha256": "23134b531d421a12c75bafba944ba7900e35ce04b54bc69a264a3c6fa9e573de"
+                },
+                {
+                  "path": "stderr",
+                  "size": 256,
+                  "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+                },
+                {
+                  "path": "stdout",
+                  "size": 2324,
+                  "sha256": "739be1530a9db27a6bb5812fc8d995d299ef6c3b08e7bce74fe7c806d1ef42e2"
+                },
+                {
+                  "path": "work/in.lmp",
+                  "size": 326,
+                  "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+                },
+                {
+                  "path": "work/log.lammps",
+                  "size": 2559,
+                  "sha256": "ee7cea3158c0733a2e1e88d91e775fb2477ecd1858cff5c005694d5808da7aba"
+                },
+                {
+                  "path": "work/output.data",
+                  "size": 33504,
+                  "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+                }
+              ],
+              "omitted": []
+            },
+            "reason": null
+          },
+          "results_directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results",
+          "input_transfer": {
+            "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+            "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/inputs",
+            "status": "ready",
+            "reason": "Inputs verified"
+          },
+          "worker_cleanup": null,
+          "prelaunch_rejection": null,
+          "infrastructure_recovery": null
+        }
+      ],
+      "events": [
+        {
+          "event_id": 5,
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "attempt_id": null,
+          "state": "queued",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:09.247Z"
+        },
+        {
+          "event_id": 6,
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "state": "assigned",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:09.330Z"
+        },
+        {
+          "event_id": 7,
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "state": "running",
+          "reason": null,
+          "exit_code": null,
+          "termination_evidence": null,
+          "created_at": "2026-10-22T22:30:09.593Z"
+        },
+        {
+          "event_id": 8,
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "state": "succeeded",
+          "reason": null,
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "created_at": "2026-10-22T22:30:10.034Z"
+        }
+      ],
+      "history_cursors": {
+        "attempt_before": null,
+        "event_before": null
+      },
+      "monitoring": {
+        "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+        "state": "succeeded",
+        "attempt_count": 1,
+        "queue_age_seconds": null,
+        "wait_reason": null,
+        "dispatch": {
+          "priority": 0,
+          "origin": "manager_default",
+          "queue_sequence": 5
+        },
+        "cpu_demand": 2,
+        "reservations": [],
+        "worker_id": "v007",
+        "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+        "attempt_state": "succeeded",
+        "execution_elapsed_seconds": 0.44099998474121094,
+        "latest_error": null,
+        "rejection": null,
+        "infrastructure_recovery": {
+          "policy": {
+            "max_retries": 1,
+            "delay_seconds": 30
+          },
+          "used": 0,
+          "remaining": 1,
+          "next_retry_at": null,
+          "latest": null
+        },
+        "process_outcome": "succeeded",
+        "result_collection": {
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "status": "collected",
+          "reason": null,
+          "has_manifest": 1
+        },
+        "transfers": {
+          "input": {
+            "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+            "direction": "input",
+            "phase": "ready",
+            "total_bytes": 326,
+            "total_files": 1,
+            "last_progress_at": 1792708209.3678095,
+            "updated_at": 1792708209.4814801,
+            "error": null,
+            "retries": 0,
+            "transferred_bytes": 326,
+            "verified_bytes": 326,
+            "verified_files": 1,
+            "transferred_files": 1,
+            "acknowledged": false,
+            "network_byte_resume": false
+          },
+          "result": {
+            "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+            "direction": "result",
+            "phase": "acknowledged",
+            "total_bytes": 40279,
+            "total_files": 8,
+            "last_progress_at": 1792708210.1162374,
+            "updated_at": 1792708210.1342418,
+            "error": null,
+            "retries": 0,
+            "transferred_bytes": 40279,
+            "verified_bytes": 40279,
+            "verified_files": 8,
+            "transferred_files": 8,
+            "acknowledged": true,
+            "network_byte_resume": false
+          }
+        },
+        "continuation": null
+      }
+    }
+  ],
+  "retained": {
+    "records": [
+      {
+        "attempt": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "worker_id": "v007",
+          "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "succeeded",
+          "created_at": "2026-10-22T22:30:08.100Z",
+          "started_at": "2026-10-22T22:30:08.268Z",
+          "ended_at": "2026-10-22T22:30:08.744Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 604,
+                "sha256": "9cd8ea58a986c34ef1624f79a5442b8675d731ebeef1c74e13f16beb9e4cc396"
+              },
+              {
+                "path": "outcome.json",
+                "size": 518,
+                "sha256": "9ddb0cf5878b1f0a7e923c19eba76dfacbd6b61594f5d8160d50a96cfefe4809"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "aa6579758327254182c64877e9d5cbc4cabfe799fb2871ec20e03cabd39bb8fd"
+              },
+              {
+                "path": "stderr",
+                "size": 256,
+                "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+              },
+              {
+                "path": "stdout",
+                "size": 2324,
+                "sha256": "b24b3b2faf4d06bf1db84635039b57099ee6d4db0d7cf4b4d595905b40b35ff4"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 326,
+                "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 2559,
+                "sha256": "510ac2fdeeb09440fe26d14674f2fa3a39fac782c1dc7d21e5a5b30e39905fda"
+              },
+              {
+                "path": "work/output.data",
+                "size": 33504,
+                "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "cleanup": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "identity": [
+            [
+              66306,
+              281484
+            ],
+            [
+              66306,
+              281516
+            ],
+            [
+              66306,
+              281517
+            ]
+          ],
+          "status": "retained",
+          "reason": null
+        },
+        "exists": true,
+        "launch_claimed": true
+      }
+    ],
+    "reservations": []
+  },
+  "final_journal": {
+    "records": [
+      {
+        "attempt": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "job_id": "fd934b2024994bd3a0d5795c1dc7d5cd",
+          "worker_id": "v007",
+          "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b",
+          "state": "succeeded",
+          "created_at": "2026-10-22T22:30:08.100Z",
+          "started_at": "2026-10-22T22:30:08.268Z",
+          "ended_at": "2026-10-22T22:30:08.744Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 604,
+                "sha256": "9cd8ea58a986c34ef1624f79a5442b8675d731ebeef1c74e13f16beb9e4cc396"
+              },
+              {
+                "path": "outcome.json",
+                "size": 518,
+                "sha256": "9ddb0cf5878b1f0a7e923c19eba76dfacbd6b61594f5d8160d50a96cfefe4809"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "aa6579758327254182c64877e9d5cbc4cabfe799fb2871ec20e03cabd39bb8fd"
+              },
+              {
+                "path": "stderr",
+                "size": 256,
+                "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+              },
+              {
+                "path": "stdout",
+                "size": 2324,
+                "sha256": "b24b3b2faf4d06bf1db84635039b57099ee6d4db0d7cf4b4d595905b40b35ff4"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 326,
+                "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 2559,
+                "sha256": "510ac2fdeeb09440fe26d14674f2fa3a39fac782c1dc7d21e5a5b30e39905fda"
+              },
+              {
+                "path": "work/output.data",
+                "size": 33504,
+                "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "cleanup": {
+          "attempt_id": "caa88f4c5d594c7499f8a9b02193b80b",
+          "identity": [
+            [
+              66306,
+              281484
+            ],
+            [
+              66306,
+              281516
+            ],
+            [
+              66306,
+              281517
+            ]
+          ],
+          "status": "cleaned",
+          "reason": null
+        },
+        "exists": false,
+        "launch_claimed": true
+      },
+      {
+        "attempt": {
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "job_id": "61ba3ae61edc440ab95fd8fc863eb72f",
+          "worker_id": "v007",
+          "directory": "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236",
+          "state": "succeeded",
+          "created_at": "2026-10-22T22:30:09.337Z",
+          "started_at": "2026-10-22T22:30:09.491Z",
+          "ended_at": "2026-10-22T22:30:09.952Z",
+          "exit_code": 0,
+          "termination_evidence": "wait() reaped launcher; no live launch-session processes remain",
+          "reason": null
+        },
+        "collection": {
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "status": "collected",
+          "manifest": {
+            "files": [
+              {
+                "path": "execution.json",
+                "size": 604,
+                "sha256": "03d0e3c745009dd91894a0911415c1bad286b1245420781209526d6f0bf60274"
+              },
+              {
+                "path": "outcome.json",
+                "size": 518,
+                "sha256": "38b1b43f6eec12a1c590197917db28cc3422b336fe3076fe432ce9faef719c54"
+              },
+              {
+                "path": "process.json",
+                "size": 188,
+                "sha256": "23134b531d421a12c75bafba944ba7900e35ce04b54bc69a264a3c6fa9e573de"
+              },
+              {
+                "path": "stderr",
+                "size": 256,
+                "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+              },
+              {
+                "path": "stdout",
+                "size": 2324,
+                "sha256": "739be1530a9db27a6bb5812fc8d995d299ef6c3b08e7bce74fe7c806d1ef42e2"
+              },
+              {
+                "path": "work/in.lmp",
+                "size": 326,
+                "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+              },
+              {
+                "path": "work/log.lammps",
+                "size": 2559,
+                "sha256": "ee7cea3158c0733a2e1e88d91e775fb2477ecd1858cff5c005694d5808da7aba"
+              },
+              {
+                "path": "work/output.data",
+                "size": 33504,
+                "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+              }
+            ],
+            "omitted": []
+          },
+          "reason": null
+        },
+        "cleanup": {
+          "attempt_id": "98a88434f8b64d75a83e1c4e7bf10236",
+          "identity": [
+            [
+              66306,
+              281484
+            ],
+            [
+              66306,
+              281523
+            ],
+            [
+              66306,
+              281524
+            ]
+          ],
+          "status": "cleaned",
+          "reason": null
+        },
+        "exists": false,
+        "launch_claimed": true
+      }
+    ],
+    "reservations": []
+  },
+  "snapshots_sha256": {
+    "fd934b2024994bd3a0d5795c1dc7d5cd": "9f94f1ed9343bfc691c279a1658300e5c8ca1e9411a999395451b8dc16d36725"
+  },
+  "restarts": [
+    {
+      "unit": "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service",
+      "old_pid": 302325,
+      "new_pid": 302368,
+      "time": 1792708208.990557
+    },
+    {
+      "unit": "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+      "old_pid": 302330,
+      "new_pid": 302372,
+      "time": 1792708209.0038989
+    },
+    {
+      "unit": "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+      "old_pid": 302372,
+      "new_pid": 302376,
+      "time": 1792708209.0212803
+    }
+  ],
+  "result_hashes": {
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/execution.json": {
+      "path": "execution.json",
+      "size": 604,
+      "sha256": "9cd8ea58a986c34ef1624f79a5442b8675d731ebeef1c74e13f16beb9e4cc396"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/outcome.json": {
+      "path": "outcome.json",
+      "size": 518,
+      "sha256": "9ddb0cf5878b1f0a7e923c19eba76dfacbd6b61594f5d8160d50a96cfefe4809"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/process.json": {
+      "path": "process.json",
+      "size": 188,
+      "sha256": "aa6579758327254182c64877e9d5cbc4cabfe799fb2871ec20e03cabd39bb8fd"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stderr": {
+      "path": "stderr",
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stdout": {
+      "path": "stdout",
+      "size": 2324,
+      "sha256": "b24b3b2faf4d06bf1db84635039b57099ee6d4db0d7cf4b4d595905b40b35ff4"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/work/in.lmp": {
+      "path": "work/in.lmp",
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/work/log.lammps": {
+      "path": "work/log.lammps",
+      "size": 2559,
+      "sha256": "510ac2fdeeb09440fe26d14674f2fa3a39fac782c1dc7d21e5a5b30e39905fda"
+    },
+    "jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/work/output.data": {
+      "path": "work/output.data",
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/execution.json": {
+      "path": "execution.json",
+      "size": 604,
+      "sha256": "03d0e3c745009dd91894a0911415c1bad286b1245420781209526d6f0bf60274"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/outcome.json": {
+      "path": "outcome.json",
+      "size": 518,
+      "sha256": "38b1b43f6eec12a1c590197917db28cc3422b336fe3076fe432ce9faef719c54"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/process.json": {
+      "path": "process.json",
+      "size": 188,
+      "sha256": "23134b531d421a12c75bafba944ba7900e35ce04b54bc69a264a3c6fa9e573de"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stderr": {
+      "path": "stderr",
+      "size": 256,
+      "sha256": "59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stdout": {
+      "path": "stdout",
+      "size": 2324,
+      "sha256": "739be1530a9db27a6bb5812fc8d995d299ef6c3b08e7bce74fe7c806d1ef42e2"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/work/in.lmp": {
+      "path": "work/in.lmp",
+      "size": 326,
+      "sha256": "586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/work/log.lammps": {
+      "path": "work/log.lammps",
+      "size": 2559,
+      "sha256": "ee7cea3158c0733a2e1e88d91e775fb2477ecd1858cff5c005694d5808da7aba"
+    },
+    "jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/work/output.data": {
+      "path": "work/output.data",
+      "size": 33504,
+      "sha256": "13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1"
+    }
+  },
+  "sessions": [
+    {
+      "identity": {
+        "pid": 302339,
+        "process_group": 302339,
+        "session": 302339,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "39552028",
+        "launched_at": "2026-10-22T22:30:08.266894+00:00"
+      },
+      "members": []
+    },
+    {
+      "identity": {
+        "pid": 302388,
+        "process_group": 302388,
+        "session": 302388,
+        "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+        "start_ticks": "39552150",
+        "launched_at": "2026-10-22T22:30:09.489839+00:00"
+      },
+      "members": []
+    }
+  ],
+  "logs_sha256": "e97daa5be6f88aa24207db95d24cd68f18d9011472b6009178420fe8dfe9840b",
+  "commands": [
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "validate-config",
+        "manager",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "--check-local-paths"
+      ],
+      "returncode": 0,
+      "stdout": "Configuration valid (local paths checked).\n",
+      "stderr": "",
+      "time": 1792708207.5951142
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "validate-config",
+        "worker",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml",
+        "--check-local-paths"
+      ],
+      "returncode": 0,
+      "stdout": "Configuration valid (local paths checked).\n",
+      "stderr": "",
+      "time": 1792708207.6642337
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--user",
+        "--unit",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager",
+        "--property=WorkingDirectory=/tmp/lammps-v009-service-tls-wTt2Ljoy",
+        "--property=CPUAffinity=0 1 2 3 4 5 6 7",
+        "--property=Restart=on-failure",
+        "--property=KillMode=process",
+        "--property=TimeoutStopSec=45",
+        "--property=RuntimeMaxSec=900",
+        "--setenv=PYTHONPATH=/tmp/lammps-v009-service-tls-wTt2Ljoy/src",
+        "--setenv=SSL_CERT_FILE=/tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "serve",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "--credentials",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/credentials.json",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18448",
+        "--tls-cert",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt",
+        "--tls-key",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/server.key"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "Running as unit: lammps-v009-service-tls-wTt2Ljoy-v007-manager.service\n",
+      "time": 1792708207.6688924
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--user",
+        "--unit",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker",
+        "--property=WorkingDirectory=/tmp/lammps-v009-service-tls-wTt2Ljoy",
+        "--property=CPUAffinity=0 1 2 3 4 5 6 7",
+        "--property=Restart=on-failure",
+        "--property=KillMode=process",
+        "--property=TimeoutStopSec=45",
+        "--property=RuntimeMaxSec=900",
+        "--setenv=PYTHONPATH=/tmp/lammps-v009-service-tls-wTt2Ljoy/src",
+        "--setenv=SSL_CERT_FILE=/tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "worker",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml",
+        "--state-directory",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "Running as unit: lammps-v009-service-tls-wTt2Ljoy-v007-worker.service\n",
+      "time": 1792708207.8929248
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302325\n",
+      "stderr": "",
+      "time": 1792708208.982529
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "restart",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "time": 1792708208.98699
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302368\n",
+      "stderr": "",
+      "time": 1792708208.9905546
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302330\n",
+      "stderr": "",
+      "time": 1792708208.9946308
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "restart",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "time": 1792708208.9997492
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302372\n",
+      "stderr": "",
+      "time": 1792708209.003896
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302372\n",
+      "stderr": "",
+      "time": 1792708209.012486
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "restart",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "time": 1792708209.0170121
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "--property=MainPID",
+        "--value"
+      ],
+      "returncode": 0,
+      "stdout": "302376\n",
+      "stderr": "",
+      "time": 1792708209.0212774
+    },
+    {
+      "argv": [
+        "journalctl",
+        "--user",
+        "-u",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service",
+        "-u",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "--no-pager",
+        "-o",
+        "cat"
+      ],
+      "returncode": 0,
+      "stdout": "Started /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml --credentials /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt --tls-key /tmp/lammps-v009-service-tls-wTt2Ljoy/server.key.\nManager listening on 127.0.0.1:18448\nStarted /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal.\nStopping /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml --credentials /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt --tls-key /tmp/lammps-v009-service-tls-wTt2Ljoy/server.key...\nStopped /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml --credentials /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt --tls-key /tmp/lammps-v009-service-tls-wTt2Ljoy/server.key.\nStarted /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager serve --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml --credentials /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/credentials.json --host 127.0.0.1 --port 18448 --tls-cert /tmp/lammps-v009-service-tls-wTt2Ljoy/server.crt --tls-key /tmp/lammps-v009-service-tls-wTt2Ljoy/server.key.\nStopping /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal...\nStopped /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal.\nStarted /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal.\nStopping /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal...\nStopped /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal.\nStarted /tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python -m lammps_manager worker --config /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker.yaml --state-directory /tmp/lammps-v009-service-tls-wTt2Ljoy/v007/journal.\nManager listening on 127.0.0.1:18448\n",
+      "stderr": "",
+      "time": 1792708210.351642
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "stop",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service",
+        "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "time": 1792708210.3564823
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "status",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml"
+      ],
+      "time": 1792708207.9681761,
+      "returncode": 0,
+      "stdout": "{\n  \"schema_version\": 1,\n  \"observed_at\": 1792708207.9603157,\n  \"counts\": {},\n  \"attempt_counts\": {},\n  \"jobs\": [],\n  \"next_cursor\": null,\n  \"workers\": [\n    {\n      \"worker_id\": \"v007\",\n      \"enabled\": true,\n      \"paused\": null,\n      \"ready\": null,\n      \"draining\": null,\n      \"heartbeat_age_seconds\": null,\n      \"online\": null,\n      \"metric_age_seconds\": null,\n      \"generation\": null,\n      \"configured_capacity\": {\n        \"id\": \"v007\",\n        \"cpu_slots\": 4,\n        \"memory_budget_gib\": 1,\n        \"max_concurrent_jobs\": 2,\n        \"enabled\": true,\n        \"labels\": []\n      },\n      \"reported_capacity\": null,\n      \"effective_cpu_slots\": null,\n      \"effective_memory_gib\": null,\n      \"detected_cpu_slots\": null,\n      \"detected_memory_gib\": null,\n      \"reserved_cpu_slots\": 0,\n      \"reserved_memory_gib\": 0,\n      \"reserved_jobs\": 0,\n      \"available_memory_gib\": null,\n      \"staged_free_disk_gib\": null\n    }\n  ],\n  \"next_worker_cursor\": null,\n  \"alerts\": [],\n  \"next_alert_cursor\": null\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "submit",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/batch-1792708207968499990.json"
+      ],
+      "time": 1792708208.0453303,
+      "returncode": 0,
+      "stdout": "[\n  \"fd934b2024994bd3a0d5795c1dc7d5cd\"\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "submit",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/batch-1792708209130953634.json"
+      ],
+      "time": 1792708209.2555287,
+      "returncode": 0,
+      "stdout": "[\n  \"61ba3ae61edc440ab95fd8fc863eb72f\"\n]\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "fd934b2024994bd3a0d5795c1dc7d5cd"
+      ],
+      "time": 1792708210.2490287,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n    \"work_directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"sweep\": null,\n    \"storage_mode\": \"staged\",\n    \"input_manifest\": [\n      {\n        \"path\": \"in.lmp\",\n        \"size\": 326,\n        \"sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\"\n      }\n    ],\n    \"infrastructure_recovery\": {\n      \"max_retries\": 1,\n      \"delay_seconds\": 30\n    }\n  },\n  \"state\": \"succeeded\",\n  \"infrastructure_recovery\": {\n    \"policy\": {\n      \"max_retries\": 1,\n      \"delay_seconds\": 30\n    },\n    \"used\": 0,\n    \"remaining\": 1,\n    \"next_retry_at\": null,\n    \"latest\": null\n  },\n  \"attempts\": [\n    {\n      \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n      \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n      \"worker_id\": \"v007\",\n      \"directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-22T22:30:08.096Z\",\n      \"started_at\": \"2026-10-22T22:30:08.371Z\",\n      \"ended_at\": \"2026-10-22T22:30:08.805Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"dispatch\": {\n        \"priority\": 0,\n        \"origin\": \"manager_default\",\n        \"queue_sequence\": 1\n      },\n      \"transfers\": {\n        \"input\": {\n          \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n          \"direction\": \"input\",\n          \"phase\": \"ready\",\n          \"total_bytes\": 326,\n          \"total_files\": 1,\n          \"last_progress_at\": 1792708208.128302,\n          \"updated_at\": 1792708208.259318,\n          \"error\": null,\n          \"retries\": 0,\n          \"transferred_bytes\": 326,\n          \"verified_bytes\": 326,\n          \"verified_files\": 1,\n          \"transferred_files\": 1,\n          \"acknowledged\": false,\n          \"network_byte_resume\": false\n        },\n        \"result\": {\n          \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n          \"direction\": \"result\",\n          \"phase\": \"acknowledged\",\n          \"total_bytes\": 40279,\n          \"total_files\": 8,\n          \"last_progress_at\": 1792708208.8880346,\n          \"updated_at\": 1792708208.9022207,\n          \"error\": null,\n          \"retries\": 0,\n          \"transferred_bytes\": 40279,\n          \"verified_bytes\": 40279,\n          \"verified_files\": 8,\n          \"transferred_files\": 8,\n          \"acknowledged\": true,\n          \"network_byte_resume\": false\n        }\n      },\n      \"stdout\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stdout\",\n      \"stderr\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results/execution.json\",\n      \"result_collection\": {\n        \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n        \"status\": \"collected\",\n        \"manifest\": {\n          \"files\": [\n            {\n              \"path\": \"execution.json\",\n              \"size\": 604,\n              \"sha256\": \"9cd8ea58a986c34ef1624f79a5442b8675d731ebeef1c74e13f16beb9e4cc396\"\n            },\n            {\n              \"path\": \"outcome.json\",\n              \"size\": 518,\n              \"sha256\": \"9ddb0cf5878b1f0a7e923c19eba76dfacbd6b61594f5d8160d50a96cfefe4809\"\n            },\n            {\n              \"path\": \"process.json\",\n              \"size\": 188,\n              \"sha256\": \"aa6579758327254182c64877e9d5cbc4cabfe799fb2871ec20e03cabd39bb8fd\"\n            },\n            {\n              \"path\": \"stderr\",\n              \"size\": 256,\n              \"sha256\": \"59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b\"\n            },\n            {\n              \"path\": \"stdout\",\n              \"size\": 2324,\n              \"sha256\": \"b24b3b2faf4d06bf1db84635039b57099ee6d4db0d7cf4b4d595905b40b35ff4\"\n            },\n            {\n              \"path\": \"work/in.lmp\",\n              \"size\": 326,\n              \"sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\"\n            },\n            {\n              \"path\": \"work/log.lammps\",\n              \"size\": 2559,\n              \"sha256\": \"510ac2fdeeb09440fe26d14674f2fa3a39fac782c1dc7d21e5a5b30e39905fda\"\n            },\n            {\n              \"path\": \"work/output.data\",\n              \"size\": 33504,\n              \"sha256\": \"13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1\"\n            }\n          ],\n          \"omitted\": []\n        },\n        \"reason\": null\n      },\n      \"results_directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/results\",\n      \"input_transfer\": {\n        \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n        \"directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/fd934b2024994bd3a0d5795c1dc7d5cd/caa88f4c5d594c7499f8a9b02193b80b/inputs\",\n        \"status\": \"ready\",\n        \"reason\": \"Inputs verified\"\n      },\n      \"worker_cleanup\": null,\n      \"prelaunch_rejection\": null,\n      \"infrastructure_recovery\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 1,\n      \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:08.037Z\"\n    },\n    {\n      \"event_id\": 2,\n      \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n      \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:08.096Z\"\n    },\n    {\n      \"event_id\": 3,\n      \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n      \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:08.371Z\"\n    },\n    {\n      \"event_id\": 4,\n      \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n      \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-22T22:30:08.805Z\"\n    }\n  ],\n  \"history_cursors\": {\n    \"attempt_before\": null,\n    \"event_before\": null\n  },\n  \"monitoring\": {\n    \"job_id\": \"fd934b2024994bd3a0d5795c1dc7d5cd\",\n    \"state\": \"succeeded\",\n    \"attempt_count\": 1,\n    \"queue_age_seconds\": null,\n    \"wait_reason\": null,\n    \"dispatch\": {\n      \"priority\": 0,\n      \"origin\": \"manager_default\",\n      \"queue_sequence\": 1\n    },\n    \"cpu_demand\": 2,\n    \"reservations\": [],\n    \"worker_id\": \"v007\",\n    \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n    \"attempt_state\": \"succeeded\",\n    \"execution_elapsed_seconds\": 0.43400001525878906,\n    \"latest_error\": null,\n    \"rejection\": null,\n    \"infrastructure_recovery\": {\n      \"policy\": {\n        \"max_retries\": 1,\n        \"delay_seconds\": 30\n      },\n      \"used\": 0,\n      \"remaining\": 1,\n      \"next_retry_at\": null,\n      \"latest\": null\n    },\n    \"process_outcome\": \"succeeded\",\n    \"result_collection\": {\n      \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n      \"status\": \"collected\",\n      \"reason\": null,\n      \"has_manifest\": 1\n    },\n    \"transfers\": {\n      \"input\": {\n        \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n        \"direction\": \"input\",\n        \"phase\": \"ready\",\n        \"total_bytes\": 326,\n        \"total_files\": 1,\n        \"last_progress_at\": 1792708208.128302,\n        \"updated_at\": 1792708208.259318,\n        \"error\": null,\n        \"retries\": 0,\n        \"transferred_bytes\": 326,\n        \"verified_bytes\": 326,\n        \"verified_files\": 1,\n        \"transferred_files\": 1,\n        \"acknowledged\": false,\n        \"network_byte_resume\": false\n      },\n      \"result\": {\n        \"attempt_id\": \"caa88f4c5d594c7499f8a9b02193b80b\",\n        \"direction\": \"result\",\n        \"phase\": \"acknowledged\",\n        \"total_bytes\": 40279,\n        \"total_files\": 8,\n        \"last_progress_at\": 1792708208.8880346,\n        \"updated_at\": 1792708208.9022207,\n        \"error\": null,\n        \"retries\": 0,\n        \"transferred_bytes\": 40279,\n        \"verified_bytes\": 40279,\n        \"verified_files\": 8,\n        \"transferred_files\": 8,\n        \"acknowledged\": true,\n        \"network_byte_resume\": false\n      }\n    },\n    \"continuation\": null\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/.venv/bin/python",
+        "-m",
+        "lammps_manager",
+        "inspect",
+        "--config",
+        "/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/manager.yaml",
+        "61ba3ae61edc440ab95fd8fc863eb72f"
+      ],
+      "time": 1792708210.3246696,
+      "returncode": 0,
+      "stdout": "{\n  \"specification\": {\n    \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n    \"work_directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f\",\n    \"input_file\": \"in.lmp\",\n    \"input_sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\",\n    \"resources\": {\n      \"mpi_ranks\": 2,\n      \"omp_threads_per_rank\": 1,\n      \"memory_gib\": 0.1,\n      \"time_limit_seconds\": 30,\n      \"max_retries\": 0\n    },\n    \"sweep\": null,\n    \"storage_mode\": \"staged\",\n    \"input_manifest\": [\n      {\n        \"path\": \"in.lmp\",\n        \"size\": 326,\n        \"sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\"\n      }\n    ],\n    \"infrastructure_recovery\": {\n      \"max_retries\": 1,\n      \"delay_seconds\": 30\n    }\n  },\n  \"state\": \"succeeded\",\n  \"infrastructure_recovery\": {\n    \"policy\": {\n      \"max_retries\": 1,\n      \"delay_seconds\": 30\n    },\n    \"used\": 0,\n    \"remaining\": 1,\n    \"next_retry_at\": null,\n    \"latest\": null\n  },\n  \"attempts\": [\n    {\n      \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n      \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n      \"worker_id\": \"v007\",\n      \"directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236\",\n      \"state\": \"succeeded\",\n      \"created_at\": \"2026-10-22T22:30:09.330Z\",\n      \"started_at\": \"2026-10-22T22:30:09.593Z\",\n      \"ended_at\": \"2026-10-22T22:30:10.034Z\",\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"reason\": null,\n      \"dispatch\": {\n        \"priority\": 0,\n        \"origin\": \"manager_default\",\n        \"queue_sequence\": 5\n      },\n      \"transfers\": {\n        \"input\": {\n          \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n          \"direction\": \"input\",\n          \"phase\": \"ready\",\n          \"total_bytes\": 326,\n          \"total_files\": 1,\n          \"last_progress_at\": 1792708209.3678095,\n          \"updated_at\": 1792708209.4814801,\n          \"error\": null,\n          \"retries\": 0,\n          \"transferred_bytes\": 326,\n          \"verified_bytes\": 326,\n          \"verified_files\": 1,\n          \"transferred_files\": 1,\n          \"acknowledged\": false,\n          \"network_byte_resume\": false\n        },\n        \"result\": {\n          \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n          \"direction\": \"result\",\n          \"phase\": \"acknowledged\",\n          \"total_bytes\": 40279,\n          \"total_files\": 8,\n          \"last_progress_at\": 1792708210.1162374,\n          \"updated_at\": 1792708210.1342418,\n          \"error\": null,\n          \"retries\": 0,\n          \"transferred_bytes\": 40279,\n          \"verified_bytes\": 40279,\n          \"verified_files\": 8,\n          \"transferred_files\": 8,\n          \"acknowledged\": true,\n          \"network_byte_resume\": false\n        }\n      },\n      \"stdout\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stdout\",\n      \"stderr\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/stderr\",\n      \"execution_metadata\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results/execution.json\",\n      \"result_collection\": {\n        \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n        \"status\": \"collected\",\n        \"manifest\": {\n          \"files\": [\n            {\n              \"path\": \"execution.json\",\n              \"size\": 604,\n              \"sha256\": \"03d0e3c745009dd91894a0911415c1bad286b1245420781209526d6f0bf60274\"\n            },\n            {\n              \"path\": \"outcome.json\",\n              \"size\": 518,\n              \"sha256\": \"38b1b43f6eec12a1c590197917db28cc3422b336fe3076fe432ce9faef719c54\"\n            },\n            {\n              \"path\": \"process.json\",\n              \"size\": 188,\n              \"sha256\": \"23134b531d421a12c75bafba944ba7900e35ce04b54bc69a264a3c6fa9e573de\"\n            },\n            {\n              \"path\": \"stderr\",\n              \"size\": 256,\n              \"sha256\": \"59c73cd555cedf4cb85f91546b2164e21a20fd5482ecdef9cc39e28644788e8b\"\n            },\n            {\n              \"path\": \"stdout\",\n              \"size\": 2324,\n              \"sha256\": \"739be1530a9db27a6bb5812fc8d995d299ef6c3b08e7bce74fe7c806d1ef42e2\"\n            },\n            {\n              \"path\": \"work/in.lmp\",\n              \"size\": 326,\n              \"sha256\": \"586a30296a5f332f87b3acb3c6cba70b95ff09ef0462d0192edfda7853f5d5fb\"\n            },\n            {\n              \"path\": \"work/log.lammps\",\n              \"size\": 2559,\n              \"sha256\": \"ee7cea3158c0733a2e1e88d91e775fb2477ecd1858cff5c005694d5808da7aba\"\n            },\n            {\n              \"path\": \"work/output.data\",\n              \"size\": 33504,\n              \"sha256\": \"13bebd6db110d1b6f329b375fbd4df91fd016d3abe61369d37513987a65621d1\"\n            }\n          ],\n          \"omitted\": []\n        },\n        \"reason\": null\n      },\n      \"results_directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/jobs/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/results\",\n      \"input_transfer\": {\n        \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n        \"directory\": \"/tmp/lammps-v009-service-tls-wTt2Ljoy/v007/worker/61ba3ae61edc440ab95fd8fc863eb72f/98a88434f8b64d75a83e1c4e7bf10236/inputs\",\n        \"status\": \"ready\",\n        \"reason\": \"Inputs verified\"\n      },\n      \"worker_cleanup\": null,\n      \"prelaunch_rejection\": null,\n      \"infrastructure_recovery\": null\n    }\n  ],\n  \"events\": [\n    {\n      \"event_id\": 5,\n      \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n      \"attempt_id\": null,\n      \"state\": \"queued\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:09.247Z\"\n    },\n    {\n      \"event_id\": 6,\n      \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n      \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n      \"state\": \"assigned\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:09.330Z\"\n    },\n    {\n      \"event_id\": 7,\n      \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n      \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n      \"state\": \"running\",\n      \"reason\": null,\n      \"exit_code\": null,\n      \"termination_evidence\": null,\n      \"created_at\": \"2026-10-22T22:30:09.593Z\"\n    },\n    {\n      \"event_id\": 8,\n      \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n      \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n      \"state\": \"succeeded\",\n      \"reason\": null,\n      \"exit_code\": 0,\n      \"termination_evidence\": \"wait() reaped launcher; no live launch-session processes remain\",\n      \"created_at\": \"2026-10-22T22:30:10.034Z\"\n    }\n  ],\n  \"history_cursors\": {\n    \"attempt_before\": null,\n    \"event_before\": null\n  },\n  \"monitoring\": {\n    \"job_id\": \"61ba3ae61edc440ab95fd8fc863eb72f\",\n    \"state\": \"succeeded\",\n    \"attempt_count\": 1,\n    \"queue_age_seconds\": null,\n    \"wait_reason\": null,\n    \"dispatch\": {\n      \"priority\": 0,\n      \"origin\": \"manager_default\",\n      \"queue_sequence\": 5\n    },\n    \"cpu_demand\": 2,\n    \"reservations\": [],\n    \"worker_id\": \"v007\",\n    \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n    \"attempt_state\": \"succeeded\",\n    \"execution_elapsed_seconds\": 0.44099998474121094,\n    \"latest_error\": null,\n    \"rejection\": null,\n    \"infrastructure_recovery\": {\n      \"policy\": {\n        \"max_retries\": 1,\n        \"delay_seconds\": 30\n      },\n      \"used\": 0,\n      \"remaining\": 1,\n      \"next_retry_at\": null,\n      \"latest\": null\n    },\n    \"process_outcome\": \"succeeded\",\n    \"result_collection\": {\n      \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n      \"status\": \"collected\",\n      \"reason\": null,\n      \"has_manifest\": 1\n    },\n    \"transfers\": {\n      \"input\": {\n        \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n        \"direction\": \"input\",\n        \"phase\": \"ready\",\n        \"total_bytes\": 326,\n        \"total_files\": 1,\n        \"last_progress_at\": 1792708209.3678095,\n        \"updated_at\": 1792708209.4814801,\n        \"error\": null,\n        \"retries\": 0,\n        \"transferred_bytes\": 326,\n        \"verified_bytes\": 326,\n        \"verified_files\": 1,\n        \"transferred_files\": 1,\n        \"acknowledged\": false,\n        \"network_byte_resume\": false\n      },\n      \"result\": {\n        \"attempt_id\": \"98a88434f8b64d75a83e1c4e7bf10236\",\n        \"direction\": \"result\",\n        \"phase\": \"acknowledged\",\n        \"total_bytes\": 40279,\n        \"total_files\": 8,\n        \"last_progress_at\": 1792708210.1162374,\n        \"updated_at\": 1792708210.1342418,\n        \"error\": null,\n        \"retries\": 0,\n        \"transferred_bytes\": 40279,\n        \"verified_bytes\": 40279,\n        \"verified_files\": 8,\n        \"transferred_files\": 8,\n        \"acknowledged\": true,\n        \"network_byte_resume\": false\n      }\n    },\n    \"continuation\": null\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "boot_after": "c5831636-0ddc-4c03-9c62-de8bd57e8277",
+  "ports_closed": true,
+  "stopped_pids": {
+    "lammps-v009-service-tls-wTt2Ljoy-v007-manager.service": 0,
+    "lammps-v009-service-tls-wTt2Ljoy-v007-worker.service": 0
+  },
+  "passed": true
+}

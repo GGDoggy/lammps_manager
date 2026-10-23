@@ -1,0 +1,35 @@
+{
+  "finished_at": 1792760384.1210825,
+  "service_result": "success",
+  "exit_code": "exited",
+  "exit_status": "0",
+  "remaining_cgroup_pids": [],
+  "finalizer_killed_pids": [],
+  "stop_verified": true,
+  "completed": true,
+  "progress": {
+    "started_at": 1792760350.6174083,
+    "steps": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/wca_audit.py",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/confirmation",
+          "--pilot-report",
+          "/home/ted/lammps-verification/v009-wca-tcp-yield-3jff7no4/pilot/report.json",
+          "--completed-only",
+          "--recompute",
+          "--output",
+          "/home/ted/lammps-verification/v009-strict-auditor-ienin65o/partial-raw-audit-7xtk78qd/audit.json"
+        ],
+        "started_at": 1792760350.6175487,
+        "pid": 26648,
+        "returncode": 0,
+        "ended_at": 1792760384.097945
+      }
+    ],
+    "completed": true,
+    "ended_at": 1792760384.0981302
+  },
+  "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9"
+}

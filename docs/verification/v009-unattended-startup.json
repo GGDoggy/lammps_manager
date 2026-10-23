@@ -1,0 +1,559 @@
+{
+  "mozzarella": {
+    "properties": {
+      "Restart": "no",
+      "RuntimeMaxUSec": "3d",
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ControlGroup": "",
+      "EffectiveCPUs": "",
+      "CPUQuotaPerSecUSec": "10s",
+      "AllowedCPUs": "0-9",
+      "KillMode": "control-group",
+      "ActiveState": "failed",
+      "SubState": "failed"
+    },
+    "progress.json": {
+      "started_at": 1792756781.4172564,
+      "steps": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py",
+            "--lammps",
+            "/usr/local/bin/lmp",
+            "--root",
+            "/home/ted/lammps-verification/v009-unattended-4zo9y9bv/pilot",
+            "--pilot-only"
+          ],
+          "started_at": 1792756781.4173467,
+          "pid": 8288,
+          "returncode": 1,
+          "ended_at": 1792757253.3569598
+        }
+      ],
+      "completed": false,
+      "error": "RuntimeError: Step 0 exited 1",
+      "ended_at": 1792757253.3573377
+    },
+    "status.json": {
+      "finished_at": 1792757253.3977385,
+      "service_result": "exit-code",
+      "exit_code": "exited",
+      "exit_status": "1",
+      "remaining_cgroup_pids": [],
+      "finalizer_killed_pids": [],
+      "stop_verified": true,
+      "completed": false,
+      "progress": {
+        "started_at": 1792756781.4172564,
+        "steps": [
+          {
+            "argv": [
+              "/usr/bin/python3",
+              "/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py",
+              "--lammps",
+              "/usr/local/bin/lmp",
+              "--root",
+              "/home/ted/lammps-verification/v009-unattended-4zo9y9bv/pilot",
+              "--pilot-only"
+            ],
+            "started_at": 1792756781.4173467,
+            "pid": 8288,
+            "returncode": 1,
+            "ended_at": 1792757253.3569598
+          }
+        ],
+        "completed": false,
+        "error": "RuntimeError: Step 0 exited 1",
+        "ended_at": 1792757253.3573377
+      },
+      "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9"
+    },
+    "pilot/report.json": {
+      "error": "TimeoutExpired: Command '['/usr/bin/mpirun.openmpi', '-np', '4', '--bind-to', 'none', '/usr/local/bin/lmp', '-in', 'in.lmp']' timed out after 120 seconds",
+      "build": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+      "boot_id": "918bcd8d-289b-471a-9d32-0ae1324eefd9",
+      "strata": [
+        {
+          "duration": 20000,
+          "layout": [
+            1,
+            1,
+            1
+          ],
+          "pairs": 842,
+          "required": {
+            "energy": 6,
+            "shell-0": 8,
+            "shell-1": 110,
+            "shell-2": 246,
+            "shell-3": 252,
+            "structure-0": 535,
+            "structure-1": 842,
+            "lag-1000-msd": 4,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 8,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 138,
+            "boundary-0.3-before-acf": 1,
+            "boundary-0.3-cross-msd": 288,
+            "boundary-0.3-cross-acf": 2,
+            "boundary-0.3-after-msd": 207,
+            "boundary-0.3-after-acf": 1,
+            "boundary-0.7-before-msd": 452,
+            "boundary-0.7-before-acf": 1,
+            "boundary-0.7-cross-msd": 267,
+            "boundary-0.7-cross-acf": 1,
+            "boundary-0.7-after-msd": 398,
+            "boundary-0.7-after-acf": 1
+          },
+          "feasible": true
+        },
+        {
+          "duration": 20000,
+          "layout": [
+            2,
+            2,
+            2
+          ],
+          "pairs": 727,
+          "required": {
+            "energy": 5,
+            "shell-0": 5,
+            "shell-1": 37,
+            "shell-2": 161,
+            "shell-3": 222,
+            "structure-0": 281,
+            "structure-1": 212,
+            "lag-1000-msd": 10,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 20,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 221,
+            "boundary-0.3-before-acf": 1,
+            "boundary-0.3-cross-msd": 299,
+            "boundary-0.3-cross-acf": 1,
+            "boundary-0.3-after-msd": 70,
+            "boundary-0.3-after-acf": 1,
+            "boundary-0.7-before-msd": 215,
+            "boundary-0.7-before-acf": 1,
+            "boundary-0.7-cross-msd": 88,
+            "boundary-0.7-cross-acf": 2,
+            "boundary-0.7-after-msd": 727,
+            "boundary-0.7-after-acf": 1
+          },
+          "feasible": true
+        },
+        {
+          "duration": 20000,
+          "layout": [
+            4,
+            4,
+            4
+          ],
+          "pairs": 465,
+          "required": {
+            "energy": 13,
+            "shell-0": 7,
+            "shell-1": 80,
+            "shell-2": 170,
+            "shell-3": 244,
+            "structure-0": 380,
+            "structure-1": 81,
+            "lag-1000-msd": 7,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 11,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 166,
+            "boundary-0.3-before-acf": 1,
+            "boundary-0.3-cross-msd": 191,
+            "boundary-0.3-cross-acf": 1,
+            "boundary-0.3-after-msd": 115,
+            "boundary-0.3-after-acf": 1,
+            "boundary-0.7-before-msd": 343,
+            "boundary-0.7-before-acf": 1,
+            "boundary-0.7-cross-msd": 465,
+            "boundary-0.7-cross-acf": 1,
+            "boundary-0.7-after-msd": 341,
+            "boundary-0.7-after-acf": 1
+          },
+          "feasible": true
+        },
+        {
+          "duration": 20000,
+          "layout": [
+            1,
+            2,
+            4
+          ],
+          "pairs": 605,
+          "required": {
+            "energy": 5,
+            "shell-0": 6,
+            "shell-1": 47,
+            "shell-2": 19,
+            "shell-3": 93,
+            "structure-0": 605,
+            "structure-1": 259,
+            "lag-1000-msd": 10,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 28,
+            "lag-2000-acf": 2,
+            "boundary-0.3-before-msd": 355,
+            "boundary-0.3-before-acf": 1,
+            "boundary-0.3-cross-msd": 111,
+            "boundary-0.3-cross-acf": 1,
+            "boundary-0.3-after-msd": 515,
+            "boundary-0.3-after-acf": 1,
+            "boundary-0.7-before-msd": 402,
+            "boundary-0.7-before-acf": 1,
+            "boundary-0.7-cross-msd": 387,
+            "boundary-0.7-cross-acf": 1,
+            "boundary-0.7-after-msd": 215,
+            "boundary-0.7-after-acf": 1
+          },
+          "feasible": true
+        },
+        {
+          "duration": 20000,
+          "layout": [
+            4,
+            2,
+            1
+          ],
+          "pairs": 1223,
+          "required": {
+            "energy": 7,
+            "shell-0": 4,
+            "shell-1": 52,
+            "shell-2": 60,
+            "shell-3": 62,
+            "structure-0": 395,
+            "structure-1": 1223,
+            "lag-1000-msd": 8,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 13,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 108,
+            "boundary-0.3-before-acf": 1,
+            "boundary-0.3-cross-msd": 251,
+            "boundary-0.3-cross-acf": 2,
+            "boundary-0.3-after-msd": 95,
+            "boundary-0.3-after-acf": 1,
+            "boundary-0.7-before-msd": 321,
+            "boundary-0.7-before-acf": 1,
+            "boundary-0.7-cross-msd": 156,
+            "boundary-0.7-cross-acf": 2,
+            "boundary-0.7-after-msd": 246,
+            "boundary-0.7-after-acf": 1
+          },
+          "feasible": true
+        },
+        {
+          "duration": 100000,
+          "layout": [
+            1,
+            1,
+            1
+          ],
+          "pairs": 5695,
+          "required": {
+            "energy": 11,
+            "shell-0": 5,
+            "shell-1": 9,
+            "shell-2": 32,
+            "shell-3": 57,
+            "structure-0": 2955,
+            "structure-1": 5695,
+            "lag-1000-msd": 5,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 6,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 225,
+            "boundary-0.3-before-acf": 11,
+            "boundary-0.3-cross-msd": 420,
+            "boundary-0.3-cross-acf": 9,
+            "boundary-0.3-after-msd": 267,
+            "boundary-0.3-after-acf": 4,
+            "boundary-0.7-before-msd": 154,
+            "boundary-0.7-before-acf": 6,
+            "boundary-0.7-cross-msd": 201,
+            "boundary-0.7-cross-acf": 21,
+            "boundary-0.7-after-msd": 109,
+            "boundary-0.7-after-acf": 8
+          },
+          "feasible": true
+        },
+        {
+          "duration": 100000,
+          "layout": [
+            2,
+            2,
+            2
+          ],
+          "pairs": 7140,
+          "required": {
+            "energy": 3,
+            "shell-0": 9,
+            "shell-1": 33,
+            "shell-2": 130,
+            "shell-3": 135,
+            "structure-0": 7140,
+            "structure-1": 2654,
+            "lag-1000-msd": 2,
+            "lag-1000-acf": 1,
+            "lag-2000-msd": 2,
+            "lag-2000-acf": 1,
+            "boundary-0.3-before-msd": 173,
+            "boundary-0.3-before-acf": 5,
+            "boundary-0.3-cross-msd": 179,
+            "boundary-0.3-cross-acf": 22,
+            "boundary-0.3-after-msd": 159,
+            "boundary-0.3-after-acf": 6,
+            "boundary-0.7-before-msd": 155,
+            "boundary-0.7-before-acf": 4,
+            "boundary-0.7-cross-msd": 299,
+            "boundary-0.7-cross-acf": 4,
+            "boundary-0.7-after-msd": 264,
+            "boundary-0.7-after-acf": 5
+          },
+          "feasible": true
+        }
+      ],
+      "replicas": 56
+    },
+    "step-0-tail": " \"boundary-0.3-after-acf\": 4, \"boundary-0.7-before-msd\": 154, \"boundary-0.7-before-acf\": 6, \"boundary-0.7-cross-msd\": 201, \"boundary-0.7-cross-acf\": 21, \"boundary-0.7-after-msd\": 109, \"boundary-0.7-after-acf\": 8}, \"feasible\": true}\n{\"duration\": 100000, \"layout\": [2, 2, 2], \"pairs\": 7140, \"required\": {\"energy\": 3, \"shell-0\": 9, \"shell-1\": 33, \"shell-2\": 130, \"shell-3\": 135, \"structure-0\": 7140, \"structure-1\": 2654, \"lag-1000-msd\": 2, \"lag-1000-acf\": 1, \"lag-2000-msd\": 2, \"lag-2000-acf\": 1, \"boundary-0.3-before-msd\": 173, \"boundary-0.3-before-acf\": 5, \"boundary-0.3-cross-msd\": 179, \"boundary-0.3-cross-acf\": 22, \"boundary-0.3-after-msd\": 159, \"boundary-0.3-after-acf\": 6, \"boundary-0.7-before-msd\": 155, \"boundary-0.7-before-acf\": 4, \"boundary-0.7-cross-msd\": 299, \"boundary-0.7-cross-acf\": 4, \"boundary-0.7-after-msd\": 264, \"boundary-0.7-after-acf\": 5}, \"feasible\": true}\nTraceback (most recent call last):\n  File \"/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py\", line 370, in <module>\n    main()\n  File \"/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py\", line 299, in main\n    pilot.append(run_pair(root, executable, 'pilot', replica, duration, layout, used, report)); save()\n  File \"/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py\", line 222, in run_pair\n    execute(['/usr/bin/mpirun.openmpi', '-np', str(rank), '--bind-to', 'none', str(lammps), '-in', 'in.lmp'], directory, report)\n  File \"/home/ted/lammps-verification/v009-unattended-4zo9y9bv/wca_acceptance.py\", line 180, in execute\n    record['returncode'] = process.wait(timeout=120)\n  File \"/usr/lib/python3.10/subprocess.py\", line 1209, in wait\n    return self._wait(timeout=timeout)\n  File \"/usr/lib/python3.10/subprocess.py\", line 1951, in _wait\n    raise TimeoutExpired(self.args, timeout)\nsubprocess.TimeoutExpired: Command '['/usr/bin/mpirun.openmpi', '-np', '4', '--bind-to', 'none', '/usr/local/bin/lmp', '-in', 'in.lmp']' timed out after 120 seconds\n"
+  },
+  "allegro": {
+    "properties": {
+      "Restart": "no",
+      "RuntimeMaxUSec": "infinity",
+      "MainPID": "0",
+      "Result": "success",
+      "ControlGroup": "",
+      "EffectiveCPUs": "",
+      "CPUQuotaPerSecUSec": "infinity",
+      "AllowedCPUs": "",
+      "KillMode": "control-group",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "progress.json": {
+      "started_at": 1792756781.0955062,
+      "steps": [
+        {
+          "argv": [
+            "/home/ted/lammps-verification/v009-unattended-a1564iys/.venv/bin/python",
+            "/home/ted/lammps-verification/v009-unattended-a1564iys/input_heartbeat_acceptance.py"
+          ],
+          "started_at": 1792756781.0956433,
+          "pid": 345166,
+          "returncode": 0,
+          "ended_at": 1792756784.316504
+        }
+      ],
+      "completed": true,
+      "ended_at": 1792756784.3168552
+    },
+    "status.json": {
+      "finished_at": 1792756784.347478,
+      "service_result": "success",
+      "exit_code": "exited",
+      "exit_status": "0",
+      "remaining_cgroup_pids": [],
+      "finalizer_killed_pids": [],
+      "stop_verified": true,
+      "completed": true,
+      "progress": {
+        "started_at": 1792756781.0955062,
+        "steps": [
+          {
+            "argv": [
+              "/home/ted/lammps-verification/v009-unattended-a1564iys/.venv/bin/python",
+              "/home/ted/lammps-verification/v009-unattended-a1564iys/input_heartbeat_acceptance.py"
+            ],
+            "started_at": 1792756781.0956433,
+            "pid": 345166,
+            "returncode": 0,
+            "ended_at": 1792756784.316504
+          }
+        ],
+        "completed": true,
+        "ended_at": 1792756784.3168552
+      },
+      "boot_id": "c5831636-0ddc-4c03-9c62-de8bd57e8277"
+    },
+    "step-0-tail": "Lost real TLS heartbeat response preserved original input stream and one execution\n"
+  },
+  "poincare": {
+    "properties": {
+      "Restart": "no",
+      "RuntimeMaxUSec": "infinity",
+      "MainPID": "0",
+      "Result": "success",
+      "ControlGroup": "",
+      "EffectiveCPUs": "",
+      "CPUQuotaPerSecUSec": "infinity",
+      "AllowedCPUs": "",
+      "KillMode": "control-group",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "progress.json": {
+      "started_at": 1792756781.1158602,
+      "steps": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/tools/verification/crosshost_acceptance.py",
+            "--ssh-argv",
+            "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/ssh-argv.json",
+            "--remote-source-root",
+            "/home/ted/lammps-verification/v009-unattended-a1564iys",
+            "--manager-address",
+            "192.168.50.112",
+            "--file-mib",
+            "1",
+            "--small-files",
+            "2",
+            "--deadline",
+            "120"
+          ],
+          "started_at": 1792756781.11605,
+          "pid": 2489655,
+          "returncode": 0,
+          "ended_at": 1792756790.4024498
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/tools/verification/crosshost_acceptance.py",
+            "--ssh-argv",
+            "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/ssh-argv.json",
+            "--remote-source-root",
+            "/home/ted/lammps-verification/v009-unattended-a1564iys",
+            "--manager-address",
+            "192.168.50.112",
+            "--file-mib",
+            "256",
+            "--small-files",
+            "3000",
+            "--deadline",
+            "3600"
+          ],
+          "started_at": 1792756790.402865,
+          "pid": 2489983,
+          "returncode": 0,
+          "ended_at": 1792757833.1644201
+        }
+      ],
+      "completed": true,
+      "ended_at": 1792757833.164657
+    },
+    "status.json": {
+      "finished_at": 1792757833.201743,
+      "service_result": "success",
+      "exit_code": "exited",
+      "exit_status": "0",
+      "remaining_cgroup_pids": [],
+      "finalizer_killed_pids": [],
+      "stop_verified": true,
+      "completed": true,
+      "progress": {
+        "started_at": 1792756781.1158602,
+        "steps": [
+          {
+            "argv": [
+              "/usr/bin/python3",
+              "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/tools/verification/crosshost_acceptance.py",
+              "--ssh-argv",
+              "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/ssh-argv.json",
+              "--remote-source-root",
+              "/home/ted/lammps-verification/v009-unattended-a1564iys",
+              "--manager-address",
+              "192.168.50.112",
+              "--file-mib",
+              "1",
+              "--small-files",
+              "2",
+              "--deadline",
+              "120"
+            ],
+            "started_at": 1792756781.11605,
+            "pid": 2489655,
+            "returncode": 0,
+            "ended_at": 1792756790.4024498
+          },
+          {
+            "argv": [
+              "/usr/bin/python3",
+              "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/tools/verification/crosshost_acceptance.py",
+              "--ssh-argv",
+              "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/ssh-argv.json",
+              "--remote-source-root",
+              "/home/ted/lammps-verification/v009-unattended-a1564iys",
+              "--manager-address",
+              "192.168.50.112",
+              "--file-mib",
+              "256",
+              "--small-files",
+              "3000",
+              "--deadline",
+              "3600"
+            ],
+            "started_at": 1792756790.402865,
+            "pid": 2489983,
+            "returncode": 0,
+            "ended_at": 1792757833.1644201
+          }
+        ],
+        "completed": true,
+        "ended_at": 1792757833.164657
+      },
+      "boot_id": "f7e14ebb-a590-4113-b7c9-aab361543a2e"
+    },
+    "step-0-tail": "{\"root\": \"/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-4f_bhx2s\", \"remote_root\": \"/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-pfgwfo93\"}\n{\"root\": \"/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-4f_bhx2s\", \"remote_root\": \"/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-pfgwfo93\", \"passed\": true, \"error\": null, \"elapsed_seconds\": 6.85108064499218}\n",
+    "step-1-tail": "{\"root\": \"/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-cc5twww8\", \"remote_root\": \"/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-vd_nneoj\"}\n{\"root\": \"/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-cc5twww8\", \"remote_root\": \"/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-vd_nneoj\", \"passed\": true, \"error\": null, \"elapsed_seconds\": 1037.7338514120784}\n",
+    "crosshost_reports": [
+      {
+        "root": "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-4f_bhx2s",
+        "remote_root": "/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-pfgwfo93",
+        "passed": true,
+        "error": null,
+        "final_state": "succeeded",
+        "final_reservations": [],
+        "worker_cleanup_error": null,
+        "worker_stop_requested": {
+          "unit": "crosshost-pfgwfo93-worker.service",
+          "properties": {
+            "MainPID": "0",
+            "ControlGroup": "",
+            "ActiveState": "inactive"
+          },
+          "remaining_cgroup_pids": [],
+          "stop_returncode": 0
+        }
+      },
+      {
+        "root": "/home/ted/task_manager/var/verification/v009-unattended-y3rc__m8/data/lammps-v009-crosshost-cc5twww8",
+        "remote_root": "/home/ted/lammps-verification/v009-unattended-a1564iys/runs/crosshost-vd_nneoj",
+        "passed": true,
+        "error": null,
+        "final_state": "succeeded",
+        "final_reservations": [],
+        "worker_cleanup_error": null,
+        "worker_stop_requested": {
+          "unit": "crosshost-vd_nneoj-worker.service",
+          "properties": {
+            "MainPID": "0",
+            "ControlGroup": "",
+            "ActiveState": "inactive"
+          },
+          "remaining_cgroup_pids": [],
+          "stop_returncode": 0
+        }
+      }
+    ]
+  }
+}

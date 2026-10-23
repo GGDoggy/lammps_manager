@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-24",
+  "scope": "Existing implemented functionality; user deferred production-target and single-job multi-node MPI acceptance, withdrew WCA endpoint-equivalence study, excluded reboot",
+  "local_check": {
+    "command": "make check",
+    "exit_code": 0,
+    "tests": 338,
+    "seconds": 79.169,
+    "log": "/tmp/v009-post-withdrawal-check.log",
+    "log_sha256": "738f59cfd50a64cc12ca3c48f10dc3b9cd303ac5cee44dd200a2636563b510b8"
+  },
+  "final_services": {
+    "mozzarella": "stopped; stop_verified=true; user cancellation",
+    "allegro": "finished; stop_verified=true",
+    "poincare": "finished; stop_verified=true"
+  },
+  "evidence_sha256": {
+    "v009-v006-corrected-audit.json": "b0b4109e7008f37f5d659ad37863b7c3df0812d5021f46da253a198064994f61",
+    "v009-v007-corrected-audit.json": "4e1bfafc0f5b676ca5822a9ba0522d6b899a2cf96f50d858142f824fe9bbee0a",
+    "v009-sweeps.json": "165f7234c40c476397f200b917dd85be5f27cb0b3c8de23461375c8e598b3741",
+    "v009-recovery.json": "93e7da619c16351decc559f1b415755159903fc60c5c2e8f7d3cb5ecc1addc99",
+    "v009-recovery-original-convergence.json": "a892946e916d175d21176d3723281c38677e9dae8f2173431ea8606920be8de5",
+    "v009-service-tls-lifecycle.json": "eb7a2c1ab4c730374457c8db5132a38febd4ae990f209cc192c040a056e1ae50",
+    "v009-service-tls-audit.json": "a78dd0c2442072fbb257c201091af7b7c6c15e0e65aca71d36c650a9d8f01a89",
+    "v009-input-heartbeat-delayed.json": "2d00b2d0f934afb8c91d84044721ef8e45a21197f6e2c4af40db12b505b35e4d",
+    "v009-crosshost-3600-completed.json": "825c0b5b2014b309f2a3f3eaaf778fa870bcaafd1f8630da34dcc4468b81ff00",
+    "v009-crosshost-3600-audit.json": "d03e224de8fabe6098cdc8c80008136eb90357467e19154259d3e9055fc92541",
+    "v009-unattended-stop-probes.json": "6bbe722f4c6418f6bbd4c1ec126b12c66fc7fcafc23700fce4b2d6d94b728c06",
+    "v009-wca-study-cancelled.json": "ff7b193f629b6627d8032197e4212747da27efe5d0aac04b3e48dde48b6363bf"
+  },
+  "limits": [
+    "Earlier 900-second transfer gate failed; only separate 3600-second case passed",
+    "No WCA full-family acceptance, unrestricted continuation or compiled-source attestation",
+    "No production-target or single-job multi-node MPI acceptance",
+    "No physical reboot/power-loss test"
+  ]
+}

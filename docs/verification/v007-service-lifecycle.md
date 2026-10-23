@@ -85,5 +85,10 @@ acceptance driver did compare its results with the manifests, but the historical
 standalone audit is only an output hash inventory. The corrected auditor now
 requires exact file sets, sizes and SHA-256 from manager SQLite manifests and
 detects missing publication trees. This correction is locally regression-tested;
-no corrected external-root audit was performed. Historical evidence and source
+no corrected external-root audit was performed at that checkpoint. Historical evidence and source
 identities remain unchanged.
+
+Follow-up (2026-10-23): [V009](v009-remaining.md) reran the corrected auditor on
+the original root and verified all 16 published files against committed
+manifests, with empty reservations/sessions and closed listeners. The separate
+[audit evidence](v009-v007-corrected-audit.json) preserves historical audit files.

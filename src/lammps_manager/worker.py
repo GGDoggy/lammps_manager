@@ -466,9 +466,10 @@ class Worker:
 
         last_heartbeat = time.monotonic()
         polled_during_transfer = False
+        last_heartbeat_error = None
 
         def heartbeat() -> None:
-            nonlocal last_heartbeat, polled_during_transfer
+            nonlocal last_heartbeat, polled_during_transfer, last_heartbeat_error
             if time.monotonic() - last_heartbeat < min(1, self.config.heartbeat_interval_seconds):
                 return
             # Input preparation stays synchronous, but bounded read/hash chunks
@@ -485,13 +486,33 @@ class Worker:
                 data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
                     'reports': [], 'protocol': 2, 'recovery_protocol': 1,
                     'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
-                    'storage_mode': self.config.storage_mode}).encode(),
+                    'storage_mode': self.config.storage_mode, 'heartbeat_only': True}).encode(),
                 headers={'Content-Type': 'application/json', 'X-Worker-ID': self.config.worker.id,
                          'Authorization': 'Bearer ' + self.token})
-            with self.opener.open(request, timeout=10) as response:
-                reply = json.load(response)
+            # Any control-poll attempt invalidates tick's earlier launch policy,
+            # including one whose response is lost. A transient control failure
+            # does not invalidate bytes from the separately authenticated file
+            # stream; hash verification and a fresh normal poll still gate launch.
             polled_during_transfer = True
+            try:
+                # Leave time to resume reading the artifact before its sender's
+                # ten-second socket timeout; this control response is retryable.
+                with self.opener.open(request, timeout=1) as response:
+                    reply = json.load(response)
+            except HTTPError:
+                raise  # Authentication/protocol failures still abort preparation.
+            except (OSError, URLError, IncompleteRead) as exc:
+                last_heartbeat = time.monotonic()
+                reason = f'Input heartbeat deferred: {type(exc).__name__}: {exc}'
+                if reason != last_heartbeat_error:
+                    print(reason, file=sys.stderr)
+                    store.set_input_transfer(attempt_id, str(destination), 'downloading', reason)
+                    last_heartbeat_error = reason
+                return
             last_heartbeat = time.monotonic()
+            if last_heartbeat_error is not None:
+                store.set_input_transfer(attempt_id, str(destination), 'downloading')
+                last_heartbeat_error = None
             for command in reply.get('cancellations', []):
                 try:
                     current = store.attempt(command['attempt_id'])

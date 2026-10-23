@@ -1,0 +1,12 @@
+{
+  "auditor": "tools/verification/wca_seed_audit.py",
+  "auditor_sha256": "7a1b59ed8307a7be80e56fa012d38c43877fedcf579ab2473efc9d8fdbe20989",
+  "previous_draft_auditor_sha256": "ef69c1c76a81ad108017c65439aaa63633a1edcd09d9601eba0aa388abdf8743",
+  "pilot_report_sha256": "1a1d047f5eecf2829f54daa0ccf3bf487e151d0923fc04a02a9bae829bf42f4c",
+  "result_sha256": "61141482099ede72dcbb47ddb358082415376f5683f101cc3a507717a9c3994b",
+  "reproduced": true,
+  "existing_output_preserved": true,
+  "unsupported_protocol_rejected": true,
+  "unsupported_layout_rejected": true,
+  "duplicate_stratum_rejected": true
+}
