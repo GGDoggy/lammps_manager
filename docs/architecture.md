@@ -6,10 +6,15 @@ This is the permanent design reference for a Python / Linux dispatcher for indep
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.
 
-The user-approved [home-directory deployment](deployment.md) now runs a manager
-and three staged workers on poincare, mozzarella and allegro. Actual per-worker
+The [current deployment](current-deployment.md) uses poincare as manager and
+three staged workers on poincare, mozzarella and allegro, with separate manager/
+and worker/ directories, private LAN HTTPS and systemd user supervision.
+
+The user-approved [home-directory deployment](deployment.md) previously ran a manager
+and three staged workers on poincare, mozzarella and allegro. Its systemd units
+were removed at the user’s request on 2026-10-24; deployment data remains retained. Actual per-worker
 execution, retained outputs, service restart and automatic worker recovery have
-been measured. Mozzarella uses an explicitly supervised SSH reverse forward
+been measured. The historical mozzarella deployment used an explicitly supervised SSH reverse forward
 with end-to-end verified HTTPS because its direct manager LAN route failed.
 Ordinary polling assigns each independent job to one worker. The explicit
 [multi-host Python API](multi-host-mpi.md) now coordinates a single staged
@@ -189,3 +194,27 @@ reboot, physical power loss, multi-host performance or production deployment.
 ## Parameter-sweep submission (T020)
 
 [Parameter sweeps](parameter-sweeps.md) generate independent jobs from a complete Cartesian product and a repetition count. The implemented submit-sweep command validates before registration, uses a verified source snapshot, renders only the primary input and persists versioned provenance with each specification. Dry-run performs no persistent writes. Each repetition uses existing scheduling, reservations and retry history; submission is not atomic across jobs. Correlated axes, multiple templated files, automatic submission resume and scientific independence guarantees remain outside this feature.
+
+### Planned WCA ABP engineering continuation (T021, 2026-10-24)
+
+The user has removed the withdrawn V009 endpoint-equivalence study as a
+prerequisite for WCA ABP segmentation. This does not relabel partial measurements
+as scientific acceptance. [T021](../tasks.md) records the implementation plan;
+runtime support remains restricted to T017/T019 until that implementation lands.
+
+The planned versioned contract supports long WCA and ideal ABP runs with a fresh
+random Brownian seed per logical segment, persisted before dispatch and reused
+for retries/replays. It restores physical restart state and global step/time;
+it does not restore RNG state or promise identical trajectories. The WCA default
+uses the retained protocol's model with dt=0.0001 and no implicit preparation.
+Recipe-specific timestep/digest validation replaces ideal-only assumptions for
+new contracts. Existing immutable contracts and their measured scope remain intact.
+
+Engineering admission will check supported recipes, actual executable compatibility,
+fixed supported MPI layout and checkpoint integrity, without requiring the
+withdrawn scientific endpoint gate. Same-host pinned-boot restrictions, durable
+checkpoint/result ordering, atomic reservations, process termination evidence and
+cancellation fences remain required. Cross-host or multi-host continuation and
+layout changes are outside this extension. Functional restart checks and fresh
+seed provenance establish engineering behavior; scientific equivalence is not
+assessed by those checks.

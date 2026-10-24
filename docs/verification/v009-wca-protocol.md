@@ -2,6 +2,13 @@
 
 ## Current disposition: study withdrawn
 
+Planning clarification (2026-10-24): the user explicitly requests skipping this
+study and proceeding with WCA ABP segmented continuation using fresh random
+streams per segment. The withdrawn study is not an implementation prerequisite.
+[T021](../../tasks.md) records the new engineering contract and acceptance plan.
+Current runtime gates remain unchanged until implementation; the historical
+scientific evidence and partial-data disposition below remain unchanged.
+
 User decision (2026-10-24): the WCA endpoint-equivalence confirmation study is withdrawn, not passed or statistically failed. The user identified finite-time metastable-state selection after changing stochastic streams as an attribution concern and requested proceeding from existing engineering evidence. Nonequilibrium alone does not invalidate ensemble comparisons, and metastability has not been established for these exact parameters; nevertheless the present global endpoint gate does not uniquely diagnose continuation defects. No replacement study or automatic resubmission is authorized. The exact original service was stopped after matching PID/start ticks/boot identity; MainPID=0, its cgroup is empty and stop_verified=true. Forty complete chunks (2560 pairs), all pilot/raw data and interrupted work are retained. Partial samples must not be relabeled as full-family acceptance. Existing transfer/recovery/lifecycle and raw-integrity evidence remains applicable only to its measured scope; production scientific capability gates remain unchanged. Full 29426-pair collection and its acceptance analysis are no longer pending requirements. See v009-wca-study-cancelled.json. General goal remains paused; remaining review proceeds from retained evidence without restarting this study.
 
 The historical protocol and checkpoints below are retained as evidence, not instructions to resume collection.

@@ -52,13 +52,19 @@ processes only and do not establish physical reboot or production readiness.
 
 [Parameter sweeps (T020)](docs/parameter-sweeps.md) generate Cartesian batches with independent repetitions, deterministic seeds, immutable provenance and read-only previews for existing shared/staged execution.
 
-The [current home-directory deployment](docs/deployment.md) runs one manager and
+The [current three-host deployment](docs/current-deployment.md) runs a manager on
+poincare and staged workers on poincare, mozzarella and allegro under
+`~/lammps_manager/manager` and `~/lammps_manager/worker`, with verified private
+HTTPS over the LAN and systemd user supervision.
+
+The [retired home-directory deployment](docs/deployment.md) ran one manager and
 three staged workers on poincare, mozzarella and allegro under `~/lammps_manager`.
 Real per-worker jobs, result integrity and automatic systemd worker restart are
-verified. Single-job multi-host MPI remains open under V010; these independent
-worker jobs do not establish that capability.
+verified. Those independent worker jobs do not establish single-job multi-host MPI;
+the separate V010 acceptance below verifies that capability.
 
-The [V010 home-directory deployment](docs/deployment.md) retains a manager and
-three supervised workers. Its [explicit multi-host MPI Python API](docs/multi-host-mpi.md)
+The [V010 home-directory deployment](docs/deployment.md) previously ran a manager and
+three supervised workers; its systemd units were removed at the user’s request on
+2026-10-24, with deployment data retained. Its [explicit multi-host MPI Python API](docs/multi-host-mpi.md)
 passed bounded real two-host success, cancellation and manager-transport-loss
 acceptance. Automatic multi-host scheduling and CLI submission remain unavailable.

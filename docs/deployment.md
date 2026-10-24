@@ -1,4 +1,20 @@
-# Current home-directory deployment
+# Retired home-directory deployment
+
+For the new manager/worker directory layout and active services, see the
+[current deployment](current-deployment.md). This page retains the historical V010 installation.
+
+## Removal status
+
+On 2026-10-24, at the user's request, all five V010 systemd user units
+were stopped, disabled and removed on poincare, mozzarella and allegro,
+including the manager, three workers and SSH transport. User managers were
+reloaded; every unit reported `LoadState=not-found`, `ActiveState=inactive`
+and `MainPID=0`. Retained source unit definitions were also removed.
+Deployment data, simulation results, databases, journals, credentials, source
+and virtual environments remain under `~/lammps_manager`. Account lingering
+and peer SSH authorization were left unchanged. The sections below describe
+the historical installation and acceptance, not currently running services.
+Removal evidence: `var/verification/v010/systemd-removal.json` (private local record).
 
 ## Measured target and operation
 
