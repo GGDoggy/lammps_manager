@@ -232,8 +232,10 @@ class Worker:
                     report['input_transfer'] = transfer
                 if self.acknowledged.get(attempt.attempt_id) != report:
                     reports.append(report)
+        inventory = self._continuation_inventory()
         request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
                           data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
+                                           'continuation_fingerprint': inventory,
                                            'reports': reports, 'protocol': 2, 'recovery_protocol': 1,
                                            'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
                                            'storage_mode': self.config.storage_mode}).encode(),
@@ -413,6 +415,19 @@ class Worker:
             result['local_cpu_admission'] = self.cpu_admission
         return result
 
+    def _continuation_inventory(self) -> str | None:
+        """Advertise actual build identity; ordinary jobs survive inventory failures."""
+        from .continuation import fingerprint_build, ContinuationError
+        try:
+            identity = fingerprint_build(Path(self.config.execution.lammps_path))
+        except ContinuationError as exc:
+            if getattr(self, 'continuation_inventory_error', None) != str(exc):
+                print(f'Continuation inventory unavailable: {exc}', file=sys.stderr)
+            self.continuation_inventory_error = str(exc)
+            return None
+        self.continuation_inventory_error = None
+        return identity
+
     def _assign(self, store: Store, spec: JobSpecification, attempt: dict,
                 directory: Path, assignment: dict) -> 'Attempt':
         """Persist the manager's continuation contract before any launch right."""
@@ -486,7 +501,8 @@ class Worker:
                 data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
                     'reports': [], 'protocol': 2, 'recovery_protocol': 1,
                     'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
-                    'storage_mode': self.config.storage_mode, 'heartbeat_only': True}).encode(),
+                    'storage_mode': self.config.storage_mode, 'heartbeat_only': True,
+                    'continuation_fingerprint': self._continuation_inventory()}).encode(),
                 headers={'Content-Type': 'application/json', 'X-Worker-ID': self.config.worker.id,
                          'Authorization': 'Bearer ' + self.token})
             # Any control-poll attempt invalidates tick's earlier launch policy,

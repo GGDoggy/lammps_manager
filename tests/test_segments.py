@@ -29,6 +29,8 @@ class SegmentTests(unittest.TestCase):
         self.addCleanup(lambda: self.store.close())
         from uuid import uuid4
         self.store.worker_generation('worker', Path('/proc/sys/kernel/random/boot_id').read_text().strip(), str(uuid4()))
+        import time
+        seg.observe_environment(self.store, 'worker', Path('/proc/sys/kernel/random/boot_id').read_text().strip(), BUILD, time.time())
         self.config = ManagerConfig(ManagerSettings(str(self.db)), Storage(str(self.root)),
             (WorkerCapacity('worker', 4, 32, 4), WorkerCapacity('other', 4, 32, 4)),
             Resources(1, 1, max_retries=1), Scheduler(default_priority=7))
@@ -291,8 +293,8 @@ class SegmentTests(unittest.TestCase):
         self.finish()
         seg.advance(self.store, 'run')
         job = self.current()['job_id']
-        self.assertEqual(seg.worker_blocker(self.store, job, 'other'), 'unvalidated_continuation_worker')
-        with self.assertRaisesRegex(StoreError, 'Cross-worker'):
+        self.assertEqual(seg.worker_blocker(self.store, job, 'other'), 'continuation_environment_unavailable')
+        with self.assertRaisesRegex(StoreError, 'environment'):
             self.assign(job, worker='other')
         self.assertEqual(self.store.reservations(), ())
         self.assertEqual(self.store.job_attempts(job), ())
@@ -352,6 +354,7 @@ class SegmentTests(unittest.TestCase):
         from uuid import uuid4
         boot = str(uuid4())
         self.store.worker_generation('worker', boot, str(uuid4()))
+        seg.observe_environment(self.store, 'worker', boot, BUILD, 100)
         self.submit()
         first = self.finish()
         seg.refresh(self.store)
@@ -363,31 +366,30 @@ class SegmentTests(unittest.TestCase):
         # boot must not obtain a newly pinned successor contract.
         self.store.worker_generation('worker', str(uuid4()), str(uuid4()))
         self.assertEqual(seg.worker_blocker(self.store, job, 'worker'),
-                         'unvalidated_continuation_worker')
-        with self.assertRaisesRegex(StoreError, 'pinned compatible host boot'):
+                         'continuation_environment_unavailable')
+        with self.assertRaisesRegex(StoreError, 'environment'):
             self.assign(job)
         self.assertEqual(self.store.job_attempts(job), ())
         self.assertEqual(self.store.reservations(), ())
         self.assertEqual(cp.record(self.store, first.attempt_id)['contract'], contract)
 
-    def test_same_host_reassignment_requires_pinned_boot_and_actual_launch_checks(self):
+    def test_bound_worker_identity_cannot_be_reassigned_even_on_same_boot(self):
         from uuid import uuid4
-        boot = str(uuid4())
-        self.store.worker_generation('worker', boot, str(uuid4()))
+        boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
         self.store.worker_generation('other', boot, str(uuid4()))
+        seg.observe_environment(self.store, 'other', boot, BUILD, 100)
         self.submit()
-        first = self.finish()
+        self.finish()
         seg.refresh(self.store)
         job = self.current()['job_id']
-        self.assertIsNone(seg.worker_blocker(self.store, job, 'other'))
-        attempt = self.assign(job, worker='other')
-        self.assertEqual(cp.record(self.store, attempt.attempt_id)['contract']['execution_boot_id'], boot)
-        self.store.transition(attempt.attempt_id, 'failed', reason='test failure', termination_evidence='test no process')
-        self.store.worker_generation('other', str(uuid4()), str(uuid4()))
-        self.assertEqual(seg.worker_blocker(self.store, job, 'other'), 'unvalidated_continuation_worker')
+        self.assertEqual(seg.worker_blocker(self.store, job, 'other'), 'bound_continuation_environment')
+        with self.assertRaisesRegex(StoreError, 'bound continuation environment'):
+            self.assign(job, worker='other')
+        self.assertEqual(self.store.reservations(), ())
         seg.cancel_run(self.store, 'run')
         with self.assertRaisesRegex(StoreError, 'Parent run cancelled'):
             self.store.retry(job)
+
 
     def test_cli_submission_inspection_and_priority_controls(self):
         from contextlib import redirect_stdout

@@ -454,6 +454,10 @@ class Store:
                     return Attempt(**dict(existing))
                 if self.job_state(job_id) != 'queued':
                     raise StoreError('Only queued jobs can be assigned')
+                from .segments import retry_blocker
+                blocked = retry_blocker(self, job_id)
+                if blocked:
+                    raise StoreError(blocked)
                 specification = self.specification(job_id)
                 if specification.mpi_placement and not coordinated:
                     raise StoreError('Multi-host MPI requires coordinated assignment')
@@ -701,7 +705,8 @@ class Store:
             attempts = self.job_attempts(attempt.job_id)
             policy = self.specification(attempt.job_id).infrastructure_recovery
             used = self.recovery_status(attempt.job_id)['used']
-            reason = None
+            from .segments import retry_blocker
+            reason = retry_blocker(self, attempt.job_id)
             if (attempts[-1].attempt_id != attempt_id or self.job_state(attempt.job_id) != 'failed'
                     or self.cancellation(attempt_id)):
                 reason = 'Recovery blocked by cancellation or a newer job transition'

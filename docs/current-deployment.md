@@ -1,6 +1,7 @@
 # Current three-host deployment
 
-Deployed on 2026-10-24 with user authorization. Poincare runs the manager and a
+Deployed on 2026-10-24 and switched to direct Git checkout operation on
+2026-10-25 with user authorization. Poincare runs the manager and a
 worker; mozzarella and allegro each run a worker. All services run as `ted` under
 systemd user supervision, with existing account lingering retained.
 
@@ -16,7 +17,9 @@ All hosts use `/home/ted/lammps_manager`:
 - `worker/config/ca.crt` and `worker/config/worker.token`: manager trust and private authentication.
 - `worker/state`: durable worker identity, journal and launch fences; reuse on restart.
 - `worker/work`: staged execution files, eligible for cleanup after durable result acknowledgement.
-- `releases/release-20261024T104759Z`: fingerprinted source and isolated Python environment used by all services.
+- `src/`: active Python source from the root Git clone.
+- `.venv/`: root Python 3.10 environment used by all services.
+- No `releases/` directory or transition backups remain; removed at the user's request.
 
 Poincare has `lammps-manager.service` and `lammps-worker.service`;
 mozzarella and allegro have `lammps-worker.service`. Units are installed under
@@ -26,11 +29,17 @@ simulation sessions for journal-based recovery. Stopping a worker service is not
 job cancellation. Use the manager CLI to cancel a job and confirm termination
 before maintenance that requires idle workers. Physical reboot is not tested.
 
-The source checkout at the root is retained; services use the explicit release
-copy, so editing the checkout does not silently change running service code.
-All service environments use system Python 3.10.12 and PyYAML 6.0.3. The initial
-poincare uv Python 3.12 environment lacked `posix_spawn` session support and was
-retained as `venv-uv312-retained` after switching the active service to system Python.
+All services use the root Git checkout directly through `PYTHONPATH` pointing to
+`/home/ted/lammps_manager/src` and `/home/ted/lammps_manager/.venv/bin/python3`.
+The deployed revision is `af7041a4c5fc9e53a2a18d87f91985eb73ade7bd` on all three
+hosts. A pull changes the source used by subsequent imports and new processes;
+update only during coordinated idle maintenance, then restart all affected
+services. No release creation or service-path change is needed for later updates.
+All service environments use system Python 3.10.12 and PyYAML 6.0.3. Root
+`.venv` environments contain an independent PyYAML installation. Old releases,
+prior root virtual environments and transition source/unit backups were removed
+at the user's request after switching services. Private runtime directories are
+excluded through each clone's `.git/info/exclude`.
 The poincare worker uses `worker/bin/lmp`, copied from the prior accepted allegro
 build after checking local dynamic dependencies. Mozzarella uses
 `/usr/local/bin/lmp`; allegro uses `/usr/bin/lmp`. These builds differ; basic smoke
@@ -56,8 +65,9 @@ slots, 10 GiB and 10 concurrent jobs. Actual admission also checks detected
 capacity, available memory, per-CPU external load and all unreleased reservations.
 CPU reservations equal MPI ranks multiplied by OpenMP threads. These settings
 provide accounting, not cgroup enforcement. Submission defaults remain one MPI
-rank, one OpenMP thread, 10 GiB and a 3600-second deadline; the 10 GiB default
-limits such jobs to one per worker despite the configured concurrency of 10.
+rank, one OpenMP thread, 1 GiB and a 3600-second deadline. The default memory
+was reduced from 10 GiB on 2026-10-25 for new submissions only; existing job
+specifications retain their submitted resources.
 
 Pre-existing configuration files were backed up before replacement. Old allegro
 results and its terminal journal under `state/journal` remain untouched. The
@@ -67,15 +77,14 @@ No old journal was deleted or rewritten to bypass uncertain work.
 
 ## Operation
 
-On poincare, use the deployed release's CLI:
+On poincare, use the root checkout CLI:
 
 ```bash
 ROOT="$HOME/lammps_manager"
-RELEASE="$ROOT/releases/release-20261024T104759Z"
-export PYTHONPATH="$RELEASE/src"
-"$RELEASE/venv/bin/python3" -m lammps_manager status \
+export PYTHONPATH="$ROOT/src"
+"$ROOT/.venv/bin/python3" -m lammps_manager status \
   --config "$ROOT/manager/config/manager.yaml"
-"$RELEASE/venv/bin/python3" -m lammps_manager submit \
+"$ROOT/.venv/bin/python3" -m lammps_manager submit \
   --config "$ROOT/manager/config/manager.yaml" /absolute/path/batch.json
 systemctl --user status lammps-manager.service lammps-worker.service
 journalctl --user -u lammps-manager.service -u lammps-worker.service -n 50 --no-pager
@@ -87,6 +96,34 @@ On each worker host:
 systemctl --user status lammps-worker.service
 journalctl --user -u lammps-worker.service -n 50 --no-pager
 ```
+
+For subsequent code updates, first confirm that the queue is idle, every process
+has confirmed termination and all reservations are released. Stop the manager to
+prevent new dispatch and stop the workers before pulling. On each host, use
+`git status` and `git pull --ff-only` in `/home/ted/lammps_manager`; preserve local
+changes rather than overwriting them. Update dependencies if `pyproject.toml`
+changes and follow any documented database/configuration migration. Run relevant
+checks, ensure all hosts use the same revision, then start the manager and workers.
+For this idle deployment, ordinary service operations are:
+
+```bash
+# Poincare: stop manager first, then worker.
+systemctl --user stop lammps-manager.service lammps-worker.service
+# Remote workers: stop before updating their checkout.
+systemctl --user stop lammps-worker.service
+# After all three checkouts have been updated and checked, on poincare:
+systemctl --user start lammps-manager.service lammps-worker.service
+# On mozzarella and allegro:
+systemctl --user start lammps-worker.service
+```
+
+A fresh installation with the system `python3-venv` package available can use
+`git clone`, `/usr/bin/python3 -m venv .venv` and
+`.venv/bin/python3 -m pip install -e .`, followed by host-specific `manager/`
+and `worker/` configuration, protected credentials/TLS and systemd units using
+the root paths above. See [configuration](configuration.md) and
+[workers](workers.md). Do not replace existing runtime identities or databases
+when updating an established installation.
 
 Changes to configuration, credentials or certificates require service restart.
 Always retain the original database, endpoint, roots and journal identity on
@@ -111,3 +148,18 @@ The full repository `make check` passed all 395 tests, compileall and Git whites
 checks using the deployed native Python 3.10 environment. Private log:
 `/tmp/three-host-deployment-make-check-native310.log`. The corrected local runtime
 also passed a fourth bounded smoke job (`smoke-python310.json`).
+
+
+The direct-checkout transition on 2026-10-25 retained the original four job
+specifications, worker identities, CA and tokens. Four enabled/running services
+were audited through systemd and `/proc` to confirm root `.venv` execution without
+release paths. All three clones have identical Python module hashes and revision.
+Three new real two-rank, one-thread, ten-step MPI/LAMMPS jobs each succeeded on
+the intended host, with one attempt, confirmed termination, eight hash-verified
+collected files and zero remaining reservations. The original pause flags were
+restored and all workers reported fresh online/ready heartbeats.
+Private evidence is under `var/verification/direct-checkout-20261025/`
+(`switch.json`, `prior-specifications.json`, `smoke.json`, `audit.json`).
+Configuration and storage paths required no changes. At the user's subsequent
+request, all three `releases/` directories and the transition source, environment
+and unit backups were removed. Simulation outputs and journals remain intact.

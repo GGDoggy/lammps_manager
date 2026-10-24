@@ -2,7 +2,6 @@
   "run_id": "wca-parameterized-example",
   "total_steps": 250001,
   "step_max": 100000,
-  "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
   "recipe": {
     "name": "wca-abp-2d-v1",
     "mode": "statistical",

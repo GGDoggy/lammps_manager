@@ -48,7 +48,7 @@ are verified with real MPI/LAMMPS. See the reproducible
 [service procedure](docs/service-lifecycle.md); these checks restart test
 processes only and do not establish physical reboot or production readiness.
 
-[Continuation contracts (T017)](docs/continuation.md) validate a restricted statistical ideal-ABP recipe on a fingerprinted LAMMPS build, with a fail-closed capability API and explicit scientific comparison drivers. [Durable checkpoint publication (T018)](docs/checkpoints.md) retains verified state independently of process/result completion. [Queued continuation runs (T019)](docs/segmentation.md) support the measured recipe/plan, parent monitoring and cancellation, priority inheritance and compatible same-host worker reassignment. Exact continuation and cross-host continuation remain unavailable; scientific acceptance retains its measured scope.
+[Continuation contracts (T017)](docs/continuation.md) validate a restricted statistical ideal-ABP recipe on a fingerprinted LAMMPS build, with a fail-closed capability API and explicit scientific comparison drivers. [Durable checkpoint publication (T018)](docs/checkpoints.md) retains verified state independently of process/result completion. [Queued continuation runs (T019)](docs/segmentation.md) support the measured recipe/plan, parent monitoring and cancellation, priority inheritance and assignment-time environment binding. [Environment recovery (T023)](docs/segmentation.md#assignment-environment-and-timeout-restart-t023) removes the build allowlist and restarts expired environments from step zero after confirmed termination, with a configurable one-hour default and retained history/output. Exact continuation and cross-host continuation remain unavailable; scientific acceptance retains its measured scope.
 
 [Engineering continuation (T021)](docs/engineering-continuation.md) adds versioned long ideal/WCA ABP contracts with persisted fresh segment seeds and recipe clocks. Scientific evidence remains `not_assessed`; real T021 restart/layout acceptance must be run separately. Existing measured contracts remain available. Submission-time [physical parameters and initial conditions](docs/engineering-continuation.md#submission-time-physical-parameters-t022) use a separate v2 contract; see the [editable request](examples/wca-run.json).
 
@@ -57,7 +57,8 @@ processes only and do not establish physical reboot or production readiness.
 The [current three-host deployment](docs/current-deployment.md) runs a manager on
 poincare and staged workers on poincare, mozzarella and allegro under
 `~/lammps_manager/manager` and `~/lammps_manager/worker`, with verified private
-HTTPS over the LAN and systemd user supervision.
+HTTPS over the LAN and systemd user supervision. Services use the root Git
+checkout and `.venv` directly; release-based operation was replaced on 2026-10-25.
 
 The [retired home-directory deployment](docs/deployment.md) ran one manager and
 three staged workers on poincare, mozzarella and allegro under `~/lammps_manager`.

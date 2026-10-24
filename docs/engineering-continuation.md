@@ -4,7 +4,8 @@
 `ideal-abp-2d-v1` and `wca-abp-2d-v1` statistical runs. WCA selects this contract
 by default; ideal ABP requires the explicit version. Omitting that version for
 ideal ABP retains the measured T017/T019 contract, deterministic seeds, snapshot
-format and duration gate. `require_validated` remains the scientific gate.
+format and duration gate. `require_validated` retains recipe/plan validation and
+historical evidence lookup; T023 admits other builds as `not_assessed`.
 
 Engineering metadata says `evidence_status: not_assessed`. This workflow preserves
 physical state and renews Brownian RNG seeds; it promises neither trajectory
@@ -20,7 +21,6 @@ A WCA request for `submit-run --config manager.yaml run.json` is:
 {
   "run_id": "wca-long-001",
   "total_steps": 250001,
-  "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
   "recipe": {"name": "wca-abp-2d-v1", "mode": "statistical", "mpi_ranks": 1, "omp_threads": 1},
   "resource_overrides": {"mpi_ranks": 1, "omp_threads_per_rank": 1}
 }
@@ -74,22 +74,27 @@ accounts for completed segments and split engine run commands, so ordinary
 accumulation error does not block a long chain. Step/count checks remain exact.
 Both copies of a segment boundary remain retained; compare them before deduplication.
 
-The current build allowlist contains the exact T017 executable/library/platform
-fingerprint shown above. A different build string cannot authorize compatibility.
-Launch inventories the actual executable again. The initial tracked MPI session's
+T023 removes the build allowlist. The first assignment binds actual worker, boot
+and executable/library/platform fingerprint; later segments and retries must match.
+Launch inventories the actual executable again. New builds remain scientifically
+`not_assessed`; removing admission restrictions does not validate compatibility. The initial tracked MPI session's
 bounded restart smoke exercises the actual required atom/pair/fix styles before
 production integration; unsupported commands fail the attempt. Engineering layouts use positive fixed MPI ranks (up to the engine/launcher integer bound `2^31-1`)
 and one OpenMP thread, with matching job resources. The local MPI launcher profile
 accepts no extra MPI arguments, LAMMPS arguments or execution environment overrides.
 A failed actual MPI startup remains a failed attempt, never a successful checkpoint.
 Run the explicit bounded smoke below for each intended rank count/build environment;
-local fake tests do not certify those layouts. New executable fingerprints require
-reviewed compatibility work and an updated allowlist.
+local fake tests do not certify those layouts. New environments should undergo the explicit bounded smoke before long runs;
+there is no hard-coded fingerprint allowlist.
 
-Every checkpoint consumer must remain on the first execution's pinned Linux host
-boot and use the same build/layout. Changed/missing boot identity blocks restoration,
+Every checkpoint consumer must remain on the first assignment's worker ID and
+pinned Linux host boot and use the same build/layout. Changed/missing boot identity blocks restoration,
 even under a reused worker ID. Cross-host portability, multi-host MPI continuation,
 layout changes, exact mode and arbitrary thread counts remain unavailable.
+After a continuously missing environment exceeds the configurable timeout (default
+one hour), the manager cancels the old generation and restarts from step zero only
+after confirmed process termination, clearing its runtime fingerprint for reassignment.
+See [environment binding and reset](segmentation.md#assignment-environment-and-timeout-restart-t023).
 
 ## Random allocation and durable replay
 
@@ -125,8 +130,8 @@ explicit older version are rejected. No new manager/worker YAML keys are added.
 PYTHONPATH=src python3 -m lammps_manager submit-run --config manager.yaml examples/wca-run.json
 ```
 
-Its build fingerprint must match the actual supported executable/library/platform;
-the example does not authorize execution on another build. Change the run ID for
+Its optional `build_fingerprint` is a submission provenance hint; the actual
+environment is inventoried and bound at assignment. Change the run ID for
 a new model. Resubmitting an existing ID with different parameters is rejected.
 `inspect-run` shows the complete normalized `model_parameters` and compact `model`
 summary. These remain immutable across all segments, retries and manager restarts.

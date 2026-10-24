@@ -472,8 +472,9 @@ def validate_boundary(directory: Path, contract_data: dict) -> None:
 def compatible_worker(store: Store, parent_attempt: str, worker_id: str) -> bool:
     """Require every authenticated consumer to report the pinned host boot.
 
-    Cross-host continuation remains unreleased. Every launcher still inventories
-    the actual executable/library/CPU identity and enforces the singleton layout.
+    Cross-host continuation remains unavailable. Every launcher still inventories
+    the actual executable/library/CPU identity and enforces the recipe layout.
+    Run assignment additionally enforces the bound worker identity.
     """
     store.attempt(parent_attempt)
     checkpoint = record(store, parent_attempt)

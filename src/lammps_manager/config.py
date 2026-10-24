@@ -68,6 +68,7 @@ class Monitoring:
 @dataclass(frozen=True)
 class Segmentation:
     step_max: int = 100000
+    environment_reset_seconds: float = 3600
 
 
 @dataclass(frozen=True)

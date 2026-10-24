@@ -126,7 +126,8 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 fits_any |= fits
                 reason = None
                 from .segments import worker_blocker, segment
-                continuation_blocker = worker_blocker(store, spec.job_id, worker.id)
+                continuation_blocker = worker_blocker(store, spec.job_id, worker.id,
+                    now=now, max_age=config.manager.heartbeat_timeout_seconds)
                 if continuation_blocker:
                     reason = continuation_blocker
                 elif not fits:

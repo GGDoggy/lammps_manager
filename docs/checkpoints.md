@@ -7,7 +7,7 @@ explicit engineering contract, whose scientific evidence is `not_assessed`.
 
 The `lammps_manager.checkpoints` API publishes checkpoints separately from process
 termination and ordinary result collection. Legacy contracts accept T017's
-released statistical ideal-ABP build, singleton layout and 600/1400/2000-step
+statistical ideal-ABP recipe, singleton layout and 600/1400/2000-step
 boundaries or the measured uninterrupted 2000-step reference. Versioned T021
 contracts additionally enforce their recipe-specific dt/digest/layout and bounded
 random-allocation references. Exact recipes, other state sets and cross-host
@@ -48,7 +48,7 @@ Authenticated endpoints use the existing bearer/TLS rules:
 - `PUT /v2/checkpoints/ATTEMPT/INDEX`: upload a bounded verified state file.
 - `POST /v2/checkpoints/ATTEMPT/commit`: reverify, atomically publish and acknowledge.
 - `GET /v2/checkpoints/CONSUMER_ATTEMPT/files/INDEX`: fetch only an owned, pending,
-  pinned successor with `X-Build-Fingerprint` matching the released environment.
+  pinned successor with `X-Build-Fingerprint` matching the assigned environment.
 
 Checkpoint manifest requests have a fixed 4 MiB JSON body limit. The complete
 contract retains up to 100000 global step boundaries; even 19-digit signed-bigint
@@ -66,11 +66,13 @@ one identity. Upload state cannot release process reservations or rerun a job.
 
 `pin` records an acknowledged checkpoint dependency before successor assignment;
 `release` requires conclusive termination of all consumer attempts. Fetch rechecks
-the whole publication for disk corruption. T019 additionally verifies worker reassignment on the same pinned Linux host
-boot, with actual executable inventory before launch. All consumers, including the
+the whole publication for disk corruption. T023 additionally pins worker identity and Linux host boot for each run
+generation, with actual executable inventory before launch. All consumers, including the
 original worker ID, must report the checkpoint's pinned boot; changed or missing
 boot provenance blocks restoration. Matching a peer-supplied fingerprint alone
-cannot authorize reassignment to another physical host.
+cannot authorize reassignment to another physical host. A timeout reset starts
+a fresh generation from step zero after confirmed termination; it never consumes
+the retired generation's checkpoints. See [binding and reset](segmentation.md#assignment-environment-and-timeout-restart-t023).
 
 Manager copies and dependency history are retained indefinitely. There is no
 checkpoint deletion API. Worker staged cleanup requires both ordinary result

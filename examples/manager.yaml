@@ -35,3 +35,4 @@ monitoring:
 # Frozen per explicit continuation run; scientific capability gates still apply.
 segmentation:
   step_max: 100000
+  environment_reset_seconds: 3600

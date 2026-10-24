@@ -2,6 +2,7 @@
 from dataclasses import asdict, replace
 from http.client import HTTPConnection
 import json
+import time
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -32,6 +33,8 @@ class CheckpointTransportTests(unittest.TestCase):
                         self.root / ('journal-' + run_id))
                     self.addCleanup(worker.close)
                     with Store(self.config.manager.database_path) as store:
+                        store.worker_generation('a', worker.boot_id, worker.session_id)
+                        seg.observe_environment(store, 'a', worker.boot_id, fixtures.BUILD, time.time())
                         seg.submit_run(store, self.service.config, total_steps=10**12, step_max=10**7,
                             build_fingerprint=fixtures.BUILD, run_id=run_id,
                             recipe=Recipe('wca-abp-2d-v1', 'statistical'), contract_version=version)

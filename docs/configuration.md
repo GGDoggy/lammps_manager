@@ -115,11 +115,22 @@ alert deduplication/recovery semantics.
 Manager `segmentation.step_max` is a positive integer, default 100000, frozen in
 new explicit run snapshots. It does not alter independent jobs or previously
 submitted runs. The arithmetic planner covers intervals exactly; execution also
-requires a released scientific recipe/build/plan. See [segmentation](segmentation.md)
+requires a supported recipe/plan and actual environment binding at assignment. See [segmentation](segmentation.md)
 for accepted cases, submission schema, priority controls and limitations. The
 currently measured 2000-step reference uses one segment at the default maximum;
 600/1400/2000 boundaries require `step_max: 800` and explicit measured boundaries.
 A 250001-step plan is arithmetically supported but not scientifically released.
+
+`segmentation.environment_reset_seconds` (T023) is a positive finite number of
+seconds, default 3600. It controls the continuous missing-environment interval
+before a full run reset. It applies as current manager policy, including to existing
+runs, without rewriting submission snapshots. The missing timer survives manager
+restarts; heartbeat expiry, inventory failure, changed build/boot and disabled or
+removed workers count as disappearance. Pausing or quota saturation alone does not.
+Reset clears runtime fingerprint/worker/boot and progress, then queues segment zero
+in a new generation; old outputs/history remain retained. Unresolved processes keep
+reservations and delay restart until positive termination evidence arrives.
+See [binding and reset](segmentation.md#assignment-environment-and-timeout-restart-t023).
 
 ## Engineering continuation submissions (T021)
 

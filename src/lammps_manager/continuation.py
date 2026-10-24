@@ -1,4 +1,4 @@
-"""Explicit continuation candidates and a fail-closed scientific release gate.
+"""Explicit continuation contracts with scoped historical scientific evidence.
 
 This module does not parse arbitrary LAMMPS inputs or enable automatic splitting.
 """
@@ -93,32 +93,38 @@ class ValidatedContinuation:
     evidence: str
 
 
-# Filled only from reviewed repository evidence, never from caller-supplied reports.
-_ACCEPTED_ABP_BUILDS: dict[str, str] = {
+# Historical measured evidence, not a build admission allowlist.
+_ABP_BUILD_EVIDENCE: dict[str, str] = {
     "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695":
         "docs/verification/t017-continuation.json",
 }
 _ACCEPTED_ABP_RECIPE_SHA256 = "12c14ef448256a135d024580e1b0b3f2f5108dacde769b750b54c5f06c3b6fa8"
 
 
+def valid_fingerprint(value: object) -> bool:
+    """Validate identity syntax without treating known evidence as an allowlist."""
+    import re
+    return isinstance(value, str) and re.fullmatch('[0-9a-f]{64}', value) is not None
+
+
 def require_validated(recipe: Recipe, *, build_fingerprint: str,
                       total_steps: int | None = None,
                       segment_ends: tuple[int, ...] | None = None) -> ValidatedContinuation:
-    """Accept only a released model/build/step plan; reject every other request.
+    """Validate the restricted recipe/step plan and label known scientific evidence.
 
-    A caller-supplied passing report must never self-authorize production use.
+    Unknown builds remain not_assessed; identity does not establish scientific acceptance.
     Checkpoint publication and queued segments enforce this returned scope.
     """
     validate_candidate(recipe)
     if (recipe == Recipe(name="ideal-abp-2d-v1", mode="statistical")
-            and build_fingerprint in _ACCEPTED_ABP_BUILDS
+            and valid_fingerprint(build_fingerprint)
             and abp_recipe_digest() == _ACCEPTED_ABP_RECIPE_SHA256
             and type(total_steps) is int and total_steps == 2000
             and type(segment_ends) is tuple and segment_ends in ((2000,), (600, 1400, 2000))
             and all(type(step) is int for step in segment_ends)):
         return ValidatedContinuation(recipe, build_fingerprint, abp_recipe_digest(),
                                      total_steps, segment_ends,
-                                     _ACCEPTED_ABP_BUILDS[build_fingerprint])
+                                     _ABP_BUILD_EVIDENCE.get(build_fingerprint, 'not_assessed'))
     raise ContinuationError(
         f"No released continuation acceptance for {recipe.name} on the requested "
         "build/step plan; exact or other stochastic models, layouts, parameters "
@@ -327,8 +333,8 @@ def require_contract(recipe: Recipe, *, build_fingerprint: str, total_steps: int
     engineering_parameters(recipe)
     if version == PARAMETERIZED_VERSION:
         validate_summary(recipe, parameters)
-    if build_fingerprint not in _ACCEPTED_ABP_BUILDS:
-        raise ContinuationError('Unsupported engineering executable/library/platform fingerprint')
+    if not valid_fingerprint(build_fingerprint):
+        raise ContinuationError('Invalid engineering executable/library/platform fingerprint')
     if (type(total_steps) is not int or not 0 < total_steps <= MAX_ENGINE_STEP
             or type(segment_ends) is not tuple or not 0 < len(segment_ends) <= 100000
             or any(type(v) is not int for v in segment_ends)

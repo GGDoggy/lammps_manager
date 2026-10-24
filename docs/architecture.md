@@ -8,7 +8,9 @@ One central manager will control multiple persistent Linux workers, dispatch acc
 
 The [current deployment](current-deployment.md) uses poincare as manager and
 three staged workers on poincare, mozzarella and allegro, with separate manager/
-and worker/ directories, private LAN HTTPS and systemd user supervision.
+and worker/ directories, private LAN HTTPS and systemd user supervision. Since
+2026-10-25, services use the root Git checkout and `.venv` directly. Old releases and
+transition backups were removed at the user's request.
 
 The user-approved [home-directory deployment](deployment.md) previously ran a manager
 and three staged workers on poincare, mozzarella and allegro. Its systemd units
@@ -27,8 +29,9 @@ whole-group cancellation and retained reservations during manager transport loss
 Automatic multi-host scheduling and CLI submission remain unavailable. The
 ordinary scheduler intentionally returns `multi_host_protocol_unavailable` for
 nonempty placement. Empty placement preserves the prior stored and worker-message
-format; old submitted snapshots are not rewritten. The deployed source is a
-fingerprinted 23-module release with previous releases retained. See V010 for the
+format; old submitted snapshots are not rewritten. The historical V010 source
+was a fingerprinted 23-module release. The current three-host services use the root Git checkout and `.venv`, with old releases
+and transition backups removed at the user's request. See V010 for the
 bounded OpenMPI/LAMMPS profile and evidence; physical reboot was not exercised.
 
 The first deliverable must reliably complete an independent batch, respect dispatch quotas, avoid duplicate execution during disconnection, and retain traceable output. Example configuration values are illustrative and have not been validated for a real deployment.
@@ -175,7 +178,7 @@ Continuation must preserve physical state, global step/time, parameter schedules
 
 ### T017 implementation status
 
-The [explicit continuation API and external comparison drivers](continuation.md) validate statistical `ideal-abp-2d-v1` on the fingerprinted mozzarella LAMMPS 2 Apr 2025 environment, one rank/thread and a measured 2000-step plan with boundaries at 600/1400. Eight pilot pairs fixed 256 confirmatory pairs; all 48 predeclared simultaneous equivalence intervals passed. The gate rejects exact mode and all unmeasured model/build/layout/range combinations. T018 provides [durable checkpoint publication](checkpoints.md); T019 queues the measured segmented plan and the measured single-segment reference under its default maximum. Same-host worker reassignment is gated by a pinned boot identity and actual build/layout checks. This does not establish arbitrary-script, interacting-ABP, unmeasured-range or cross-host compatibility.
+The [explicit continuation API and external comparison drivers](continuation.md) validate statistical `ideal-abp-2d-v1` on the fingerprinted mozzarella LAMMPS 2 Apr 2025 environment, one rank/thread and a measured 2000-step plan with boundaries at 600/1400. Eight pilot pairs fixed 256 confirmatory pairs; all 48 predeclared simultaneous equivalence intervals passed. The gate rejects exact mode and unsupported model/layout/range combinations. T023 admits other builds without a white list and labels their scientific evidence `not_assessed`. T018 provides [durable checkpoint publication](checkpoints.md); T019 queues the measured segmented plan and the measured single-segment reference under its default maximum. T023 pins the assigned worker ID, Linux boot and actual build for every segment and retry within a generation. This does not establish arbitrary-script, interacting-ABP, unmeasured-range or cross-host compatibility.
 
 ## Bounded artifact and service acceptance
 
@@ -199,14 +202,16 @@ reboot, physical power loss, multi-host performance or production deployment.
 
 The separate [engineering-abp-v1 contract](engineering-continuation.md) supports
 fixed WCA and long ideal ABP recipes with fresh persisted per-segment random seeds.
-Physical recipe settings, renderer digest, dt, build/layout and allocation digest
-are immutable. Allocation commits before input publication; per-checkpoint seed
+Physical recipe settings, renderer digest, dt, layout and allocation digest
+are immutable; T023 fixes runtime build identity within each execution generation.
+Allocation commits before input publication; per-checkpoint seed
 references stay bounded even for 100000 segments. Identical submission/retry/replay
-retains inputs and entropy. Legacy measured contracts and the scientific gate keep
-their previous scope and serialization.
+retains inputs and entropy. Legacy measured contracts retain their serialization
+and recipe/plan limits; T023 removes build allowlist admission without expanding
+the scope of historical scientific evidence.
 
-Engineering admission requires an allowlisted exact executable/library/platform
-fingerprint, actual required-style preflight, positive fixed local MPI ranks and
+Engineering admission binds actual worker/boot/executable/library/platform identity
+at assignment, retains actual required-style preflight, positive fixed local MPI ranks and
 one OpenMP thread. Same-host pinned-boot restoration, atomic reservations,
 process termination evidence, durable checkpoint/results and cancellation fences
 remain required. No implicit WCA preparation, cross-host or multi-host continuation,
@@ -227,3 +232,26 @@ checks its submitted count and timestep. Explicit arrays remain in manifested in
 files rather than poll/checkpoint JSON. Scientific evidence remains `not_assessed`;
 no new build, cross-host portability or deployment change is implied. See the
 [parameter contract](engineering-continuation.md#submission-time-physical-parameters-t022).
+
+### Continuation environment recovery (T023)
+
+Build allowlists no longer authorize continuation. Authenticated worker inventory
+binds each run atomically on its first assignment; actual launch inventory, immutable
+input hashes, recipe/layout checks and checkpoint validation remain enforced. Build
+hints in submission snapshots are retained as provenance only. Unknown builds do not
+inherit T017 scientific evidence. Worker ID, boot and fingerprint remain fixed through
+segments and retries. Existing assigned chains inherit their first recorded contract
+binding without changing snapshots.
+
+A durable continuous missing-environment timer uses current manager policy
+`segmentation.environment_reset_seconds` (positive finite seconds, default 3600).
+Inventory heartbeat expiry, failure, changed identity or worker removal/disablement
+starts disappearance; paused/draining/busy capacity alone does not. Return before
+expiry clears the timer. At expiry, cancel the old generation and wait for positive
+termination evidence and reservation release; disconnection alone never permits
+another execution. Parent cancellation prevents restart. Once fenced, atomically
+archive old membership, clear runtime binding/progress, increment the generation and
+queue step zero without a predecessor checkpoint. Keep original physics, seeds,
+snapshots, attempts and outputs; use distinct generation job paths. Retired jobs
+cannot be retried or advance the new generation. See [segmentation](segmentation.md)
+for monitoring, recovery boundaries and verification limits.

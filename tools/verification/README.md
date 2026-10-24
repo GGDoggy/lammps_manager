@@ -42,10 +42,12 @@ report does not self-authorize production splitting or other stochastic models.
 `checkpoint_acceptance.py` verifies shared/staged checkpoint publication and
 actual restoration with six bounded singleton MPI/LAMMPS invocations.
 `segmentation_acceptance.py` runs the actual polling/queue/transfer path for shared
-and staged three-segment chains (same-host workers a/b/a), plus the measured
+and staged three-segment chains (one bound worker per run), plus the measured
 single-segment reference at default `step_max`, and three uninterrupted references.
 Its ten invocations each have a 30-second bound. Both require a new private root,
-PyYAML and the released `/usr/local/bin/lmp` build; pass `--lammps` and `--root`.
+PyYAML and a compatible LAMMPS executable; pass `--lammps` and `--root`.
+T017 scientific evidence covers only its original fingerprinted build; other
+builds remain `not_assessed` even if these functional checks pass.
 No prior output is overwritten or deleted. Staged cleanup is disabled in the
 segmentation driver so every raw artifact remains available for audit. Source,
 build, checkpoint, process and output inventories are retained. References are

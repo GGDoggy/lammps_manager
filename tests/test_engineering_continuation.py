@@ -148,7 +148,7 @@ class EngineeringTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             require_validated(Recipe('ideal-abp-2d-v1', 'statistical'),
                 build_fingerprint=BUILD, total_steps=250001, segment_ends=(100000, 200000, 250001))
-        for changes in (dict(build_fingerprint='f'*64), dict(recipe=Recipe('wca-abp-2d-v1', 'exact')),
+        for changes in (dict(build_fingerprint='invalid'), dict(recipe=Recipe('wca-abp-2d-v1', 'exact')),
                         dict(recipe=Recipe('wca-abp-2d-v1', 'statistical', 1, 2)),
                         dict(recipe=Recipe('unsupported', 'statistical')),
                         dict(recipe=Recipe('wca-abp-2d-v1', 'statistical', 0, 1)),

@@ -85,7 +85,7 @@ class ManagerService:
         with self._poll_lock, Store(self.config.manager.database_path) as store:
             store.expire_workers(time.time(), self.config.manager.heartbeat_timeout_seconds)
             from .segments import refresh
-            refresh(store)
+            refresh(store, self.config)
             from .monitoring import refresh_alerts
             refresh_alerts(store, self.config, time.time())
 
@@ -136,6 +136,9 @@ class ManagerService:
                 if payload.get('recovery_protocol') == 1:
                     generation = payload['generation']
                     store.worker_generation(worker_id, generation['boot_id'], generation['session_id'])
+                    from .segments import observe_environment
+                    observe_environment(store, worker_id, generation['boot_id'],
+                                        payload.get('continuation_fingerprint'), now)
                 for report in reports:
                     if report.get('checkpoint_error'):
                         from .checkpoints import set_error, record as checkpoint_record
@@ -213,7 +216,7 @@ class ManagerService:
                 store.set_worker(worker_id, snapshot=saved_snapshot)
             store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             from .segments import refresh
-            refresh(store)
+            refresh(store, self.config)
             if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
                 snapshots = []
                 for saved_id, record in store.worker_records().items():

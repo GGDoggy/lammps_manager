@@ -11,8 +11,11 @@ one MPI rank and one OpenMP thread, 2000 total steps split at 600 and 1400
 or the measured uninterrupted reference as a single segment.
 The [scientific protocol/results](verification/t017-continuation.md) and
 [machine-readable evidence](verification/t017-continuation.json) define its scope.
-No exact recipe is accepted. Unsupported builds, models, layouts, parameter changes
-and segment ranges fail the capability gate. [T018 checkpoint publication](checkpoints.md) is implemented; [T019 queued continuation](segmentation.md) is implemented
+No exact recipe is accepted. T023 removes the build allowlist; unknown builds
+are admitted with `evidence: not_assessed`, while models, layouts, parameter changes
+and segment ranges retain their existing gates. Runtime environments bind at
+assignment and can undergo a full timeout restart as described in
+[segmentation](segmentation.md#assignment-environment-and-timeout-restart-t023). [T018 checkpoint publication](checkpoints.md) is implemented; [T019 queued continuation](segmentation.md) is implemented
 for these measured plans; existing independent-job behavior and
 configuration/submission snapshots are unchanged.
 
@@ -51,9 +54,11 @@ digest, so editing the model invalidates acceptance until reviewed and revalidat
 `validate_candidate` only identifies comparison candidates; it does not grant
 acceptance. Both renderers can produce bounded exploratory inputs outside the
 released scope; rendering is not authorization to split a production run.
-`require_validated` always rejects the NVE exact candidate and all other unmeasured
-requests. It returns immutable scope/provenance metadata for the single measured
-ABP case. It does not create jobs, publish checkpoints or launch simulations.
+`require_validated` rejects the NVE exact candidate and unsupported recipe/step
+plans. It returns immutable scope/provenance metadata for the restricted ABP case;
+`evidence` names the historical T017 record only on that measured build and is
+`not_assessed` for other builds. Its historical function name does not establish
+scientific acceptance on newly admitted environments. It does not create jobs, publish checkpoints or launch simulations.
 
 ## Accepted ABP state and stream audit
 

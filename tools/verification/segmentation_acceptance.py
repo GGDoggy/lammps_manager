@@ -1,9 +1,9 @@
 """Explicit T019 polling/queue acceptance on the released singleton ABP build.
 
-Shared: one worker; staged: alternate two authenticated worker identities on the
-same pinned host boot. Cross-host reassignment remains outside this verification.
-The existing T017 confirmatory scientific gate is retained; the two new reference
-pairs are functional checks, not a replacement statistical equivalence study.
+Shared and staged runs retain one bound worker throughout each generation.
+Cross-host checkpoint reassignment remains outside this verification.
+Historical T017 confirmatory evidence retains its original build scope; the new
+reference pairs are functional checks, not a replacement equivalence study.
 """
 import argparse
 from dataclasses import asdict
@@ -37,7 +37,7 @@ def main() -> None:
     root.mkdir(mode=0o700, exist_ok=False)
     os.environ.pop('DISPLAY', None)
     report = dict(passed=False, root=str(root), modes=[], reference_commands=[],
-        scientific_gate='T017 frozen 256-pair confirmatory evidence; new pairs are functional checks only',
+        scientific_gate='Historical T017 evidence covers its original build only; new pairs are functional checks',
         limitations=['No new model/build/range acceptance; no cross-host compatibility or physical power-loss test'])
     source_paths = sorted(Path('src/lammps_manager').glob('*.py'))
     report['initial_source_sha256'] = {str(path): digest(path) for path in source_paths}
@@ -86,7 +86,7 @@ def main() -> None:
                 all_frames = {}
                 last_frames = None
                 for index, stop in enumerate(ends):
-                    selected = ('a', 'b', 'a')[index] if mode == 'staged' else 'a'
+                    selected = 'a'  # T023 pins the entire run to its first worker environment.
                     worker = workers[selected]
                     with Store(database) as store:
                         for name in workers:
@@ -158,7 +158,7 @@ def main() -> None:
                 mode_report.update(parent=view, segmented_observables=observables(all_frames),
                     reference_observables=observables(reference_frames), reference_seed=reference_seed,
                     frame_count=len(all_frames), full_boundary_copies_equal=True,
-                    worker_reassignment_verified=mode == 'staged')
+                    worker_reassignment_verified=False, environment_binding=view['environment'])
             finally:
                 for worker in workers.values():
                     worker.close()
