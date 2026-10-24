@@ -198,3 +198,11 @@ Remote cleanup requires both `systemctl stop` and the bounded `systemctl show`
 query to succeed, with explicit `inactive`/`failed` state, `MainPID=0` and no
 remaining cgroup processes. Missing properties or an unavailable user bus leave
 stopping unconfirmed and fail acceptance.
+
+## T021 engineering continuation
+
+`engineering_continuation_acceptance.py` is an explicit real MPI/LAMMPS smoke for
+versioned WCA continuation, separate from the withdrawn V009 equivalence study.
+See [procedure and limits](../../docs/engineering-continuation.md#explicit-external-engineering-smoke).
+Default tests exercise its actual shared/staged restart/retry driver with fake
+executables only; they do not establish real build/layout or scientific acceptance.

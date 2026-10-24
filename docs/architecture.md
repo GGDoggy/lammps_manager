@@ -171,7 +171,7 @@ T013-T016 are implemented with local verification; T017 has restricted external 
 - Implemented T016 adds [bounded CLI/JSON](monitoring.md) operational monitoring of jobs, transfers, worker readiness/resources, recovery and actionable alerts. Process completion and result delivery remain separate.
 - Implemented T018-T019 build on the T017 contract to add a restricted sequential continuation chain for one logical simulation, not a general dependency graph. Default step_max is 100000 integration steps; each completed segment durably publishes a verified checkpoint before its successor returns to the manager queue. Each return gets a fresh FIFO position. The manager may set continuation priority separately; by default it inherits the first segment's first effective dispatch priority.
 
-Continuation must preserve physical state, global step/time, parameter schedules and provenance. Exact continuation includes every RNG/fix/integrator state and requires a validated build/layout contract. When exact continuity is unavailable, statistically valid continuation is acceptable only with a validated recipe and predeclared scientific equivalence criteria, including dynamical and boundary behavior; segments remain parts of the same logical run and are not independent samples. Unsupported recipes fail clearly. The official [read_restart](https://docs.lammps.org/read_restart.html) and [fix langevin](https://docs.lammps.org/fix_langevin.html) documentation describe exact-restart restrictions and absent RNG-state serialization; capability must be checked against the deployed build. A crash can recover only from the latest durable checkpoint, with uncommitted work explicitly replayed rather than counted twice.
+Continuation must preserve physical state, global step/time, parameter schedules and provenance. Exact continuation includes every RNG/fix/integrator state and requires a validated build/layout contract. When exact continuity is unavailable, statistically valid continuation is acceptable only with a validated recipe and predeclared scientific equivalence criteria, including dynamical and boundary behavior; segments remain parts of the same logical run and are not independent samples. The user-approved T021 engineering workflow is a separate exception to scientific release: it renews persisted random streams and preserves physical state without asserting scientific equivalence (`not_assessed`); it does not widen the T017 scientific gate. Unsupported recipes fail clearly. The official [read_restart](https://docs.lammps.org/read_restart.html) and [fix langevin](https://docs.lammps.org/fix_langevin.html) documentation describe exact-restart restrictions and absent RNG-state serialization; capability must be checked against the deployed build. A crash can recover only from the latest durable checkpoint, with uncommitted work explicitly replayed rather than counted twice.
 
 ### T017 implementation status
 
@@ -195,26 +195,35 @@ reboot, physical power loss, multi-host performance or production deployment.
 
 [Parameter sweeps](parameter-sweeps.md) generate independent jobs from a complete Cartesian product and a repetition count. The implemented submit-sweep command validates before registration, uses a verified source snapshot, renders only the primary input and persists versioned provenance with each specification. Dry-run performs no persistent writes. Each repetition uses existing scheduling, reservations and retry history; submission is not atomic across jobs. Correlated axes, multiple templated files, automatic submission resume and scientific independence guarantees remain outside this feature.
 
-### Planned WCA ABP engineering continuation (T021, 2026-10-24)
+### WCA ABP engineering continuation (T021)
 
-The user has removed the withdrawn V009 endpoint-equivalence study as a
-prerequisite for WCA ABP segmentation. This does not relabel partial measurements
-as scientific acceptance. [T021](../tasks.md) records the implementation plan;
-runtime support remains restricted to T017/T019 until that implementation lands.
+The separate [engineering-abp-v1 contract](engineering-continuation.md) supports
+fixed WCA and long ideal ABP recipes with fresh persisted per-segment random seeds.
+Physical recipe settings, renderer digest, dt, build/layout and allocation digest
+are immutable. Allocation commits before input publication; per-checkpoint seed
+references stay bounded even for 100000 segments. Identical submission/retry/replay
+retains inputs and entropy. Legacy measured contracts and the scientific gate keep
+their previous scope and serialization.
 
-The planned versioned contract supports long WCA and ideal ABP runs with a fresh
-random Brownian seed per logical segment, persisted before dispatch and reused
-for retries/replays. It restores physical restart state and global step/time;
-it does not restore RNG state or promise identical trajectories. The WCA default
-uses the retained protocol's model with dt=0.0001 and no implicit preparation.
-Recipe-specific timestep/digest validation replaces ideal-only assumptions for
-new contracts. Existing immutable contracts and their measured scope remain intact.
+Engineering admission requires an allowlisted exact executable/library/platform
+fingerprint, actual required-style preflight, positive fixed local MPI ranks and
+one OpenMP thread. Same-host pinned-boot restoration, atomic reservations,
+process termination evidence, durable checkpoint/results and cancellation fences
+remain required. No implicit WCA preparation, cross-host or multi-host continuation,
+layout changes or arbitrary scripts are enabled. Engineering scientific evidence
+is `not_assessed`; the withdrawn V009 study remains withdrawn. The explicit bounded
+restart driver and actual verification limitations are recorded in [tasks.md](../tasks.md).
 
-Engineering admission will check supported recipes, actual executable compatibility,
-fixed supported MPI layout and checkpoint integrity, without requiring the
-withdrawn scientific endpoint gate. Same-host pinned-boot restrictions, durable
-checkpoint/result ordering, atomic reservations, process termination evidence and
-cancellation fences remain required. Cross-host or multi-host continuation and
-layout changes are outside this extension. Functional restart checks and fresh
-seed provenance establish engineering behavior; scientific equivalence is not
-assessed by those checks.
+### Per-run physical parameters (T022)
+
+The explicit `engineering-abp-v2` contract accepts submission-time particle count,
+number density, structured initial positions/orientations, epsilon, sigma, kBT,
+frictions, propulsion and dt. These settings normalize once and remain immutable
+within the run. Existing engineering-v1 and measured snapshots retain their formats.
+The manager generates initialization commands from data; workers verify a hashed
+full parameter file, bounded checkpoint model summary and renderer identity before
+execution. Initializers apply only to the first segment, while every boundary
+checks its submitted count and timestep. Explicit arrays remain in manifested input
+files rather than poll/checkpoint JSON. Scientific evidence remains `not_assessed`;
+no new build, cross-host portability or deployment change is implied. See the
+[parameter contract](engineering-continuation.md#submission-time-physical-parameters-t022).

@@ -22,6 +22,12 @@ from .scheduler import WorkerSnapshot, schedule
 from .store import Store, TERMINAL
 
 
+# A checkpoint contract can contain 100000 positive signed-bigint boundaries:
+# at most 2.1 MB for their JSON array, plus bounded provenance and one state file.
+# Keep the existing wire format and a finite allowance for all supported plans.
+MAX_CHECKPOINT_MANIFEST_BYTES = 4 * 1024 * 1024
+
+
 class StorageProtocolError(ValueError):
     """A peer cannot safely participate in the configured storage protocol."""
 
@@ -518,7 +524,9 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if self.headers.get('Transfer-Encoding'):
                         raise ValueError('Chunked requests are not supported')
                     if operation in {'manifest', 'commit'}:
-                        if not 0 < length <= 1048576:
+                        limit = (MAX_CHECKPOINT_MANIFEST_BYTES
+                                 if parts[2] == 'checkpoints' and operation == 'manifest' else 1048576)
+                        if not 0 < length <= limit:
                             raise ValueError('Invalid result request size')
                         payload = json.loads(self.rfile.read(length))
                         result = handler(worker_id, parts[3], operation, payload)

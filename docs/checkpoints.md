@@ -1,10 +1,17 @@
 # Durable continuation checkpoints (T018)
 
+T021 adds a separate [engineering contract](engineering-continuation.md) for long
+ideal/WCA ABP with fresh persisted random streams. The measured/scientific scope
+and legacy formats described below remain unchanged; they do not limit the new
+explicit engineering contract, whose scientific evidence is `not_assessed`.
+
 The `lammps_manager.checkpoints` API publishes checkpoints separately from process
-termination and ordinary result collection. It currently accepts only T017's
+termination and ordinary result collection. Legacy contracts accept T017's
 released statistical ideal-ABP build, singleton layout and 600/1400/2000-step
-boundaries or the measured uninterrupted 2000-step reference. Exact recipes,
-other state sets and cross-host restoration fail closed. See [continuation](continuation.md) for the scientific limits.
+boundaries or the measured uninterrupted 2000-step reference. Versioned T021
+contracts additionally enforce their recipe-specific dt/digest/layout and bounded
+random-allocation references. Exact recipes, other state sets and cross-host
+restoration fail closed. See [continuation](continuation.md) for the scientific limits.
 
 A manager calls `expect(store, CheckpointContract(...))` for an assigned attempt
 before launch. The immutable contract binds run/segment/job/attempt, global step
@@ -21,6 +28,20 @@ The manager accepts only the registered contract, successful terminated ownershi
 and the latest attempt. A complete size/SHA-256 manifest binds one content identity.
 Missing, extra, unsafe, corrupt or incompatible state fails publication.
 
+Engineering thermo clock checks allow accumulated binary64 rounding: LAMMPS
+[adds each completed engine run's elapsed time](https://github.com/lammps/lammps/blob/patch_2Apr2025/src/update.cpp#L502-L505)
+to the clock retained in its restart.
+For `C` production `run` commands through the current boundary, including commands
+split at `2^31-1` steps, the relative tolerance is
+`max(1e-14, n*u/(1-n*u))`, where `n = 2*C+4` and `u = 2^-53`.
+This bounds integer conversion, multiplication, accumulation and comparison with
+the separately rounded `global_step*dt`. Future segments add no allowance;
+admission limits keep the bound finite. Absolute tolerance remains `1e-14`.
+The step and particle count remain exact checks; altered contract clocks remain
+invalid, and legacy scientific contracts retain their original tolerance.
+This numerical allowance does not establish scientific equivalence or detect
+clock discrepancies smaller than its rounding budget.
+
 Authenticated endpoints use the existing bearer/TLS rules:
 
 - `POST /v2/checkpoints/ATTEMPT/manifest`: bind the complete contract/file manifest.
@@ -28,6 +49,13 @@ Authenticated endpoints use the existing bearer/TLS rules:
 - `POST /v2/checkpoints/ATTEMPT/commit`: reverify, atomically publish and acknowledge.
 - `GET /v2/checkpoints/CONSUMER_ATTEMPT/files/INDEX`: fetch only an owned, pending,
   pinned successor with `X-Build-Fingerprint` matching the released environment.
+
+Checkpoint manifest requests have a fixed 4 MiB JSON body limit. The complete
+contract retains up to 100000 global step boundaries; even 19-digit signed-bigint
+boundaries fit this allowance together with bounded provenance and the required
+state-file manifest. This preserves existing contract and snapshot formats.
+Checkpoint commit requests, ordinary result manifests and polling requests retain
+their 1 MiB limits. Oversized requests fail before their bodies are read.
 
 In shared mode commit copies state from the manager-owned assignment's `work/`;
 in staged mode it uses independently uploaded files. Both publish under

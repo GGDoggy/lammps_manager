@@ -120,3 +120,17 @@ for accepted cases, submission schema, priority controls and limitations. The
 currently measured 2000-step reference uses one segment at the default maximum;
 600/1400/2000 boundaries require `step_max: 800` and explicit measured boundaries.
 A 250001-step plan is arithmetically supported but not scientifically released.
+
+## Engineering continuation submissions (T021)
+
+The existing `segmentation.step_max` default also applies to the explicit
+`engineering-abp-v1` submission contract; no new manager or worker YAML keys are
+added. Recipe, stream policy, physical dt/model, fixed layout and complete random
+allocation are snapshotted per run, never retroactively changed by configuration.
+See [engineering continuation](engineering-continuation.md) for JSON fields,
+compatibility limits, preflight and the separately invoked real-engine smoke.
+
+`submit-run` also accepts per-run `model_parameters` (T022), selecting the versioned
+engineering-v2 contract. Physical settings belong in the immutable run request,
+not global YAML. See the [parameter schema](engineering-continuation.md#submission-time-physical-parameters-t022)
+and [example](../examples/wca-run.json). They are fixed across every segment/retry.

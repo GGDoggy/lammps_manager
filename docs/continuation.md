@@ -1,5 +1,10 @@
 # Explicit continuation contracts (T017)
 
+T021 adds a separate [engineering contract](engineering-continuation.md) for long
+ideal/WCA ABP with fresh persisted random streams. The measured/scientific scope
+and legacy formats described below remain unchanged; they do not limit the new
+explicit engineering contract, whose scientific evidence is `not_assessed`.
+
 T017 validates one restricted **statistical** continuation contract:
 `ideal-abp-2d-v1` on the fingerprinted mozzarella LAMMPS 2 Apr 2025 environment,
 one MPI rank and one OpenMP thread, 2000 total steps split at 600 and 1400

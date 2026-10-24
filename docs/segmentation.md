@@ -1,5 +1,10 @@
 # Sequential continuation runs (T019)
 
+T021 adds a separate [engineering contract](engineering-continuation.md) for long
+ideal/WCA ABP with fresh persisted random streams. The measured/scientific scope
+and legacy formats described below remain unchanged; they do not limit the new
+explicit engineering contract, whose scientific evidence is `not_assessed`.
+
 The manager can queue a restricted sequence of continuation segments as one
 logical simulation. Each successor passes normal priority/demand/FIFO admission;
 workers never chain executions locally. [Checkpoint publication](checkpoints.md)

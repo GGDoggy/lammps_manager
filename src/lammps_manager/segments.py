@@ -7,12 +7,16 @@ from dataclasses import asdict
 import hashlib
 from io import BytesIO
 import json
+import secrets
 from pathlib import Path
 from uuid import uuid4
 
 from . import checkpoints as cp
 from .config import ManagerConfig, create_job_specification
-from .continuation import Recipe, render_abp_input, require_validated
+from .continuation import (Recipe, render_abp_input, require_contract, ENGINEERING_VERSION,
+    FRESH_STREAM_POLICY, engineering_parameters, engineering_digest, render_engineering_input)
+from .abp_parameters import (PARAMETERIZED_VERSION, normalize_parameters, model_summary,
+    render_parameterized_input, render_initialization, parameterized_digest)
 from .models import InputFile
 from .staging import open_regular, publish_inputs, safe_path
 from .store import Store, StoreError, TERMINAL
@@ -72,12 +76,22 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
                step_max: int | None = None, start_step: int = 0,
                segment_ends: tuple[int, ...] | None = None, run_id: str | None = None,
                resource_overrides: dict | None = None,
-               initial_priority: int | None = None, continuation_priority: int | None = None) -> str:
+               initial_priority: int | None = None, continuation_priority: int | None = None,
+               contract_version: str | None = None, model_parameters: dict | None = None) -> str:
     """Snapshot a supported recipe/plan, publish its first inputs and queue once.
 
     Explicit measured boundaries may shorten segments below the maximum. Generic
     arithmetic planning never grants scientific acceptance for an unmeasured run.
     """
+    version = (ENGINEERING_VERSION if recipe.name == 'wca-abp-2d-v1' else None) if contract_version is None else contract_version
+    if model_parameters is not None and contract_version not in (None, PARAMETERIZED_VERSION):
+        raise ValueError('Custom physical parameters require engineering-abp-v2')
+    if model_parameters is not None or version == PARAMETERIZED_VERSION:
+        version = PARAMETERIZED_VERSION
+        full_model = normalize_parameters(recipe, {} if model_parameters is None else model_parameters)
+        summary = model_summary(recipe, full_model)
+    else:
+        full_model = summary = None
     maximum = config.segmentation.step_max if step_max is None else step_max
     ranges = plan_steps(total_steps, maximum, start_step)
     if segment_ends is not None:
@@ -87,24 +101,26 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
         ranges = tuple(zip(starts, segment_ends))
         if (any(type(end) is not int or not start < end <= start + maximum for start, end in ranges)
                 or segment_ends[-1] != start_step + total_steps
-                or (total_steps <= maximum and len(ranges) != 1) or len(ranges) > 100000):
+                or (not version and total_steps <= maximum and len(ranges) != 1) or len(ranges) > 100000):
             raise ValueError('Explicit boundaries must exactly cover the interval within step_max')
     ends = tuple(stop for _, stop in ranges)
     if start_step != 0:
         raise ValueError('The released recipe requires its original stationary initial ensemble at step 0')
-    require_validated(recipe, build_fingerprint=build_fingerprint, total_steps=total_steps, segment_ends=ends)
+    require_contract(recipe, build_fingerprint=build_fingerprint, total_steps=total_steps, segment_ends=ends, version=version, parameters=summary)
     _priority(initial_priority)
     _priority(continuation_priority)
     identity = run_id or uuid4().hex
     if len(safe_path(identity).parts) != 1 or len(identity) > 128:
         raise ValueError('Invalid run identity')
     namespace = 'lammps-manager-run-v1:' + identity
-    identities = [('setup', 'positions'), ('setup', 'orientations')]
-    identities += [('segmented', str(start)) for start, _ in ranges]
-    seeds = [int.from_bytes(hashlib.sha256(json.dumps([namespace, 'run', arm, 0, boundary]).encode())
-             .digest()[:8], 'big') % 899999999 + 1 for arm, boundary in identities]
-    if len(set(seeds)) != len(seeds):
-        raise ValueError('Derived seed collision; submit with a new run identity')
+    seeds = []
+    if not version:
+        identities = [('setup', 'positions'), ('setup', 'orientations')]
+        identities += [('segmented', str(start)) for start, _ in ranges]
+        seeds = [int.from_bytes(hashlib.sha256(json.dumps([namespace, 'run', arm, 0, boundary]).encode())
+                 .digest()[:8], 'big') % 899999999 + 1 for arm, boundary in identities]
+        if len(set(seeds)) != len(seeds):
+            raise ValueError('Derived seed collision; submit with a new run identity')
     # Validate resource/recovery policy once and retain it at run level too.
     prototype = create_job_specification(config, job_id=identity,
         work_directory=str(Path(config.storage.work_root) / identity), input_file='in.lmp',
@@ -119,6 +135,45 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
         input_limits=dict(max_files=config.storage.max_input_files,
             max_file_bytes=config.storage.max_input_file_bytes, max_total_bytes=config.storage.max_input_total_bytes),
         stream_provenance=cp.canonical(dict(namespace=namespace, phase='run', replica=0, seeds=seeds)))
+    if version:
+        snapshot.update(contract_version=version, stream_policy=FRESH_STREAM_POLICY,
+            evidence_status='not_assessed', model=summary if summary is not None else engineering_parameters(recipe),
+            recipe_sha256=parameterized_digest(recipe, summary) if summary is not None else engineering_digest(recipe),
+            requested_priorities=[initial_priority, continuation_priority])
+        if full_model is not None:
+            snapshot['model_parameters'] = full_model
+        snapshot.pop('stream_provenance')
+        # Commit entropy before filesystem publication. An interrupted publication
+        # leaves this allocation available to an identical replay, never redrawn.
+        with store.scheduling_round():
+            existing = store._db.execute('SELECT snapshot FROM simulation_runs WHERE run_id=?', (identity,)).fetchone()
+            if existing:
+                old = json.loads(existing['snapshot'])
+                intent = {k: v for k, v in old.items() if k != 'stream_provenance'}
+                if cp.canonical(intent) != cp.canonical(snapshot):
+                    raise StoreError('Run ID already has a different snapshot')
+            else:
+                seeds = []
+                used = set()
+                while len(seeds) < len(ranges) + 2:
+                    seed = secrets.randbelow(899999999) + 1
+                    if seed not in used:
+                        used.add(seed)
+                        seeds.append(seed)
+                allocation = dict(policy=FRESH_STREAM_POLICY, seeds=seeds)
+                allocation['sha256'] = hashlib.sha256(cp.canonical(allocation).encode()).hexdigest()
+                snapshot['stream_provenance'] = cp.canonical(allocation)
+                store._db.execute('INSERT INTO simulation_runs(run_id,snapshot,status,committed_step,initial_override,'
+                    'continuation_override) VALUES(?,?,?,?,?,?)',
+                    (identity, cp.canonical(snapshot), 'queued', start_step, initial_priority, continuation_priority))
+        with store.scheduling_round():
+            if not store._db.execute('SELECT 1 FROM run_segments WHERE run_id=?', (identity,)).fetchone():
+                run = _run(store, identity)
+                if run['cancelled']:
+                    raise StoreError('Run cancelled before input publication')
+                _enqueue(store, run, 0, None)
+                store._db.execute('INSERT INTO run_events(run_id,description) VALUES(?,?)', (identity, 'Run submitted'))
+        return identity
     with store.scheduling_round():
         existing = store._db.execute('SELECT snapshot FROM simulation_runs WHERE run_id=?', (identity,)).fetchone()
         if existing:
@@ -145,17 +200,26 @@ def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None) -> 
     if any(path.is_symlink() or path.resolve() != path for path in (root.parent, root)):
         raise ValueError('Unsafe segment input root')
     seeds = json.loads(snapshot['stream_provenance'])['seeds']
-    script = render_abp_input(start=start, stop=stop, total=snapshot['total_steps'],
+    renderer = (lambda **kw: render_engineering_input(Recipe(**snapshot['recipe']), **kw)) if snapshot.get('contract_version') else render_abp_input
+    if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
+        renderer = lambda **kw: render_parameterized_input(Recipe(**snapshot['recipe']), snapshot['model'], **kw)
+    script = renderer(start=start, stop=stop, total=snapshot['total_steps'],
         stream_seed=seeds[2 + ordinal], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
     primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
-    files = (primary,)
+    generated = {'in.lmp': script}
+    if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
+        generated['model-parameters.json'] = cp.canonical(snapshot['model_parameters']).encode()
+        if start == 0:
+            generated['initial-state.lmp'] = render_initialization(Recipe(**snapshot['recipe']),
+                snapshot['model_parameters'], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
+    files = tuple(InputFile(path, len(data), hashlib.sha256(data).hexdigest()) for path, data in generated.items())
     if checkpoint:
         if not checkpoint['acknowledged'] or not checkpoint['directory']:
             raise StoreError('Successor requires committed checkpoint publication')
         files += tuple(InputFile(**entry) for entry in checkpoint['manifest']['files'])
     root.mkdir(exist_ok=True)
     publish_inputs(root / 'inputs', files,
-        lambda index: BytesIO(script) if index == 0 else open_regular(Path(checkpoint['directory']), files[index].path),
+        lambda index: BytesIO(generated[files[index].path]) if files[index].path in generated else open_regular(Path(checkpoint['directory']), files[index].path),
         snapshot['input_limits'])
     spec = JobSpecification(job, str(root), 'in.lmp', primary.sha256,
         Resources(**snapshot['resources']), snapshot['storage_mode'], files,
@@ -169,6 +233,18 @@ def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None) -> 
         run['continuation_override'] if run['continuation_override'] is not None else run['first_priority'])
     if priority is not None:
         store.set_priority(job, priority, origin='run_initial' if ordinal == 0 else 'run_continuation')
+
+
+def checkpoint_provenance(snapshot: dict, ordinal: int) -> str:
+    """Bound each checkpoint to one leaf of the immutable random allocation."""
+    if not snapshot.get('contract_version'):
+        return snapshot['stream_provenance']
+    allocation = json.loads(snapshot['stream_provenance'])
+    seeds = allocation['seeds']
+    return cp.canonical(dict(version=snapshot['contract_version'], policy=allocation['policy'],
+        allocation_sha256=allocation['sha256'], segment=ordinal,
+        seeds=[seeds[0], seeds[1], seeds[2 + ordinal]],
+        recipe_sha256=snapshot['recipe_sha256'], model=snapshot['model'], evidence_status='not_assessed'))
 
 
 def on_assignment(store: Store, job_id: str, attempt_id: str) -> None:
@@ -198,8 +274,9 @@ def on_assignment(store: Store, job_id: str, attempt_id: str) -> None:
         store._db.execute('UPDATE simulation_runs SET first_priority=? WHERE run_id=?', (priority, run['run_id']))
     contract = cp.CheckpointContract(run['run_id'], item['ordinal'], attempt_id, job_id,
         Recipe(**snapshot['recipe']), snapshot['build_fingerprint'], snapshot['total_steps'],
-        tuple(snapshot['segment_ends']), item['stop_step'], item['stop_step'] * .005,
-        snapshot['stream_provenance'], resources=store.specification(job_id).resources,
+        tuple(snapshot['segment_ends']), item['stop_step'], item['stop_step'] * snapshot.get('model', {}).get('dt', .005),
+        checkpoint_provenance(snapshot, item['ordinal']), resources=store.specification(job_id).resources,
+        recipe_sha256=snapshot.get('recipe_sha256', cp.abp_recipe_digest()),
         parent_checkpoint_id=item['checkpoint_id'],
         execution_boot_id=(store.generations(store.attempt(attempt_id).worker_id)[-1]['boot_id']
             if store.generations(store.attempt(attempt_id).worker_id) else None))

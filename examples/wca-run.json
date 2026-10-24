@@ -1,0 +1,26 @@
+{
+  "run_id": "wca-parameterized-example",
+  "total_steps": 250001,
+  "step_max": 100000,
+  "build_fingerprint": "aa8a1af68131f97d13fd4959031c557681b46c9eee23dddef26ca75c7eae0695",
+  "recipe": {
+    "name": "wca-abp-2d-v1",
+    "mode": "statistical",
+    "mpi_ranks": 1,
+    "omp_threads": 1
+  },
+  "model_parameters": {
+    "particles": 400,
+    "density": 0.4,
+    "initial_positions": {"mode": "square-lattice"},
+    "initial_orientations": {"mode": "aligned", "angle": 1.5707963267948966},
+    "epsilon": 2.0,
+    "sigma": 1.0,
+    "kBT": 1.0,
+    "gamma_t": 10.0,
+    "gamma_r": 2.0,
+    "propulsion": 5.0,
+    "dt": 0.00005
+  },
+  "resource_overrides": {"mpi_ranks": 1, "omp_threads_per_rank": 1}
+}

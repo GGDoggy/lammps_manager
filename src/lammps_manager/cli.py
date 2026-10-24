@@ -135,7 +135,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 if args.command == 'submit-run':
                     request = json.loads(Path(args.manifest).read_text())
                     allowed = {'total_steps', 'build_fingerprint', 'recipe', 'step_max', 'start_step',
-                               'segment_ends', 'run_id', 'resource_overrides', 'initial_priority', 'continuation_priority'}
+                               'segment_ends', 'run_id', 'resource_overrides', 'initial_priority', 'continuation_priority', 'contract_version', 'model_parameters'}
                     if not isinstance(request, dict) or request.keys() - allowed:
                         raise ValueError('Invalid continuation submission fields')
                     if 'recipe' in request:

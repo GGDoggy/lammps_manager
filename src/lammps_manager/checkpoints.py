@@ -11,7 +11,10 @@ import json
 from pathlib import Path
 from typing import BinaryIO
 
-from .continuation import Recipe, require_validated, abp_recipe_digest
+from .continuation import (Recipe, require_contract, abp_recipe_digest, ENGINEERING_VERSION,
+    FRESH_STREAM_POLICY, MAX_RUN_COMMAND, engineering_parameters, engineering_digest)
+from .abp_parameters import (PARAMETERIZED_VERSION, validate_summary, model_summary,
+    parameterized_digest, render_parameterized_input, render_initialization)
 from .models import InputFile, Resources
 from .staging import open_regular, publish_inputs, safe_path, validate_manifest
 from .store import Store, StoreError, TERMINAL
@@ -60,13 +63,20 @@ def validate_contract(contract: CheckpointContract) -> None:
         value = getattr(contract, name)
         if len(safe_path(value).parts) != 1 or len(value) > 256:
             raise ValueError('Invalid checkpoint identity')
-    scope = require_validated(contract.recipe, build_fingerprint=contract.build_fingerprint,
-                              total_steps=contract.total_steps, segment_ends=contract.segment_ends)
+    if not isinstance(contract.stream_provenance, str) or not 0 < len(contract.stream_provenance) <= 16384:
+        raise ValueError('Missing bounded stream provenance')
+    provenance = json.loads(contract.stream_provenance)
+    if not isinstance(provenance, dict):
+        raise ValueError('Invalid stream provenance')
+    version = provenance.get('version')
+    scope = require_contract(contract.recipe, build_fingerprint=contract.build_fingerprint,
+                              total_steps=contract.total_steps, segment_ends=contract.segment_ends, version=version,
+                              parameters=provenance.get('model') if version == PARAMETERIZED_VERSION else None)
     if (type(contract.segment) is not int or not 0 <= contract.segment < len(scope.segment_ends)
             or type(contract.global_step) is not int
             or contract.global_step != scope.segment_ends[contract.segment]
             or type(contract.global_time) not in (int, float)
-            or contract.global_time != contract.global_step * 0.005):
+            or contract.global_time != contract.global_step * (provenance['model']['dt'] if version == PARAMETERIZED_VERSION else engineering_parameters(contract.recipe)['dt'] if version else .005)):
         raise ValueError('Checkpoint boundary/clock mismatch')
     # This released recipe has no external/fix/RNG state file. RNG renewal is
     # explicit provenance, never a claim that the restart serializes RNG state.
@@ -86,10 +96,23 @@ def validate_contract(contract: CheckpointContract) -> None:
             raise ValueError('Invalid parent checkpoint identity')
     if contract.required_state != ('checkpoint.restart',):
         raise ValueError('Unvalidated checkpoint state set')
-    if (not isinstance(contract.stream_provenance, str)
-            or not 0 < len(contract.stream_provenance) <= 16384):
-        raise ValueError('Missing bounded stream provenance')
-    provenance = json.loads(contract.stream_provenance)
+    if version:
+        import re
+        seeds = provenance.get('seeds')
+        if (set(provenance) != {'version', 'policy', 'allocation_sha256', 'segment', 'seeds',
+                                'recipe_sha256', 'model', 'evidence_status'}
+                or provenance['policy'] != FRESH_STREAM_POLICY
+                or not isinstance(provenance['allocation_sha256'], str)
+                or not re.fullmatch('[0-9a-f]{64}', provenance['allocation_sha256'])
+                or type(provenance['segment']) is not int or provenance['segment'] != contract.segment
+                or provenance['recipe_sha256'] != scope.recipe_sha256
+                or (version != PARAMETERIZED_VERSION and provenance['model'] != engineering_parameters(contract.recipe))
+                or provenance['evidence_status'] != 'not_assessed'
+                or not isinstance(seeds, list) or len(seeds) != 3
+                or any(type(seed) is not int or not 0 < seed < 900000000 for seed in seeds)
+                or len(set(seeds)) != 3):
+            raise ValueError('Invalid fresh random allocation reference')
+        return
     if (not isinstance(provenance, dict) or set(provenance) != {'namespace', 'phase', 'replica', 'seeds'}
             or not isinstance(provenance['namespace'], str) or not provenance['namespace']
             or not isinstance(provenance['phase'], str) or not provenance['phase']
@@ -137,6 +160,20 @@ def expect(store: Store, contract: CheckpointContract) -> None:
     """Register a contract before launch using manager-owned run metadata."""
     validate_contract(contract)
     with store.scheduling_round():
+        if json.loads(contract.stream_provenance).get('version'):
+            from .segments import checkpoint_provenance
+            row = store._db.execute('SELECT snapshot FROM simulation_runs WHERE run_id=?', (contract.run_id,)).fetchone()
+            if row:
+                snapshot = json.loads(row['snapshot'])
+                allocation = json.loads(snapshot['stream_provenance'])
+                seeds = allocation['seeds']
+                if (allocation['policy'] != FRESH_STREAM_POLICY
+                        or len(seeds) != len(snapshot['segment_ends']) + 2
+                        or any(type(v) is not int or not 0 < v < 900000000 for v in seeds)
+                        or len(set(seeds)) != len(seeds)
+                        or allocation['sha256'] != hashlib.sha256(canonical(dict(policy=allocation['policy'], seeds=seeds)).encode()).hexdigest()
+                        or contract.stream_provenance != checkpoint_provenance(snapshot, contract.segment)):
+                    raise StoreError('Checkpoint differs from immutable random allocation')
         attempt = store.attempt(contract.attempt_id)
         spec = store.specification(attempt.job_id)
         if (attempt.job_id != contract.job_id or attempt.state != 'assigned'
@@ -301,7 +338,7 @@ def release(store: Store, consumer_job: str) -> None:
 
 def prepare_launch(store: Store, worker: object, attempt_id: str, work: Path) -> None:
     """Inventory the actual executable and reject edited continuation inputs."""
-    from .continuation import fingerprint_build, render_abp_input
+    from .continuation import fingerprint_build, render_abp_input, render_engineering_input
     item = record(store, attempt_id)
     if item is None:
         return
@@ -312,10 +349,39 @@ def prepare_launch(store: Store, worker: object, attempt_id: str, work: Path) ->
     if (worker.execution.lammps_args or worker.execution.environment
             or fingerprint_build(Path(worker.execution.lammps_path)) != contract.build_fingerprint):
         raise ValueError('Continuation execution environment is unvalidated')
-    seeds = json.loads(contract.stream_provenance)['seeds']
+    provenance = json.loads(contract.stream_provenance)
+    seeds = provenance['seeds']
+    engineering = provenance.get('version') in (ENGINEERING_VERSION, PARAMETERIZED_VERSION)
     start = 0 if contract.segment == 0 else contract.segment_ends[contract.segment - 1]
-    expected = render_abp_input(start=start, stop=contract.global_step, total=contract.total_steps,
-                               stream_seed=seeds[2 + contract.segment],
+    if engineering:
+        if worker.execution.mpi_args:
+            raise ValueError('Engineering continuation requires the fixed local MPI launcher profile without extra arguments')
+    renderer = (lambda **kw: render_engineering_input(contract.recipe, **kw)) if engineering else render_abp_input
+    spec = store.specification(contract.job_id)
+    if provenance.get('version') == PARAMETERIZED_VERSION:
+        # Verify every immutable file before interpreting model data or executing
+        # the generated include. Explicit initialization arrays remain outside poll JSON.
+        publish_inputs(work, spec.input_manifest, lambda _: None, {})
+        model_file = next((f for f in spec.input_manifest if f.path == 'model-parameters.json'), None)
+        if model_file is None:
+            raise ValueError('Parameterized continuation lacks immutable model data')
+        with open_regular(work, model_file.path) as source:
+            model_data = source.read(model_file.size + 1)
+        if len(model_data) != model_file.size or hashlib.sha256(model_data).hexdigest() != model_file.sha256:
+            raise ValueError('Parameterized model file hash mismatch')
+        parameters = json.loads(model_data)
+        summary = model_summary(contract.recipe, parameters)
+        if summary != provenance['model'] or parameterized_digest(contract.recipe, summary) != contract.recipe_sha256:
+            raise ValueError('Parameterized model differs from checkpoint provenance')
+        renderer = lambda **kw: render_parameterized_input(contract.recipe, summary, **kw)
+        if start == 0:
+            initializer = render_initialization(contract.recipe, parameters,
+                position_seed=seeds[0], orientation_seed=seeds[1]).encode()
+            with open_regular(work, 'initial-state.lmp') as source:
+                if source.read(len(initializer) + 1) != initializer:
+                    raise ValueError('Initial state differs from immutable parameter renderer')
+    expected = renderer(start=start, stop=contract.global_step, total=contract.total_steps,
+                               stream_seed=seeds[2 if engineering else 2 + contract.segment],
                                position_seed=seeds[0], orientation_seed=seeds[1])
     spec = store.specification(contract.job_id)
     with open_regular(work, spec.input_file) as source:
@@ -337,15 +403,50 @@ def validate_boundary(directory: Path, contract_data: dict) -> None:
     exercised with the actual build by the explicit scientific driver.
     """
     import math
+    import re
     contract = decode_contract(contract_data)
     validate_contract(contract)
     observed = False
+    engineering = bool(json.loads(contract.stream_provenance).get('version'))
+    provenance = json.loads(contract.stream_provenance)
+    particles = (provenance['model']['particles'] if provenance.get('version') == PARAMETERIZED_VERSION
+                 else engineering_parameters(contract.recipe)['particles'] if engineering else 1024)
+    clock_relative_tolerance = 1e-14
+    if engineering:
+        # LAMMPS accumulates atime += (ntimestep-atimestep)*dt at run ends,
+        # retaining atime through restarts. Bound binary64 rounding over every
+        # completed engine run, including commands split within a segment.
+        # Two operations per command plus four cover integer conversion,
+        # products, additions and the separately rounded step*dt reference.
+        commands = 0
+        start = 0
+        for stop in contract.segment_ends[:contract.segment + 1]:
+            commands += (stop - start + MAX_RUN_COMMAND - 1) // MAX_RUN_COMMAND
+            start = stop
+        roundoff = (2 * commands + 4) * 2**-53
+        # gamma_n = n*u/(1-n*u); admission bounds commands <= 10**10,
+        # so the denominator remains positive and the tolerance stays finite.
+        clock_relative_tolerance = max(clock_relative_tolerance, roundoff / (1 - roundoff))
+    observed_grid = False
+    observed_threads = False
     with open_regular(directory, 'stdout') as source:
         thermo = False
         for raw in iter(lambda: source.readline(65537), b''):
             if len(raw) > 65536:
                 raise ValueError('Oversized checkpoint thermo line')
-            words = raw.decode('utf-8', errors='replace').split()
+            line = raw.decode('utf-8', errors='replace')
+            if engineering:
+                grid = re.search(r'(\d+) by (\d+) by (\d+) MPI processor grid', line)
+                threads = re.search(r'(\d+) OpenMP thread\(s\) per MPI task', line)
+                if grid:
+                    if math.prod(map(int, grid.groups())) != contract.recipe.mpi_ranks:
+                        raise ValueError('Checkpoint actual MPI layout mismatch')
+                    observed_grid = True
+                if threads:
+                    if int(threads[1]) != contract.recipe.omp_threads:
+                        raise ValueError('Checkpoint actual OpenMP layout mismatch')
+                    observed_threads = True
+            words = line.split()
             if words == ['Step', 'Time', 'Atoms']:
                 thermo = True
                 continue
@@ -356,13 +457,16 @@ def validate_boundary(directory: Path, contract_data: dict) -> None:
                     thermo = False
                     continue
                 if step == contract.global_step:
-                    if atoms != 1024 or not math.isclose(elapsed, contract.global_time, rel_tol=1e-14, abs_tol=1e-14):
+                    if atoms != particles or not math.isclose(elapsed, contract.global_time,
+                            rel_tol=clock_relative_tolerance, abs_tol=1e-14):
                         raise ValueError('Checkpoint thermo state/clock mismatch')
                     observed = True
             elif thermo:
                 thermo = False
     if not observed:
         raise ValueError('Missing safe-step checkpoint completion evidence')
+    if engineering and not (observed_grid and observed_threads):
+        raise ValueError('Missing actual engineering MPI/OpenMP layout evidence')
 
 
 def compatible_worker(store: Store, parent_attempt: str, worker_id: str) -> bool:
