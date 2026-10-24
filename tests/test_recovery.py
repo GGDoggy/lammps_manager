@@ -477,10 +477,20 @@ class RecoveryWorkerTests(unittest.TestCase):
             worker.tick()
         self.assertFalse(worker.futures)
         worker.tick()
+        self.assertIsNotNone(worker.collection_future)
+        worker.collection_future.result(timeout=10)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(job), 'cancelled')
             self.assertEqual(store.reservations(), ())
-            self.assertFalse((Path(spec.work_directory) / 'pending').exists())
+            attempt = store.attempt('pending')
+            self.assertIsNone(attempt.started_at)
+            self.assertTrue(attempt.termination_evidence)
+            # Collection may publish outcome metadata even when launch was
+            # cancelled. No simulation work tree or process may be created.
+            directory = Path(attempt.directory)
+            self.assertFalse((directory / 'work').exists())
+            self.assertFalse((directory / 'process.json').exists())
+            self.assertEqual(store.result_collection('pending')['status'], 'collected')
 
     def test_periodic_expiry_runs_without_any_further_polls(self) -> None:
         job = self.submit((0,))[0]

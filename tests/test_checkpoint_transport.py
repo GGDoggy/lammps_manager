@@ -93,8 +93,10 @@ class CheckpointTransportTests(unittest.TestCase):
         cases = (
             ('/v2/checkpoints/attempt/manifest', 4 * 1024 * 1024 + 1, 'checkpoint_operation'),
             ('/v2/checkpoints/attempt/commit', 1048577, 'checkpoint_operation'),
-            ('/v2/results/attempt/manifest', 1048577, 'result_operation'),
-            ('/v2/mpi-results/attempt/manifest', 1048577, 'mpi_result_operation'),
+            ('/v2/results/attempt/manifest', 16 * 1024 * 1024 + 1, 'result_operation'),
+            ('/v2/mpi-results/attempt/manifest', 16 * 1024 * 1024 + 1, 'mpi_result_operation'),
+            ('/v2/results/attempt/commit', 1048577, 'result_operation'),
+            ('/v2/mpi-results/attempt/commit', 1048577, 'mpi_result_operation'),
             ('/v1/poll', 1048577, 'poll'),
         )
         for path, length, handler in cases:

@@ -37,7 +37,9 @@ def digest(path: Path) -> str:
 def boundary_frames(path: Path) -> dict[int, tuple[str, ...]]:
     """Read sorted full-precision physical frames for the fixed WCA smoke."""
     result = {}
-    with path.open() as source:
+    import gzip
+    archive = Path(str(path) + '.gz')
+    with (gzip.open(archive, 'rt') if archive.exists() else path.open()) as source:
         while line := source.readline():
             if line != 'ITEM: TIMESTEP\n':
                 raise ValueError('Invalid trajectory header')
@@ -45,10 +47,12 @@ def boundary_frames(path: Path) -> dict[int, tuple[str, ...]]:
             if source.readline() != 'ITEM: NUMBER OF ATOMS\n' or int(source.readline()) != 256:
                 raise ValueError('Invalid WCA particle count')
             header = tuple(source.readline().rstrip() for _ in range(5))
-            if not header[-1].startswith('ITEM: ATOMS id xu yu mux muy muz'):
+            columns = header[-1].removeprefix('ITEM: ATOMS ').split()
+            if columns not in (['id', 'xu', 'yu', 'mux', 'muy', 'muz'],
+                               ['id', 'x', 'y', 'ix', 'iy', 'mux', 'muy', 'muz']):
                 raise ValueError('Invalid physical frame schema')
             atoms = tuple(source.readline().rstrip() for _ in range(256))
-            if step in result or any(len(row.split()) != 6 for row in atoms):
+            if step in result or any(len(row.split()) != len(columns) for row in atoms):
                 raise ValueError('Duplicate/incomplete physical frame')
             result[step] = header + atoms
     return result
@@ -104,7 +108,8 @@ def run_scenario(root: Path, lammps: Path, mpi: Path, ranks: int, mode: str,
             cleanup_staged_files=False), root / 'journal')
         with Store(database) as store:
             run_id = seg.submit_run(store, config, total_steps=180, step_max=80,
-                segment_ends=(40, 100, 180), build_fingerprint=build, recipe=recipe, run_id='engineering-smoke')
+                segment_ends=(40, 100, 180), build_fingerprint=build, recipe=recipe, run_id='engineering-smoke',
+                sampling=dict(unit='step', interval=20, count=9))
             original = seg.inspect_run(store, run_id)['snapshot']
         while True:
             worker.tick()
@@ -149,14 +154,20 @@ def run_scenario(root: Path, lammps: Path, mpi: Path, ranks: int, mode: str,
                             raise ValueError('Collected result differs from committed manifest')
                     cp.validate_boundary(collected, contract['contract'])
                     physical = boundary_frames(collected / 'work/trajectory.dump')
-                    if item['start_step'] not in physical or item['stop_step'] not in physical:
-                        raise ValueError('Missing global boundary frames')
+                    expected_steps = set(range(item['start_step'] + 20, item['stop_step'] + 1, 20))
+                    if set(physical) != expected_steps:
+                        raise ValueError('Trajectory differs from immutable global schedule')
                     if item['ordinal'] == 0:
                         preflight = boundary_frames(collected / 'work/engineering-smoke-first.dump')
-                        if preflight.get(0) != physical[0]:
+                        initial = boundary_frames(collected / 'work/initial.dump')
+                        def physical_atoms(frame):
+                            columns = frame[4].removeprefix('ITEM: ATOMS ').split()
+                            # Images start at zero in the saved initial state.
+                            names = ('id', 'x' if 'x' in columns else 'xu',
+                                     'y' if 'y' in columns else 'yu', 'mux', 'muy', 'muz')
+                            return [tuple(row.split()[columns.index(name)] for name in names) for row in frame[5:]]
+                        if set(initial) != {0} or physical_atoms(preflight[0]) != physical_atoms(initial[0]):
                             raise ValueError('Production initial state differs from saved preflight boundary')
-                    if last is not None and last[item['start_step']] != physical[item['start_step']]:
-                        raise ValueError('Restart changed a physical boundary')
                     last = physical
                     process = json.loads((collected / 'process.json').read_text())
                     if session_members(process['pid']) or not attempt.termination_evidence or store.reservations():

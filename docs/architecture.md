@@ -2,6 +2,16 @@
 
 ## Status and scope
 
+T024 adds [global trajectory sampling and verified gzip](trajectory-sampling.md).
+Sampling belongs to immutable submission intent; generated segment inputs retain
+the global schedule. Confirmed termination precedes streaming trajectory
+compression, roundtrip size/hash verification and result manifest creation.
+Archive selection requires a strict net reduction in selected artifact bytes
+plus serialized manifest bytes; trajectories without sufficient savings stay raw.
+Ordinary/MPI result manifests allow at most 16 MiB of JSON metadata independently
+of output-file limits; commit/poll and checkpoint bounds are unchanged.
+Durable publication acknowledgement remains a prerequisite for staged cleanup.
+
 This is the permanent design reference for a Python / Linux dispatcher for independent LAMMPS batches. Configuration validation, CLI help / version, immutable job specifications, and the [SQLite storage API](storage.md) are implemented. See [configuration.md](configuration.md) for the actual schema and validation limits and [tasks.md](../tasks.md) for progress and verification. Explicit sequential [local batches](local-batches.md) are implemented; the [scheduler API](scheduling.md) is implemented with caller-supplied snapshots; the [polling manager and workers](workers.md) implement shared-storage execution, authentication and Linux monitoring. Linux [process recovery and operations](recovery.md) are implemented with conservative identity checks; [T009](verification/t009-staged.md) verifies staged dispatch across two hosts with one remote worker; [V001](verification/v001-two-workers.md) verifies shared dispatch on two actual workers. The storage API provides atomic assignment, recorded state transitions, and evidence-gated reservation release, but does not verify processes or enforce worker capacity by itself. Scheduler admission enforces effective quotas within the assignment transaction.
 
 One central manager will control multiple persistent Linux workers, dispatch according to load and resource quotas, and record execution status, output, and failure reasons. Dynamic adjustment means choosing the destination and concurrency of new jobs. Running jobs retain fixed MPI ranks and OpenMP threads and are not migrated. Jobs are independent; dependency graphs are outside the first release.

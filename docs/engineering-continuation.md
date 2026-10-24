@@ -72,7 +72,9 @@ Boundary validation checks particle count, actual MPI grid/OpenMP thread evidenc
 and physical time against the recipe. Its [clock rounding budget](checkpoints.md)
 accounts for completed segments and split engine run commands, so ordinary
 accumulation error does not block a long chain. Step/count checks remain exact.
-Both copies of a segment boundary remain retained; compare them before deduplication.
+Legacy snapshots without sampling retain both boundary copies. New runs use
+[global sampling](trajectory-sampling.md) with one separate initial state and
+no extra segment-start trajectory frames.
 
 T023 removes the build allowlist. The first assignment binds actual worker, boot
 and executable/library/platform fingerprint; later segments and retries must match.
@@ -222,11 +224,15 @@ PYTHONPATH=src python3 tools/verification/engineering_continuation_acceptance.py
 ```
 
 Use only with execution authorization and an allocated host/resource budget.
-It runs shared and staged chains of 40 + 60 + 80 steps, compares full physical
-boundary copies, validates step/time and durable outputs, restarts its isolated
+It runs shared and staged chains of 40 + 60 + 80 steps, verifies the explicit
+global sampling schedule and saved initial/preflight state, validates step/time
+and durable outputs, restarts its isolated
 manager, and forces the second launcher invocation to fail before MPI starts.
 The explicit retry must preserve inputs and seed allocation. Each simulation has
 a 30-second limit; the driver retains failures and reports source/output hashes,
 checkpoints, process evidence and reservations. It neither changes deployed
 services nor runs the withdrawn scientific study. An offline fake-engine test
 exercises the driver itself; no real T021 smoke is claimed in this change.
+The updated driver does not compare duplicate successor-start physical frames,
+because the new output policy deliberately omits them. Historical verification
+records retain their original scope; this change adds no real-build evidence.

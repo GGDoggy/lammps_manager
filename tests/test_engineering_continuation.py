@@ -349,12 +349,16 @@ class EngineeringDriverTests(unittest.TestCase):
             'print("Step Time Atoms")\nprint(start,start*.0001,256)\n'
             'print(stop,stop*.0001,256)\nprint("Loop time")\n'
             'Path("checkpoint.restart").write_text(str(stop))\n'
-            'with Path("trajectory.dump").open("w") as output:\n'
-            ' for step in range(start,stop+1,20):\n'
-            '  output.write(f"ITEM: TIMESTEP\\n{step}\\nITEM: NUMBER OF ATOMS\\n256\\n")\n'
-            '  output.write("ITEM: BOX BOUNDS pp pp pp\\n0 1\\n0 1\\n-.5 .5\\nITEM: ATOMS id xu yu mux muy muz\\n")\n'
-            '  for index in range(1,257): output.write(f"{index} 0 0 1 0 0\\n")\n'
-            'if start==0: Path("engineering-smoke-first.dump").write_bytes(Path("trajectory.dump").read_bytes())\n')
+            'def frames(path,steps):\n'
+            ' with Path(path).open("w") as output:\n'
+            '  for step in steps:\n'
+            '   output.write(f"ITEM: TIMESTEP\\n{step}\\nITEM: NUMBER OF ATOMS\\n256\\n")\n'
+            '   output.write("ITEM: BOX BOUNDS pp pp pp\\n0 1\\n0 1\\n-.5 .5\\nITEM: ATOMS id x y ix iy mux muy muz\\n")\n'
+            '   for index in range(1,257): output.write(f"{index} 0 0 0 0 1 0 0\\n")\n'
+            'points=[int(v) for v in Path("snapshot-steps.txt").read_text().split() if start<int(v)<=stop]\n'
+            'frames("trajectory.dump",points)\n'
+            'if start==0:\n'
+            ' frames("initial.dump",[0]);frames("engineering-smoke-first.dump",[0])\n')
         self.program.chmod(0o700)
         report = dict(scenarios=[])
         with patch('lammps_manager.continuation.fingerprint_build', return_value=BUILD), \

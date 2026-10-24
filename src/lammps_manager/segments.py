@@ -97,7 +97,8 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
                segment_ends: tuple[int, ...] | None = None, run_id: str | None = None,
                resource_overrides: dict | None = None,
                initial_priority: int | None = None, continuation_priority: int | None = None,
-               contract_version: str | None = None, model_parameters: dict | None = None) -> str:
+               contract_version: str | None = None, model_parameters: dict | None = None,
+               sampling: dict | None = None) -> str:
     """Snapshot a supported recipe/plan, publish its first inputs and queue once.
 
     Explicit measured boundaries may shorten segments below the maximum. Generic
@@ -156,6 +157,11 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
         input_limits=dict(max_files=config.storage.max_input_files,
             max_file_bytes=config.storage.max_input_file_bytes, max_total_bytes=config.storage.max_input_total_bytes),
         stream_provenance=cp.canonical(dict(namespace=namespace, phase='run', replica=0, seeds=seeds)))
+    from .sampling import normalize_sampling
+    physical = summary if summary is not None else engineering_parameters(recipe)
+    prior = store._db.execute('SELECT snapshot FROM simulation_runs WHERE run_id=?', (identity,)).fetchone()
+    if not (prior and 'sampling' not in json.loads(prior['snapshot']) and sampling is None):
+        snapshot['sampling'] = normalize_sampling(sampling, dt=physical['dt'], dr=physical['kBT'] / physical['gamma_r'])
     if version:
         snapshot.update(contract_version=version, stream_policy=FRESH_STREAM_POLICY,
             evidence_status='not_assessed', model=summary if summary is not None else engineering_parameters(recipe),
@@ -230,6 +236,12 @@ def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None) -> 
         stream_seed=seeds[2 + ordinal], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
     primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
     generated = {'in.lmp': script}
+    if snapshot.get('sampling') is not None:
+        from .sampling import apply_sampling, sampling_files
+        script = apply_sampling(script.decode()).encode()
+        generated['in.lmp'] = script
+        primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
+        generated.update(sampling_files(snapshot['sampling'], start=start, stop=stop))
     if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
         generated['model-parameters.json'] = cp.canonical(snapshot['model_parameters']).encode()
         if start == 0:
@@ -246,7 +258,7 @@ def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None) -> 
         snapshot['input_limits'])
     spec = JobSpecification(job, str(root), 'in.lmp', primary.sha256,
         Resources(**snapshot['resources']), snapshot['storage_mode'], files,
-        InfrastructureRecovery(**snapshot['infrastructure_recovery']))
+        InfrastructureRecovery(**snapshot['infrastructure_recovery']), sampling=snapshot.get('sampling'))
     store.submit(spec)
     store._db.execute('INSERT INTO run_segments VALUES(?,?,?,?,?,?,0)',
         (run['run_id'], ordinal, job, start, stop, checkpoint['identity'] if checkpoint else None))
@@ -493,10 +505,12 @@ def inspect_run(store: Store, run_id: str, *, limit: int = 100, after: int = -1)
     for row in rows:
         attempts = store.job_attempts(row['job_id'], limit=1)
         checkpoint = cp.record(store, attempts[-1].attempt_id) if attempts else None
-        result['segments'].append({**dict(row), 'duplicate_initial_boundary_frame': row['ordinal'] > 0,
+        result['segments'].append({**dict(row), 'duplicate_initial_boundary_frame': row['ordinal'] > 0 and snapshot.get('sampling') is None,
             'checkpoint': ({'identity': checkpoint['identity'], 'acknowledged': bool(checkpoint['acknowledged']),
                 'error': cp.error(store, attempts[-1].attempt_id)} if checkpoint else None)})
-    result['output_policy'] = 'Segment trajectories retain both boundary copies; duplicate initial frames are explicitly marked by segment ordinal. Segments are one logical trajectory, never independent replicas.'
+    result['output_policy'] = ('Global immutable sampling selects points strictly after each segment start; initial.dump is saved only at step zero. Segments are one logical trajectory, never independent replicas.'
+        if snapshot.get('sampling') is not None else
+        'Segment trajectories retain both boundary copies; duplicate initial frames are explicitly marked by segment ordinal. Segments are one logical trajectory, never independent replicas.')
     result['committed_steps'] = result['committed_step'] - result['snapshot']['start_step']
     result['next_after'] = rows[-1]['ordinal'] if len(rows) == limit else None
     result['events'] = [dict(row) for row in store._db.execute('SELECT * FROM run_events WHERE run_id=? '

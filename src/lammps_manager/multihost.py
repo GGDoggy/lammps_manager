@@ -299,7 +299,7 @@ def result_operation(store: Store, storage, worker_id: str, attempt_id: str, ope
                           (attempt_id,worker_id))
         outputs={r['worker_id']:dict(r) for r in store._db.execute('SELECT * FROM mpi_outputs WHERE attempt_id=?',(attempt_id,))}
         if all(m['worker_id'] in outputs and outputs[m['worker_id']]['status']=='collected' for m in group):
-            combined=[]; sources=[]; omitted=[]
+            combined=[]; sources=[]; omitted=[]; compression=[]
             for actor,output in sorted(outputs.items()):
                 manifest=json.loads(output['manifest'])
                 base=directory/'.mpi-outputs'/actor/'results'
@@ -310,10 +310,16 @@ def result_operation(store: Store, storage, worker_id: str, attempt_id: str, ope
                     if actor==attempt.worker_id and entry['path'] in {'stdout','stderr','execution.json','process.json','outcome.json'}:
                         combined.append(InputFile(**entry));sources.append((base,entry['path']))
                 omitted.extend(dict(path=prefix+entry['path'],reason=entry['reason']) for entry in manifest['omitted'])
+                compression.extend({**entry, 'path': prefix+entry['path'],
+                    'original': {**entry['original'], 'path': prefix+entry['original']['path']}}
+                    for entry in manifest.get('compression', []))
             validate_manifest(tuple(combined),**limits)
             publish_inputs(directory/'results',tuple(combined),
                            lambda index:open_regular(*sources[index]),limits)
-            store.set_result_collection(attempt_id,'collected',dict(files=[asdict(f) for f in combined],omitted=omitted))
+            combined_manifest=dict(files=[asdict(f) for f in combined],omitted=omitted)
+            if compression:
+                combined_manifest['compression']=compression
+            store.set_result_collection(attempt_id,'collected',combined_manifest)
     elif operation!='manifest':
         if row['status']=='collected': raise StoreError('MPI participant results already collected')
         index=int(operation)

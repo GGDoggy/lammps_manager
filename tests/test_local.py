@@ -53,6 +53,52 @@ class LocalTests(unittest.TestCase):
         self.manifest.write_text(json.dumps([{'source_directory': 'source', 'input_file': 'in.lmp',
                                              'resources': {'omp_threads_per_rank': 2}}]))
 
+    def test_sampling_include_is_immutable_and_source_is_preserved(self) -> None:
+        (self.source / 'in.lmp').write_text('include sampling.lmp\nrun 10\n')
+        request = json.loads(self.manifest.read_text())
+        request[0]['sampling'] = dict(unit='step', positions=[2, 7], dt=.1, Dr=1., total_steps=10)
+        self.manifest.write_text(json.dumps(request))
+        with Store(self.config.manager.database_path) as store:
+            jobs = submit_batch(store, self.config, self.manifest)
+            spec = store.specification(jobs[0])
+            inputs = Path(spec.work_directory) / 'inputs'
+            self.assertEqual((inputs / 'snapshot-steps.txt').read_bytes(), b'2\n7\n11\n')
+            self.assertEqual(spec.sampling['steps'], [2, 7])
+            self.assertEqual({item.path for item in spec.input_manifest},
+                {'in.lmp', 'asset', 'sampling.json', 'sampling.lmp', 'snapshot-steps.txt'})
+            self.assertFalse((self.source / 'sampling.lmp').exists())
+            self.assertEqual(run_local(store, self.worker), jobs)
+            self.assertEqual(store.result_collection(store.job_attempts(jobs[0])[0].attempt_id)['status'], 'collected')
+
+    def test_staged_sampling_submits_verified_inputs_and_preserves_mode(self) -> None:
+        import hashlib
+        from lammps_manager.staging import publish_inputs
+
+        original = b'include sampling.lmp\nrun 10\n'
+        (self.source / 'in.lmp').write_bytes(original)
+        request = json.loads(self.manifest.read_text())
+        request[0]['sampling'] = dict(unit='step', positions=[2, 7], dt=.1, Dr=1., total_steps=10)
+        self.manifest.write_text(json.dumps(request))
+        config = replace(self.config, storage=replace(self.config.storage, mode='staged'))
+        with Store(config.manager.database_path) as store:
+            jobs = submit_batch(store, config, self.manifest)
+            spec = store.specification(jobs[0])
+            self.assertEqual(spec.storage_mode, 'staged')
+            self.assertEqual(spec.input_sha256, hashlib.sha256(original).hexdigest())
+            self.assertEqual(spec.sampling['steps'], [2, 7])
+            inputs = Path(spec.work_directory) / 'inputs'
+            self.assertEqual({item.path for item in spec.input_manifest},
+                {'in.lmp', 'asset', 'sampling.json', 'sampling.lmp', 'snapshot-steps.txt'})
+            publish_inputs(inputs, spec.input_manifest, lambda _: None, {})
+            self.assertEqual((inputs / 'snapshot-steps.txt').read_bytes(), b'2\n7\n11\n')
+            self.assertEqual(run_local(store, self.worker), ())
+            self.assertEqual(store.job_state(jobs[0]), 'queued')
+            self.assertEqual(store.job_attempts(jobs[0]), ())
+        with Store(config.manager.database_path) as store:
+            self.assertEqual(store.specification(jobs[0]), spec)
+        self.assertEqual((self.source / 'in.lmp').read_bytes(), original)
+        self.assertFalse((self.source / 'sampling.lmp').exists())
+
     def test_batch_success_failure_snapshots_and_reruns(self) -> None:
         failing = self.root / 'failure'
         failing.mkdir()

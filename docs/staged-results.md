@@ -16,6 +16,15 @@ Shutdown asks collection to stop between attempts and transfer operations, waits
 
 ## Output selection and bounds
 
+T024 compresses `work/**/*.dump` trajectories to verified gzip before manifest
+binding. Archives are selected only when artifact savings exceed their added
+manifest metadata (including MPI publication paths); other trajectories stay
+raw. The selected files may mix raw dumps and archives; optional `compression` records
+bind original and compressed size/SHA-256 identities. Raw trajectories remain
+worker-private until acknowledged cleanup. See [sampling and compression](trajectory-sampling.md)
+for conversion, replay and failure behavior. Ordinary shared polling jobs now
+also use durable collection; shared cleanup remains disabled.
+
 Collection includes `stdout`, `stderr`, `execution.json`, `process.json`, a journal-derived `outcome.json`, and every regular file under `work/` (including copied inputs). Missing logs, metadata or the work directory are reported explicitly in `omitted`; no scientific work files are silently excluded. Empty directories are not artifacts. Worker-private `inputs`, hidden temporary files outside `work`, journals and upload spools are excluded by this fixed selection policy. Symlinks and special files anywhere in selected output fail collection. Stop other writers to the private attempt directory; output enumeration requires a terminated launch session.
 
 Both manager `storage` and worker top-level configuration accept positive integers:
@@ -28,13 +37,13 @@ Both manager `storage` and worker top-level configuration accept positive intege
 
 The worker setting `result_request_timeout_seconds` is a positive finite number (default 300). It controls socket waits for all result requests, including waiting for the manager result lock and for commit/replay verification, copying and fsync to finish. Choose a value above the expected storage and contention delay; this is a socket inactivity timeout, not a total transfer deadline. Poll and input-download socket timeouts remain ten seconds. Configuration changes take effect after worker restart and do not rewrite submitted specifications. A timeout retains a retryable collection failure; slow commit replay uses the same setting. A larger setting can also increase shutdown wait while a result request is stalled.
 
-Both peers enforce limits independently. Oversized output fails visibly; it is never truncated or treated as collected. Manifest JSON requests have an additional 1 MiB bound. Increasing limits does not change a submitted specification. Once persisted, the result manifest is immutable: missing or changed bound files keep delivery failed until the original bytes are available. An enumeration failure before binding can retry enumeration. Collection errors appear in the worker journal immediately and in manager status on the next successful poll; manager storage errors can also appear as HTTP errors in the worker diagnostic.
+Both peers enforce limits independently. Oversized output fails visibly; it is never truncated or treated as collected. Ordinary and MPI result manifest JSON requests have an additional 16 MiB bound, accommodating compression identity records above the previous 1 MiB limit. Authentication and body-length checks precede reading the request. Result commits and polls retain their 1 MiB bounds; checkpoint manifests retain 4 MiB. File count/size limits still apply independently, and unusually large path metadata can still exceed the finite manifest allowance. Increasing limits does not change a submitted specification. Once persisted, the result manifest is immutable: missing or changed bound files keep delivery failed until the original bytes are available. An enumeration failure before binding can retry enumeration. Collection errors appear in the worker journal immediately and in manager status on the next successful poll; manager storage errors can also appear as HTTP errors in the worker diagnostic.
 
 ## Authenticated publication protocol
 
 Polls remain protocol 2; the manager advertises `results_protocol: 1` and `staged_launch_enabled: true`. A worker requires both before claiming a staged launch. Result endpoints use the same worker identity, bearer credential, TLS and no-redirect/no-proxy rules as input transfer. Each operation checks attempt ownership, staged specification and confirmed terminal process state. Client paths never choose a manager destination.
 
-1. `POST /v2/results/ATTEMPT/manifest` binds `{files, omitted}` durably. Entries contain canonical relative POSIX paths, exact sizes and SHA-256. Duplicate, traversal, absolute, conflicting and unselected paths fail. Conflicting replay cannot replace a bound manifest.
+1. `POST /v2/results/ATTEMPT/manifest` binds `{files, omitted}` with optional `compression` records durably. Entries contain canonical relative POSIX paths, exact sizes and SHA-256. Duplicate, traversal, absolute, conflicting and unselected paths fail. Conflicting replay cannot replace a bound manifest.
 2. `PUT /v2/results/ATTEMPT/INDEX` streams one manifest-selected file with exact Content-Length and bounded chunks. The server retains its ten-second socket inactivity timeout; the worker uses `result_request_timeout_seconds` for its result requests. Hash/size validation and file fsync precede replacing a flat, manager-selected spool entry under `JOB/ATTEMPT/.results-upload`. Partial temporary files cannot become results. HTTP chunked uploads are rejected.
 3. `POST /v2/results/ATTEMPT/commit` with `{}` revalidates all spool files into a fresh temporary tree, fsyncs its files and directories, atomically publishes `JOB/ATTEMPT/results`, then fsyncs the entire ancestor chain. Only afterward does SQLite persist `collected` and the manager acknowledge it. No earlier attempt or existing publication is overwritten. Replay verifies an existing publication and synchronizes ancestors again before acknowledgement.
 

@@ -431,7 +431,8 @@ class Node:
         directory=Path(status['directory']).parent
         directory.mkdir(mode=0o700,parents=True,exist_ok=True)
         _write(directory/'outcome.json',status)
-        manifest=enumerate_results(directory,output_limits(self.config))
+        manifest=enumerate_results(directory,output_limits(self.config),
+            publication_prefix='work/mpi-participants/'+self.config.worker.id+'/')
         suffix=f'/v2/mpi-results/{attempt_id}/'
         with self.request(suffix+'manifest',manifest) as response:
             reply=json.load(response)

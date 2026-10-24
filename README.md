@@ -6,6 +6,10 @@ The CLI provides help, version information, and strict manager / worker YAML val
 
 ## Local development
 
+[Global trajectory sampling and compression](docs/trajectory-sampling.md) provide
+immutable Dr*t/step schedules and verified streaming gzip for trajectory dumps.
+See the feature document for user-script includes, result manifests and verification scope.
+
 Python 3.10+ is required. Configuration validation requires PyYAML (`python3 -m pip install 'PyYAML>=6.0,<7'`); LAMMPS and MPI are not required.
 
 ```bash

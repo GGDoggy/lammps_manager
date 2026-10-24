@@ -383,6 +383,14 @@ def prepare_launch(store: Store, worker: object, attempt_id: str, work: Path) ->
     expected = renderer(start=start, stop=contract.global_step, total=contract.total_steps,
                                stream_seed=seeds[2 if engineering else 2 + contract.segment],
                                position_seed=seeds[0], orientation_seed=seeds[1])
+    if spec.sampling is not None:
+        from .sampling import apply_sampling, sampling_files, validate_sampling
+        validate_sampling(spec.sampling)
+        expected = apply_sampling(expected)
+        for name, data in sampling_files(spec.sampling, start=start, stop=contract.global_step).items():
+            with open_regular(work, name) as source:
+                if source.read(len(data) + 1) != data:
+                    raise ValueError('Sampling input differs from immutable specification')
     spec = store.specification(contract.job_id)
     with open_regular(work, spec.input_file) as source:
         if source.read(len(expected.encode()) + 1) != expected.encode():

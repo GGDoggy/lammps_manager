@@ -221,7 +221,7 @@ class Worker:
                 if rejection:
                     report['rejection'] = rejection
                 from .checkpoints import record as checkpoint_record
-                if attempt.termination_evidence and (self.config.storage_mode == 'staged' or checkpoint_record(store, attempt.attempt_id)):
+                if attempt.termination_evidence:
                     collection = store.result_collection(attempt.attempt_id)
                     if collection is None:
                         store.set_result_collection(attempt.attempt_id, 'pending')
@@ -708,8 +708,6 @@ class Worker:
                         if error(store, attempt_id) != reason:
                             print(f'Checkpoint {attempt_id} deferred: {reason}', file=sys.stderr)
                         set_error(store, attempt_id, reason)
-                if self.config.storage_mode != 'staged' and checkpoint is None:
-                    continue
                 collection = store.result_collection(attempt.attempt_id)
                 if collection and collection['status'] == 'collected':
                     continue

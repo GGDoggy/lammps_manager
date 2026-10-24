@@ -285,6 +285,8 @@ class Store:
                 or not math.isfinite(policy.delay_seconds) or policy.delay_seconds <= 0):
             raise StoreError('Invalid infrastructure recovery policy')
         snapshot = asdict(specification)
+        if specification.sampling is None:
+            snapshot.pop('sampling')
         if not specification.mpi_placement:
             snapshot.pop('mpi_placement')
         payload = json.dumps(snapshot, sort_keys=True, allow_nan=False)

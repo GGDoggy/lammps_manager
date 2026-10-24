@@ -19,6 +19,49 @@ from lammps_manager.worker import Worker
 class ResultTests(unittest.TestCase):
     setUp = staging_tests.StagedWorkerTests.setUp
 
+    def test_large_compression_manifest_publishes_over_http_and_replays(self) -> None:
+        import gzip
+        import hashlib
+        worker = self.worker()
+        attempt_id = 'large-result-manifest'
+        with Store(self.config.manager.database_path) as store:
+            directory = Path(self.spec.work_directory) / attempt_id
+            store.assign(self.job_id, attempt_id, 'a', str(directory))
+            store.transition(attempt_id, 'running')
+            store.transition(attempt_id, 'succeeded', exit_code=0,
+                termination_evidence='Temporary byte fixture; no process launched')
+        original = b'1 0.12345678901234567 0 0 0 1 0 0\n' * 40
+        archive = gzip.compress(original, mtime=0)
+        files, compression, raw_files = [], [], []
+        for index in range(3000):
+            raw = dict(path=f'work/frame-{index:06d}.dump', size=len(original),
+                sha256=hashlib.sha256(original).hexdigest())
+            item = dict(path=raw['path'] + '.gz', size=len(archive),
+                sha256=hashlib.sha256(archive).hexdigest())
+            raw_files.append(raw)
+            files.append(item)
+            compression.append(dict(**item, compression='gzip', original=raw))
+        manifest = dict(files=files, omitted=[], compression=compression)
+        raw_manifest = dict(files=raw_files, omitted=[])
+        self.assertGreater(len(json.dumps(manifest).encode()), 1048576)
+        self.assertLess(sum(item['size'] for item in files) + len(json.dumps(manifest).encode()),
+            sum(item['size'] for item in raw_files) + len(json.dumps(raw_manifest).encode()))
+        self.assertEqual(worker._result_request(attempt_id, 'manifest', manifest)['status'], 'uploading')
+        # Use the actual upload verifier/spool without 3000 redundant HTTP
+        # connections; manifest and commit exercise the authenticated transport.
+        for index in range(len(files)):
+            self.service.result_operation('a', attempt_id, str(index), stream=BytesIO(archive), length=len(archive))
+        self.assertEqual(worker._result_request(attempt_id, 'commit', {})['status'], 'collected')
+        self.assertEqual(worker._result_request(attempt_id, 'manifest', manifest)['status'], 'collected')
+        self.assertEqual(worker._result_request(attempt_id, 'commit', {})['status'], 'collected')
+        with Store(self.config.manager.database_path) as store:
+            self.assertEqual(store.result_collection(attempt_id)['manifest'], manifest)
+            self.assertEqual(store.reservations(), ())
+        for item in files:
+            collected = directory / 'results' / item['path']
+            self.assertEqual(hashlib.sha256(collected.read_bytes()).hexdigest(), item['sha256'])
+            self.assertEqual(gzip.decompress(collected.read_bytes()), original)
+
     def worker(self) -> Worker:
         worker = Worker(self.worker_config, self.root / 'journal')
         self.addCleanup(worker.close)
@@ -51,6 +94,47 @@ class ResultTests(unittest.TestCase):
         if worker.collection_future is not None:
             worker.collection_future.result(timeout=10)
         return result
+
+    def test_trajectory_compression_failure_retains_data_then_delivers_verified_archive(self) -> None:
+        import gzip
+        import hashlib
+        from lammps_manager.cleanup import cleanup_attempt
+        self.configure_process()
+        worker = self.worker()
+        attempt_id = self.finish_process(worker)
+        with Store(worker.database) as journal:
+            runtime = Path(journal.attempt(attempt_id).directory)
+        original = b'1 0.12345678901234567 -0 0 0 1e-300 0 0\n' * 100
+        (runtime / 'work/trajectory.dump').write_bytes(original)
+        (runtime / 'work/small.dump').write_bytes(b'x' * 200)
+        (runtime / 'work/empty.dump').write_bytes(b'')
+        with patch('lammps_manager.compression.gzip.open', return_value=BytesIO(b'corrupt decompression')):
+            self.tick(worker)
+        with Store(worker.database) as journal:
+            failed = journal.result_collection(attempt_id)
+            self.assertEqual(failed['status'], 'failed')
+            self.assertIsNone(failed['manifest'])
+            self.assertTrue((runtime / 'work/trajectory.dump').exists())
+            self.assertFalse((runtime / 'work/trajectory.dump.gz').exists())
+            with self.assertRaises(ValueError):
+                cleanup_attempt(journal, attempt_id, self.worker_root, ())
+        self.tick(worker)
+        with Store(self.config.manager.database_path) as manager, Store(worker.database) as journal:
+            result = manager.result_collection(attempt_id)
+            self.assertEqual(result['status'], 'collected')
+            metadata, = result['manifest']['compression']
+            self.assertEqual(metadata['original']['sha256'], hashlib.sha256(original).hexdigest())
+            publication = Path(manager.attempt(attempt_id).directory) / 'results'
+            self.assertEqual(gzip.decompress((publication / metadata['path']).read_bytes()), original)
+            self.assertNotIn('work/trajectory.dump', {entry['path'] for entry in result['manifest']['files']})
+            self.assertEqual((publication / 'work/small.dump').read_bytes(), b'x' * 200)
+            self.assertEqual((publication / 'work/empty.dump').read_bytes(), b'')
+            self.assertFalse((runtime / 'work/small.dump.gz').exists())
+            self.assertFalse((runtime / 'work/empty.dump.gz').exists())
+            self.assertEqual(len(manager.job_attempts(self.job_id)), 1)
+            cleanup_attempt(journal, attempt_id, self.worker_root, ())
+            self.assertFalse(runtime.exists())
+            self.assertTrue((publication / metadata['path']).exists())
 
     def test_blocked_collection_keeps_polling_and_recovered_process_control(self) -> None:
         from concurrent.futures import ThreadPoolExecutor

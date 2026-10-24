@@ -24,10 +24,26 @@ def output_limits(config: Storage | WorkerConfig) -> dict:
 
 def validate_results(manifest: dict, limits: dict) -> tuple[InputFile, ...]:
     """Validate the complete bounded wire manifest, including omissions."""
-    if not isinstance(manifest, dict) or set(manifest) != {'files', 'omitted'}:
+    if not isinstance(manifest, dict) or set(manifest) not in ({'files', 'omitted'}, {'files', 'omitted', 'compression'}):
         raise ValueError('Invalid result manifest')
     files = tuple(InputFile(**entry) for entry in manifest['files'])
     validate_manifest(files, **limits)
+    compressed = manifest.get('compression', [])
+    if not isinstance(compressed, list) or len(compressed) > len(files):
+        raise ValueError('Invalid compression records')
+    by_path = {item.path: item for item in files}
+    seen = set()
+    for entry in compressed:
+        if (not isinstance(entry, dict) or set(entry) != {'path', 'size', 'sha256', 'compression', 'original'}
+                or entry['compression'] != 'gzip' or entry['path'] in seen):
+            raise ValueError('Invalid compression record')
+        original = InputFile(**entry['original'])
+        validate_manifest((original,))
+        if (not original.path.startswith('work/') or not original.path.endswith('.dump')
+                or entry['path'] != original.path + '.gz' or original.path in by_path
+                or by_path.get(entry['path']) != InputFile(entry['path'], entry['size'], entry['sha256'])):
+            raise ValueError('Compression record does not match result files')
+        seen.add(entry['path'])
     omitted = manifest['omitted']
     if not isinstance(omitted, list) or len(omitted) > 6:
         raise ValueError('Too many omitted artifacts')
@@ -42,7 +58,7 @@ def validate_results(manifest: dict, limits: dict) -> tuple[InputFile, ...]:
     return files
 
 
-def enumerate_results(directory: Path, limits: dict) -> dict:
+def enumerate_results(directory: Path, limits: dict, *, publication_prefix: str = '') -> dict:
     """Select logs, metadata and the complete work tree after confirmed exit.
 
     Missing logs/metadata are explicit omissions. Unsafe or oversized work trees
@@ -51,6 +67,8 @@ def enumerate_results(directory: Path, limits: dict) -> dict:
     files = []
     omitted = []
     total = 0
+    compression = []
+    originals = set()
 
     def add(relative: str) -> None:
         nonlocal total
@@ -94,23 +112,42 @@ def enumerate_results(directory: Path, limits: dict) -> dict:
                     continue
                 if not stat.S_ISREG(mode):
                     raise ValueError('Output contains symlink or special file')
-                add(path.relative_to(directory).as_posix())
+                relative = path.relative_to(directory).as_posix()
+                if relative.endswith('.dump'):
+                    from .compression import compress_trajectory
+                    record = compress_trajectory(directory, relative, publication_prefix=publication_prefix)
+                    if record is not None:
+                        compression.append(record)
+                        originals.add(relative)
+        # Compression precedes all work-tree hashing and manifest binding. Walk
+        # again so newly published gzip files appear exactly once.
+        for parent, directories, names in os.walk(work, followlinks=False, onerror=walk_error):
+            for name in directories + names:
+                path = Path(parent) / name
+                mode = path.lstat().st_mode
+                if stat.S_ISDIR(mode):
+                    continue
+                if not stat.S_ISREG(mode):
+                    raise ValueError('Output contains symlink or special file')
+                relative = path.relative_to(directory).as_posix()
+                if relative not in originals:
+                    add(relative)
     else:
         omitted.append(dict(path='work', reason='Artifact unavailable: work directory missing'))
     if not files:
         raise ValueError('No result files available')
     manifest = dict(files=[asdict(item) for item in sorted(files, key=lambda item: item.path)], omitted=omitted)
+    if compression:
+        manifest['compression'] = sorted(compression, key=lambda entry: entry['path'])
     validate_results(manifest, limits)
     return manifest
 
 
 def authorize(store: Store, worker_id: str, attempt_id: str) -> Path:
-    """Return a manager-owned destination for a terminated staged/continuation attempt."""
+    """Return a manager-owned destination for an owned, terminated attempt."""
     attempt = store.attempt(attempt_id)
     spec = store.specification(attempt.job_id)
-    from .checkpoints import record as checkpoint_record
-    continuation = checkpoint_record(store, attempt_id) is not None
-    if (attempt.worker_id != worker_id or (spec.storage_mode != 'staged' and not continuation)
+    if (attempt.worker_id != worker_id
             or attempt.state not in TERMINAL or not attempt.termination_evidence):
         raise ValueError('Result ownership or termination mismatch')
     root = Path(spec.work_directory)

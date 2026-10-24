@@ -64,6 +64,7 @@ class SweepPlan:
     jobs: int
     resources: dict | None
     source_manifest: tuple[InputFile, ...]
+    sampling: dict | None = None
 
     def coordinates(self) -> Iterator[dict]:
         """Yield last-axis-fastest coordinates, then independent repetitions."""
@@ -119,7 +120,7 @@ def load_sweep(config: ManagerConfig, manifest: str | Path) -> SweepPlan:
     if not isinstance(data, dict):
         raise ValueError('sweep: expected an object')
     missing = required - data.keys()
-    unknown = data.keys() - required - {'resources', 'max_jobs'}
+    unknown = data.keys() - required - {'resources', 'max_jobs', 'sampling'}
     if missing or unknown:
         raise ValueError(f'sweep: missing fields {sorted(missing)}; unknown fields {sorted(unknown)}')
     if type(data['version']) is not int or data['version'] != 1:
@@ -175,11 +176,19 @@ def load_sweep(config: ManagerConfig, manifest: str | Path) -> SweepPlan:
         raise ValueError('input_file: every parameter and seed require a placeholder')
     plan = SweepPlan(source, str(source), relative, data['template_version'], template,
                      parameters, repetitions, seed, combinations, jobs, data.get('resources'), files)
+    if data.get('sampling') is not None:
+        from .sampling import external_sampling, external_files
+        schedule = external_sampling(data['sampling'])
+        external_files(schedule, template_bytes, {item.path for item in files})
+        plan = replace(plan, sampling=schedule)
     # Check all rendered sizes before any job is registered; iteration is capped by max_jobs.
     for coordinate in plan.coordinates():
         rendered = plan.render(coordinate)
         rendered_files = tuple(replace(f, size=len(rendered), sha256=_digest(rendered))
                                if f.path == relative else f for f in files)
+        if plan.sampling is not None:
+            generated = external_files(plan.sampling, rendered, {item.path for item in files})
+            rendered_files += tuple(InputFile(path, len(content), _digest(content)) for path, content in generated.items())
         if config.storage.mode == 'staged':
             validate_manifest(rendered_files, **_limits(config))
     return plan
@@ -223,6 +232,11 @@ def submit_sweep(store: Store, config: ManagerConfig, plan: SweepPlan) -> dict:
                 rendered_hash = _digest(rendered)
                 rendered_files = tuple(replace(f, size=len(rendered), sha256=rendered_hash)
                                        if f.path == plan.input_file else f for f in files)
+                generated = {}
+                if plan.sampling is not None:
+                    from .sampling import external_files
+                    generated = external_files(plan.sampling, rendered, {item.path for item in files})
+                    rendered_files += tuple(InputFile(path, len(content), _digest(content)) for path, content in generated.items())
                 job_id = uuid4().hex
                 directory = Path(config.storage.work_root).resolve() / job_id
                 spec = create_job_specification(config, job_id=job_id, work_directory=str(directory),
@@ -232,10 +246,12 @@ def submit_sweep(store: Store, config: ManagerConfig, plan: SweepPlan) -> dict:
                     template_sha256=next(f.sha256 for f in files if f.path == plan.input_file),
                     rendered_sha256=rendered_hash, repetition_count=plan.repetitions, **coordinate)
                 spec = replace(spec, storage_mode=config.storage.mode, input_manifest=rendered_files,
-                               sweep=provenance)
+                               sweep=provenance, sampling=plan.sampling)
                 directory.mkdir(parents=True, exist_ok=False)
                 def fetch(index: int) -> BinaryIO:
                     item = rendered_files[index]
+                    if item.path in generated:
+                        return io.BytesIO(generated[item.path])
                     return io.BytesIO(rendered) if item.path == plan.input_file else open_regular(snapshot, item.path)
                 publication_limits = _limits(config) if config.storage.mode == 'staged' else {}
                 publish_inputs(directory / 'inputs', rendered_files, fetch, publication_limits)

@@ -29,6 +29,20 @@ class SweepTests(unittest.TestCase):
         self.manifest.write_text(json.dumps(data))
         return data
 
+    def test_sampling_applies_to_every_expanded_job(self):
+        self.request(sampling=dict(unit='Dr', positions=[.01, .03], dt=.001, Dr=1., total_steps=40))
+        with (self.source / 'in.lmp').open('a') as source:
+            source.write('\ninclude sampling.lmp\nrun 40\n')
+        plan = load_sweep(self.config, self.manifest)
+        with Store(self.config.manager.database_path) as store:
+            result = submit_sweep(store, self.config, plan)
+            for entry in result['submitted']:
+                spec = store.specification(entry['job_id'])
+                self.assertEqual(spec.sampling['steps'], [10, 30])
+                self.assertEqual((Path(spec.work_directory) / 'inputs/snapshot-steps.txt').read_bytes(), b'10\n30\n41\n')
+                self.assertIn('sampling.lmp', {item.path for item in spec.input_manifest})
+        self.assertFalse((self.source / 'sampling.lmp').exists())
+
     def test_example_shared_staged_and_reopen(self):
         for mode in ('shared', 'staged'):
             with self.subTest(mode=mode):

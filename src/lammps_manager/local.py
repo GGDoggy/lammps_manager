@@ -24,8 +24,8 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
         raise ValueError('Batch manifest must be a nonempty list')
     prepared = []
     for entry in entries:
-        if not isinstance(entry, dict) or set(entry) - {'source_directory', 'input_file', 'resources'}:
-            raise ValueError('Each job accepts source_directory, input_file and optional resources')
+        if not isinstance(entry, dict) or set(entry) - {'source_directory', 'input_file', 'resources', 'sampling'}:
+            raise ValueError('Each job accepts source_directory, input_file and optional resources/sampling')
         source_value = entry.get('source_directory')
         input_value = entry.get('input_file')
         if not isinstance(source_value, str) or not isinstance(input_value, str):
@@ -50,10 +50,40 @@ def submit_batch(store: Store, config: ManagerConfig, manifest: str | Path) -> t
                 resource_overrides=entry.get('resources'))
         if directory == source or source in directory.parents:
             raise ValueError('Storage work_root must not be inside a source tree')
-        prepared.append((source, directory, spec))
+        generated = {}
+        if entry.get('sampling') is not None:
+            from .sampling import external_sampling, external_files
+            schedule = external_sampling(entry['sampling'])
+            generated = external_files(schedule, (source / relative).read_bytes(),
+                {path.relative_to(source).as_posix() for path in source.rglob('*')})
+            spec = replace(spec, sampling=schedule, storage_mode=config.storage.mode)
+        prepared.append((source, directory, spec, generated))
     submitted = []
-    for source, directory, spec in prepared:
+    for source, directory, spec, generated in prepared:
         directory.mkdir(parents=True, exist_ok=False)
+        if generated:
+            # Snapshot generated settings and original scripts together. The
+            # temporary source is private and never changes the user's files.
+            import tempfile
+            from .staging import snapshot_inputs
+            with tempfile.TemporaryDirectory(prefix='sampling-inputs-') as temporary:
+                combined = Path(temporary) / 'source'
+                shutil.copytree(source, combined)
+                from .sampling import external_files
+                external_files(spec.sampling, (combined / spec.input_file).read_bytes(),
+                    {path.relative_to(combined).as_posix() for path in combined.rglob('*')})
+                for name, content in generated.items():
+                    (combined / name).write_bytes(content)
+                files = snapshot_inputs(combined, directory / 'inputs', dict(
+                    max_files=config.storage.max_input_files, max_file_bytes=config.storage.max_input_file_bytes,
+                    max_total_bytes=config.storage.max_input_total_bytes))
+            primary = next(item for item in files if item.path == spec.input_file)
+            if spec.storage_mode == 'shared' and primary.sha256 != spec.input_sha256:
+                raise ValueError('Input changed during sampling submission')
+            spec = replace(spec, input_manifest=files, input_sha256=primary.sha256)
+            store.submit(spec)
+            submitted.append(spec.job_id)
+            continue
         if config.storage.mode == 'staged':
             from .staging import snapshot_inputs, sync_directory
             limits = dict(max_files=config.storage.max_input_files,
@@ -130,6 +160,31 @@ def run_local(store: Store, worker: WorkerConfig) -> tuple[str, ...]:
             completed.append(spec.job_id)
         elif store.attempt(attempt_id).state == 'unknown':
             break
+    from .results import enumerate_results, output_limits
+    from .staging import open_regular, publish_inputs
+    for row in store.jobs():
+        if store.specification(row['job_id']).storage_mode != 'shared':
+            continue
+        for finished in store.job_attempts(row['job_id']):
+            if finished.worker_id != worker.worker.id or not finished.termination_evidence:
+                continue
+            collection = store.result_collection(finished.attempt_id)
+            if collection and collection['status'] == 'collected':
+                continue
+            try:
+                from .models import InputFile
+                directory = Path(finished.directory)
+                limits = output_limits(worker)
+                manifest = collection['manifest'] if collection else None
+                if manifest is None:
+                    manifest = enumerate_results(directory, limits)
+                store.set_result_collection(finished.attempt_id, 'uploading', manifest)
+                files = tuple(InputFile(**entry) for entry in manifest['files'])
+                publish_inputs(directory / 'results', files,
+                    lambda index: open_regular(directory, files[index].path), limits)
+                store.set_result_collection(finished.attempt_id, 'collected')
+            except (OSError, ValueError) as exc:
+                store.set_result_collection(finished.attempt_id, 'failed', reason=f'{type(exc).__name__}: {exc}')
     return tuple(completed)
 
 
@@ -169,6 +224,15 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
         if hashlib.sha256((work / spec.input_file).read_bytes()).hexdigest() != spec.input_sha256:
             raise ValueError('Input SHA-256 differs from submitted snapshot')
         from .checkpoints import prepare_launch
+        if spec.sampling is not None:
+            from .staging import open_regular, publish_inputs
+            publish_inputs(work, spec.input_manifest, lambda _: None, {})
+            if 'stop_step' in spec.sampling:
+                from .sampling import sampling_files
+                for name, data in sampling_files(spec.sampling, start=0, stop=spec.sampling['stop_step']).items():
+                    with open_regular(work, name) as source:
+                        if source.read(len(data) + 1) != data:
+                            raise ValueError('Sampling input differs from submitted specification')
         prepare_launch(store, worker, attempt.attempt_id, work)
         args = [worker.execution.mpi_launcher_path, *worker.execution.mpi_args,
                 '-np', str(spec.resources.mpi_ranks), worker.execution.lammps_path,
@@ -254,7 +318,7 @@ def inspect_job(store: Store, job_id: str, *, history_limit: int | None = None,
         delivered = collection is not None and collection['status'] == 'collected'
         available = {item['path'] for item in collection['manifest']['files']} if (
             delivered and collection['manifest']) else set()
-        directory = Path(attempt.directory) / 'results' if staged else Path(attempt.directory)
+        directory = Path(attempt.directory) / 'results' if staged or delivered else Path(attempt.directory)
 
         def artifact(name: str) -> str | None:
             return str(directory / name) if not staged or delivered and name in available else None
@@ -264,7 +328,7 @@ def inspect_job(store: Store, job_id: str, *, history_limit: int | None = None,
                          'execution_metadata': artifact('execution.json'),
                          'result_collection': collection or (dict(status='pending',
                              reason='Results have not been collected') if staged else None),
-                         'results_directory': str(directory) if staged and delivered else None,
+                         'results_directory': str(directory) if delivered else None,
                          'input_transfer': store.input_transfer(attempt.attempt_id),
                          'worker_cleanup': store.cleanup_record(attempt.attempt_id),
                          'prelaunch_rejection': store.rejection(attempt.attempt_id),

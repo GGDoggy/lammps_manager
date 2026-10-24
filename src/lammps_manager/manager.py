@@ -26,6 +26,10 @@ from .store import Store, TERMINAL
 # at most 2.1 MB for their JSON array, plus bounded provenance and one state file.
 # Keep the existing wire format and a finite allowance for all supported plans.
 MAX_CHECKPOINT_MANIFEST_BYTES = 4 * 1024 * 1024
+# Compression records repeat archive and original identities. Allow bounded
+# result metadata above the old 1 MiB limit for the default 10000 output files;
+# artifact count/size, ownership and termination checks still apply separately.
+MAX_RESULT_MANIFEST_BYTES = 16 * 1024 * 1024
 
 
 class StorageProtocolError(ValueError):
@@ -236,6 +240,8 @@ class ManagerService:
                     specification = asdict(store.specification(attempt.job_id))
                     # Submission provenance stays on the manager; workers need only rendered inputs.
                     specification.pop('sweep', None)
+                    if specification['sampling'] is None:
+                        specification.pop('sampling')
                     if not specification['mpi_placement']:
                         specification.pop('mpi_placement')
                     if payload.get('recovery_protocol') != 1:
@@ -527,8 +533,10 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if self.headers.get('Transfer-Encoding'):
                         raise ValueError('Chunked requests are not supported')
                     if operation in {'manifest', 'commit'}:
-                        limit = (MAX_CHECKPOINT_MANIFEST_BYTES
-                                 if parts[2] == 'checkpoints' and operation == 'manifest' else 1048576)
+                        limit = 1048576
+                        if operation == 'manifest':
+                            limit = (MAX_CHECKPOINT_MANIFEST_BYTES if parts[2] == 'checkpoints'
+                                     else MAX_RESULT_MANIFEST_BYTES)
                         if not 0 < length <= limit:
                             raise ValueError('Invalid result request size')
                         payload = json.loads(self.rfile.read(length))

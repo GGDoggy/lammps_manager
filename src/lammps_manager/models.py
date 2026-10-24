@@ -83,8 +83,12 @@ class JobSpecification:
     input_manifest: tuple[InputFile, ...] = ()
     infrastructure_recovery: InfrastructureRecovery = field(default_factory=lambda: InfrastructureRecovery(0))
     mpi_placement: tuple[MpiParticipant, ...] = field(default=(), kw_only=True)
+    sampling: dict | None = field(default=None, kw_only=True)
 
     def __post_init__(self) -> None:
+        if self.sampling is not None:
+            from .sampling import validate_sampling
+            validate_sampling(self.sampling)
         if not isinstance(self.mpi_placement, tuple):
             raise ValueError('MPI placement must be an immutable tuple')
         if not self.mpi_placement:

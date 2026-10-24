@@ -97,6 +97,61 @@ class MpiHTTPTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256((directory/item['path']).read_bytes()).hexdigest(),item['sha256'])
         with self.assertRaises(ValueError):self.service.mpi_result_operation('b','attempt','manifest',self.manifest(b'changed'))
 
+    def test_combined_manifest_preserves_original_trajectory_identities(self):
+        import gzip
+        self.end()
+        original = b'precise trajectory\n'
+        archive = gzip.compress(original, mtime=0)
+        entry = dict(path='work/trajectory.dump.gz', size=len(archive), sha256=hashlib.sha256(archive).hexdigest())
+        compression = dict(**entry, compression='gzip', original=dict(path='work/trajectory.dump',
+            size=len(original), sha256=hashlib.sha256(original).hexdigest()))
+        for name in ('a', 'b'):
+            manifest = dict(files=[entry], omitted=[], compression=[compression])
+            self.service.mpi_result_operation(name, 'attempt', 'manifest', manifest)
+            self.service.mpi_result_operation(name, 'attempt', '0', stream=io.BytesIO(archive), length=len(archive))
+            self.service.mpi_result_operation(name, 'attempt', 'commit', {})
+        with Store(self.config.manager.database_path) as store:
+            result = store.result_collection('attempt')
+            self.assertEqual(len(result['manifest']['compression']), 2)
+            for item in result['manifest']['compression']:
+                self.assertEqual(item['original']['sha256'], hashlib.sha256(original).hexdigest())
+                published = Path(store.attempt('attempt').directory) / 'results' / item['path']
+                self.assertEqual(gzip.decompress(published.read_bytes()), original)
+
+    def test_large_participant_manifest_binds_and_replays_over_http(self):
+        import gzip
+        self.end()
+        original = b'physical trajectory\n' * 100
+        archive = gzip.compress(original, mtime=0)
+        files, compression = [], []
+        for index in range(3000):
+            raw = dict(path=f'work/frame-{index:06d}.dump', size=len(original),
+                sha256=hashlib.sha256(original).hexdigest())
+            entry = dict(path=raw['path'] + '.gz', size=len(archive),
+                sha256=hashlib.sha256(archive).hexdigest())
+            files.append(entry)
+            compression.append(dict(**entry, compression='gzip', original=raw))
+        manifest = dict(files=files, omitted=[], compression=compression)
+        self.assertGreater(len(json.dumps(manifest).encode()), 1048576)
+        server = make_server(self.service, '127.0.0.1', 0)
+        thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': .01})
+        thread.start()
+        def stop():
+            server.shutdown(); thread.join(timeout=5); server.server_close()
+        self.addCleanup(stop)
+        root = self.root / 'node-large'
+        root.mkdir()
+        config = WorkerConfig(self.capacities['a'], f'http://127.0.0.1:{server.server_port}', str(root),
+            Execution('/bin/false', '/bin/false'), str(self.root / 'a.token'), storage_mode='staged')
+        node = Node(root, config)
+        for _ in range(2):
+            with node.request('/v2/mpi-results/attempt/manifest', manifest) as response:
+                self.assertEqual(json.load(response)['status'], 'uploading')
+        with Store(self.config.manager.database_path) as store:
+            saved = store._db.execute('SELECT manifest FROM mpi_outputs WHERE attempt_id=? AND worker_id=?',
+                ('attempt', 'a')).fetchone()[0]
+            self.assertEqual(json.loads(saved), manifest)
+
     def test_bad_hash_or_missing_peer_never_claims_complete_delivery(self):
         self.end()
         self.service.mpi_result_operation('a','attempt','manifest',self.manifest(b'valid'))

@@ -172,7 +172,11 @@ The parent succeeds only after its final checkpoint and required results commit.
 
 ## Output and retention
 
-Segment trajectories keep their global step numbering. Both physical boundary
+New submissions use [global sampling](trajectory-sampling.md), a separate initial
+state and no duplicate segment-start trajectory frames. Existing snapshots without
+sampling retain their prior behavior described below.
+
+Legacy segment trajectories keep their global step numbering. Both physical boundary
 frames are retained; monitoring/history explicitly mark every continuation
 segment's initial frame as a duplicate. Compare physical copies before treating
 them as one logical frame. Do not count segments, frames or correlated time origins

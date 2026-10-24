@@ -72,6 +72,23 @@ class SegmentTests(unittest.TestCase):
         cp.operation(self.store, 'worker', attempt, '0', LIMITS, stream=BytesIO(data), length=len(data))
         return cp.operation(self.store, 'worker', attempt, 'commit', LIMITS)
 
+    def test_explicit_sampling_stays_global_across_checkpoint_successor(self):
+        run = seg.submit_run(self.store, self.config, total_steps=2000, step_max=800,
+            segment_ends=(600, 1400, 2000), build_fingerprint=BUILD,
+            sampling=dict(unit='step', positions=[1, 600, 601, 1400, 2000]))
+        first_job = seg.inspect_run(self.store, run)['segments'][0]['job_id']
+        first = self.store.specification(first_job)
+        root = Path(first.work_directory) / 'inputs'
+        self.assertEqual((root / 'snapshot-steps.txt').read_bytes(), b'1\n600\n601\n')
+        self.assertIn('initial.dump', (root / 'sampling.lmp').read_text())
+        self.finish(first_job)
+        seg.advance(self.store, run)
+        second = self.store.specification(seg.inspect_run(self.store, run)['segments'][1]['job_id'])
+        second_root = Path(second.work_directory) / 'inputs'
+        self.assertEqual((second_root / 'snapshot-steps.txt').read_bytes(), b'601\n1400\n1401\n')
+        self.assertNotIn('initial.dump', (second_root / 'sampling.lmp').read_text())
+        self.assertEqual(second.sampling, first.sampling)
+
     def test_interval_arithmetic_and_default(self):
         for count in (1, 99999, 100000, 100001, 200000, 250001):
             with self.subTest(count=count):
