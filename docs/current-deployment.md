@@ -42,7 +42,9 @@ at the user's request after switching services. Private runtime directories are
 excluded through each clone's `.git/info/exclude`.
 The poincare worker uses `worker/bin/lmp`, copied from the prior accepted allegro
 build after checking local dynamic dependencies. Mozzarella uses
-`/usr/local/bin/lmp`; allegro uses `/usr/bin/lmp`. These builds differ; basic smoke
+`/usr/local/bin/lmp`; allegro now uses `worker/bin/lmp`, matching the copied
+poincare executable after the continuation repair. Its retained `/usr/bin/lmp`
+lacks the BROWNIAN package required by the continuation recipes. These builds differ; basic smoke
 execution does not establish scientific equivalence or continuation compatibility.
 
 ## Network and quotas
@@ -163,3 +165,32 @@ Private evidence is under `var/verification/direct-checkout-20261025/`
 Configuration and storage paths required no changes. At the user's subsequent
 request, all three `releases/` directories and the transition source, environment
 and unit backups were removed. Simulation outputs and journals remain intact.
+
+## Continuation worker execution profile
+
+The 2026-10-25 continuation startup repair clears `execution.mpi_args`,
+`execution.lammps_args` and `execution.environment` on all three workers while
+retaining their executable paths, identities, journals, quotas and storage roots.
+The previous `--bind-to core`, `OMP_PROC_BIND=close` and
+`OPENBLAS_NUM_THREADS=1` settings are rejected by the existing strict continuation
+launch contract. The launcher supplies `OMP_NUM_THREADS` from job resources.
+Worker configuration validation and worker service restart load this profile;
+no continuation validation was relaxed. See [engineering continuation](engineering-continuation.md).
+
+Allegro's system binary failed the real recipe smoke because BROWNIAN was absent.
+With explicit authorization, its worker now uses a private copy of poincare's
+accepted executable (SHA-256
+`4d812f3ddbc98453c89ef55c26f82281425b130a3c11a678bc42aa86663e1597`).
+Dynamic dependencies and required fix styles were checked before activation;
+the original system binary and failed output remain retained.
+
+Each deployed host then completed an independent real singleton WCA run with
+three segments ending at steps 40, 100 and 180. The final audit verified all
+collected result hashes, acknowledged checkpoints, confirmed termination and
+zero reservations; all workers were online, ready and unpaused. Evidence is under
+`var/verification/continuation-startup-20261025/final-audit.json`.
+Mozzarella required transport retries before durable result acknowledgement.
+Separate isolated shared/staged acceptance also exercised failed-launch retry and
+manager restart. These checks establish bounded engineering operation, not
+scientific equivalence or other rank layouts. See `tasks.md` for full local
+check failures and runtime limitations.

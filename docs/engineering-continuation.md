@@ -84,6 +84,15 @@ bounded restart smoke exercises the actual required atom/pair/fix styles before
 production integration; unsupported commands fail the attempt. Engineering layouts use positive fixed MPI ranks (up to the engine/launcher integer bound `2^31-1`)
 and one OpenMP thread, with matching job resources. The local MPI launcher profile
 accepts no extra MPI arguments, LAMMPS arguments or execution environment overrides.
+For a dedicated continuation worker, retain the configured executable paths and set
+`execution.mpi_args: []`, `execution.lammps_args: []` and
+`execution.environment: {}`. In particular, `--bind-to core`, `OMP_PROC_BIND`
+and `OPENBLAS_NUM_THREADS` in those configuration fields are rejected even if
+appropriate for independent jobs. The launcher still supplies `OMP_NUM_THREADS`
+from the immutable job resources. Validate the worker configuration and restart
+the worker to load changes; restarting services alone does not remove conflicting
+settings. Review existing attempt state before explicitly retrying failed jobs.
+
 A failed actual MPI startup remains a failed attempt, never a successful checkpoint.
 Run the explicit bounded smoke below for each intended rank count/build environment;
 local fake tests do not certify those layouts. New environments should undergo the explicit bounded smoke before long runs;
