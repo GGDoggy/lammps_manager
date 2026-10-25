@@ -2,6 +2,8 @@
 from dataclasses import asdict, replace
 import io
 import json
+import sqlite3
+import time
 import unittest
 from unittest.mock import patch
 
@@ -78,6 +80,95 @@ class MonitoringTests(unittest.TestCase):
                         small = work(store, 256)
                         seed(store, 256, 512)
                         self.assertLess(work(store, 512), small * 3)
+
+    def test_version_three_upgrade_preserves_state_and_enables_assigned_progress(self):
+        from lammps_manager.monitoring import launch_progress
+        self.submit('legacy', cpu=1)
+        self.store.assign('legacy', 'legacy-attempt', 'w', '/work/legacy/attempt')
+        transfer(self.store, 'legacy-attempt', 'input', 'transferring', now=90)
+        file_progress(self.store, 'legacy-attempt', 'input', 0, transferred=10, now=95)
+        tables = ('jobs', 'attempts', 'reservations', 'events',
+                  'transfer_progress', 'transfer_files')
+
+        def snapshot(store):
+            return {table: [tuple(row) for row in store._db.execute(f'SELECT * FROM {table}')]
+                    for table in tables}
+
+        before = snapshot(self.store)
+        # Reproduce the previous release: version 3 has no launch_progress table.
+        self.store._db.execute('DROP TABLE launch_progress')
+        self.store._db.execute('PRAGMA user_version=3')
+        with Store(self.path) as upgraded:
+            self.assertEqual(snapshot(upgraded), before)
+            view = status(upgraded, self.config, now=100)['jobs'][0]['assigned_progress']
+            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(view['phase'], 'awaiting_worker_evidence')
+            launch_progress(upgraded, 'legacy-attempt', 'waiting_admission', 'Waiting for metrics')
+        with Store(self.path) as reopened:
+            view = status(reopened, self.config)['jobs'][0]['assigned_progress']
+            self.assertEqual(view['phase'], 'waiting_admission')
+            self.assertEqual(view['reason'], 'Waiting for metrics')
+            self.assertEqual(snapshot(reopened), before)
+
+    def test_version_three_migration_rolls_back_and_current_open_needs_no_write_lock(self):
+        from lammps_manager.monitoring import initialize_launch_progress
+        self.store._db.execute('DROP TABLE launch_progress')
+        self.store._db.execute('PRAGMA user_version=3')
+
+        def fail_after_create(store):
+            initialize_launch_progress(store)
+            raise RuntimeError('Injected migration failure')
+
+        with patch('lammps_manager.monitoring.initialize_launch_progress', side_effect=fail_after_create):
+            with self.assertRaisesRegex(RuntimeError, 'Injected migration failure'):
+                Store(self.path)
+        self.assertEqual(self.store._db.execute('PRAGMA user_version').fetchone()[0], 3)
+        self.assertIsNone(self.store._db.execute(
+            "SELECT name FROM sqlite_master WHERE name='launch_progress'").fetchone())
+        with Store(self.path) as upgraded:
+            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 4)
+        # Current-schema opens must retain the existing read-only fast path.
+        with sqlite3.connect(self.path) as writer:
+            writer.execute('BEGIN IMMEDIATE')
+            with Store(self.path, timeout=0) as current:
+                self.assertEqual(current._db.execute('PRAGMA foreign_keys').fetchone()[0], 1)
+
+    def test_assigned_evidence_does_not_turn_repeated_polls_into_progress(self):
+        from lammps_manager.monitoring import launch_progress, assigned_progress
+        self.submit('assigned', cpu=1)
+        self.store.assign('assigned', 'a1', 'w', '/work/assigned/a1')
+        before = self.store.reservations()
+        snapshot = self.store.specification('assigned')
+        self.assertIsNone(assigned_progress(self.store, 'a1', 100, 30)['suspected_stall'])
+        for phase in ('preparing_inputs', 'input_failed', 'waiting_admission', 'launch_claimed'):
+            with patch('lammps_manager.monitoring.time.time', return_value=100):
+                launch_progress(self.store, 'a1', phase, 'test reason')
+            with patch('lammps_manager.monitoring.time.time', return_value=200):
+                launch_progress(self.store, 'a1', phase, 'test reason')
+            view = assigned_progress(self.store, 'a1', 200, 30)
+            self.assertEqual(view['phase'], phase)
+            self.assertEqual(view['last_progress_at'], 100)
+            self.assertTrue(view['suspected_stall'])
+        self.assertEqual(self.store.reservations(), before)
+        self.assertEqual(self.store.specification('assigned'), snapshot)
+        self.assertEqual(self.store.attempt('a1').state, 'assigned')
+        with self.assertRaises(ValueError):
+            launch_progress(self.store, 'a1', 'running', 'invented state')
+
+    def test_input_retry_and_changed_error_are_not_progress(self):
+        from lammps_manager.monitoring import launch_progress, assigned_progress
+        self.submit('retrying', cpu=1)
+        self.store.assign('retrying', 'r1', 'w', '/work/retrying/r1')
+        for timestamp, phase, reason in [(100, 'preparing_inputs', 'downloading'),
+                                         (150, 'input_failed', 'timeout'),
+                                         (180, 'preparing_inputs', 'retry'),
+                                         (200, 'input_failed', 'HTTP error')]:
+            with patch('lammps_manager.monitoring.time.time', return_value=timestamp):
+                launch_progress(self.store, 'r1', phase, reason)
+        view = assigned_progress(self.store, 'r1', 210, 30)
+        self.assertEqual(view['last_progress_at'], 100)
+        self.assertEqual(view['reason'], 'HTTP error')
+        self.assertTrue(view['suspected_stall'])
 
     def test_page_filters_counts_and_unknowns(self):
         for name in ('a','b','c'):
@@ -237,6 +328,44 @@ class MonitoringHTTPTests(unittest.TestCase):
     configure_process = _results.ResultTests.configure_process
     finish_process = _results.ResultTests.finish_process
     tick = _results.ResultTests.tick
+
+    def test_worker_reports_admission_and_claim_without_releasing_reservations(self):
+        import threading
+        from lammps_manager.monitoring import job_view
+        self.configure_process()
+        worker = self.worker()
+        with patch.object(worker, '_can_launch', return_value=False):
+            self.tick(worker)
+            for _ in range(3):
+                worker.tick()
+            with Store(self.config.manager.database_path) as store:
+                view = job_view(store, self.job_id, self.config, time.time())
+                self.assertEqual(view['assigned_progress']['phase'], 'waiting_admission')
+                self.assertIn('headroom', view['assigned_progress']['reason'])
+                self.assertEqual(len(store.reservations()), 1)
+        entered, release = threading.Event(), threading.Event()
+        original = worker._execute
+
+        def blocked(attempt_id):
+            entered.set()
+            if not release.wait(5):
+                raise RuntimeError('Test executor was not released')
+            return original(attempt_id)
+
+        try:
+            with patch.object(worker, '_execute', side_effect=blocked):
+                worker.tick()
+                self.assertTrue(entered.wait(3))
+                worker.tick()
+                with Store(self.config.manager.database_path) as store:
+                    view = job_view(store, self.job_id, self.config, time.time())
+                    self.assertEqual(view['assigned_progress']['phase'], 'launch_claimed')
+                    self.assertEqual(store.job_state(self.job_id), 'assigned')
+                    self.assertEqual(len(store.reservations()), 1)
+        finally:
+            release.set()
+        for future in worker.futures.values():
+            future.result(timeout=5)
 
     def test_poll_preserves_active_result_transfer_phase(self):
         import threading

@@ -58,6 +58,12 @@ class ConfigurationTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             load_config('/missing/config.yaml', 'worker')
 
+    def test_conflicting_mpi_binding_is_rejected(self):
+        worker = yaml.safe_load(Path('examples/worker.yaml').read_text())
+        worker['execution']['mpi_args'] = ['--bind-to', 'core', '--bind-to=none']
+        with self.assertRaisesRegex(ConfigurationError, 'mpi_args'):
+            self.load(worker, 'worker')
+
     def test_staged_cleanup_setting(self):
         worker = yaml.safe_load(Path('examples/worker.yaml').read_text())
         worker.pop('cleanup_staged_files', None)

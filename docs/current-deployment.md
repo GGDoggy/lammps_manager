@@ -31,8 +31,8 @@ before maintenance that requires idle workers. Physical reboot is not tested.
 
 All services use the root Git checkout directly through `PYTHONPATH` pointing to
 `/home/ted/lammps_manager/src` and `/home/ted/lammps_manager/.venv/bin/python3`.
-The deployed revision is `af7041a4c5fc9e53a2a18d87f91985eb73ade7bd` on all three
-hosts. A pull changes the source used by subsequent imports and new processes;
+The initial direct-checkout transition deployed
+`af7041a4c5fc9e53a2a18d87f91985eb73ade7bd` on all three hosts. A pull changes the source used by subsequent imports and new processes;
 update only during coordinated idle maintenance, then restart all affected
 services. No release creation or service-path change is needed for later updates.
 All service environments use system Python 3.10.12 and PyYAML 6.0.3. Root
@@ -62,8 +62,8 @@ The public `140.114.80.212:8443` timed out from mozzarella before deployment;
 this installation does not rely on public ingress, NAT forwarding or SSH tunnels.
 It does not change host firewall or routing configuration.
 
-Existing manager limits are retained: each worker reserves up to 10 logical CPU
-slots, 10 GiB and 10 concurrent jobs. Actual admission also checks detected
+At the initial transition, each worker reserved up to 10 logical CPU slots,
+10 GiB and 10 concurrent jobs; the later audited limits below supersede these values. Actual admission also checks detected
 capacity, available memory, per-CPU external load and all unreleased reservations.
 CPU reservations equal MPI ranks multiplied by OpenMP threads. These settings
 provide accounting, not cgroup enforcement. Submission defaults remain one MPI
@@ -171,7 +171,7 @@ and unit backups were removed. Simulation outputs and journals remain intact.
 The 2026-10-25 continuation startup repair clears `execution.mpi_args`,
 `execution.lammps_args` and `execution.environment` on all three workers while
 retaining their executable paths, identities, journals, quotas and storage roots.
-The previous `--bind-to core`, `OMP_PROC_BIND=close` and
+At that repair, the previous `--bind-to core`, `OMP_PROC_BIND=close` and
 `OPENBLAS_NUM_THREADS=1` settings are rejected by the existing strict continuation
 launch contract. The launcher supplies `OMP_NUM_THREADS` from job resources.
 Worker configuration validation and worker service restart load this profile;
@@ -194,3 +194,30 @@ Separate isolated shared/staged acceptance also exercised failed-launch retry an
 manager restart. These checks establish bounded engineering operation, not
 scientific equivalence or other rank layouts. See `tasks.md` for full local
 check failures and runtime limitations.
+
+
+The subsequent single-host binding repair defaults empty MPI arguments to
+`--bind-to none` and also permits that exact explicit engineering profile.
+Updating source does not change an already running process. See `tasks.md` for
+actual deployment/verification status; historical service activity above is not
+an assertion that services are currently running.
+
+
+The read-only 2026-10-26 binding-repair audit found all three clones at
+`72fe772b0caf386a492b3c2f937654c0342b5a9b`, including T025 background input
+preparation. All manager/worker services were inactive, and no MPI/LAMMPS processes
+were present. Manager reservations were zero. Mozzarella retained 12 local
+assigned reservations with failed input transfers and no launch claims; matching
+manager attempts were already cancelled with explicit prior termination evidence.
+Those local records were retained, not treated as active downloads or silently
+rewritten. Historical journals show transport failures; this audit does not
+establish the original pre-cancellation stall's root cause.
+
+Audited manager/worker ceilings are 12 CPU slots / 12 GiB / 12 jobs on poincare
+and allegro, and 15 / 15 / 15 on mozzarella. Scheduler settings include
+`min_slots: 4`, `reserve_slots: 2`, `reserve_memory_gib: 4` and external-load
+accounting. All workers still have empty MPI/LAMMPS arguments and execution
+environment overrides. The binding repair needs no configuration rewrite:
+empty MPI arguments now select the effective unbound profile. Existing service
+stop states and runtime data are preserved; source synchronization alone does
+not resume work. See `tasks.md` for the final verification/deployment record.

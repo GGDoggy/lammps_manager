@@ -143,3 +143,17 @@ eligibility. Independent jobs retain `continuation: null`. `inspect-run` provide
 bounded segment history and parent events; `cancel-run` controls the whole chain.
 See [segmentation](segmentation.md) for CLI examples and the physical/scientific
 scope. Process success alone does not establish parent success or durable progress.
+
+
+Assigned status includes `assigned_progress`: authenticated preparation/failure,
+admission wait and launch-claim evidence, a reason, last progress time and a
+`suspected_stall` diagnostic using `transfer_stall_seconds`. Missing worker
+reports stay unknown. Repeated polls, changed errors and download retry phase
+cycling do not count as new progress. File-transfer counters can independently
+advance the last progress time. This view never changes job state, reservations
+or retry rights; see [worker diagnostics](workers.md#assigned-progress-diagnostics).
+
+Opening an existing schema-version-3 database transactionally upgrades it to
+version 4 and creates the assigned-progress table. Existing jobs, submitted
+specifications, attempts, reservations and transfer telemetry are retained.
+Current-version opens retain the read-only schema fast path.

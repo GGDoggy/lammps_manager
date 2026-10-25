@@ -203,6 +203,8 @@ class EngineeringTests(unittest.TestCase):
         worker = SimpleNamespace(execution=Execution('/fake/lmp', '/fake/mpirun'))
         with patch('lammps_manager.continuation.fingerprint_build', return_value=BUILD):
             cp.prepare_launch(self.store, worker, attempt.attempt_id, work)
+            worker.execution = replace(worker.execution, mpi_args=('--bind-to', 'none'))
+            cp.prepare_launch(self.store, worker, attempt.attempt_id, work)
             worker.execution = replace(worker.execution, mpi_args=('--host', 'elsewhere'))
             with self.assertRaisesRegex(ValueError, 'fixed local MPI'):
                 cp.prepare_launch(self.store, worker, attempt.attempt_id, work)

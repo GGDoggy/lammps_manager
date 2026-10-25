@@ -172,7 +172,7 @@ class SnapshotTests(unittest.TestCase):
             store.submit(spec)
         with sqlite3.connect(database) as connection:
             self.assertEqual(connection.execute('SELECT specification FROM jobs').fetchone()[0], serialized)
-            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 4)
 
     def test_staged_yaml_settings(self) -> None:
         import yaml

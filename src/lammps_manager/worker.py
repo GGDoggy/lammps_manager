@@ -262,6 +262,17 @@ class Worker:
                 transfer = store.input_transfer(attempt.attempt_id)
                 if transfer is not None:
                     report['input_transfer'] = transfer
+                if attempt.state == 'assigned':
+                    if store.launch_claimed(attempt.attempt_id):
+                        phase, reason = 'launch_claimed', 'Executor owns launch; running not yet recorded'
+                    elif transfer and transfer['status'] == 'failed':
+                        phase, reason = 'input_failed', transfer.get('reason') or 'Input preparation failed'
+                    elif self.config.storage_mode == 'staged' and (not transfer or transfer['status'] != 'ready'):
+                        phase, reason = 'preparing_inputs', 'Waiting for input preparer or verified publication'
+                    else:
+                        phase, reason = 'waiting_admission', getattr(self, 'launch_wait', {}).get(
+                            attempt.attempt_id, 'Waiting for a normal poll and launch admission')
+                    report['launch_progress'] = {'phase': phase, 'reason': reason[:512]}
                 if self.acknowledged.get(attempt.attempt_id) != report:
                     reports.append(report)
         inventory = self._continuation_inventory()
@@ -572,8 +583,13 @@ class Worker:
         attempt = store.attempt(attempt_id)
         if attempt.state != 'assigned' or store.launch_claimed(attempt_id):
             return
+        if not hasattr(self, 'launch_wait'):
+            self.launch_wait = {}
+        self.launch_wait[attempt_id] = 'Waiting for current input/result protocol readiness'
         closed = (result['paused'] or not self.ready or self.draining
                   or not self.config.worker.enabled or not result['manager_capacity']['enabled'])
+        if closed:
+            self.launch_wait[attempt_id] = 'Worker paused, draining, disabled or not ready'
         if closed and result.get('prelaunch_protocol') == 1:
             store.reject_launch(attempt_id, 'not_ready', 'Worker closed to new launches', time.time() + 30)
             return
@@ -588,6 +604,7 @@ class Worker:
             return
         r = store.specification(attempt.job_id).resources
         if not self._can_launch(store, r, result, snapshot, attempt_id):
+            self.launch_wait[attempt_id] = 'Waiting for fresh metrics, CPU/memory headroom or executor capacity'
             incompatible = (r.cpu_slots > min(self.config.worker.cpu_slots,
                                 result['manager_capacity']['cpu_slots'], snapshot['detected_cpu_slots'])
                             or r.memory_gib > min(self.config.worker.memory_budget_gib,

@@ -26,7 +26,7 @@ class LocalTests(unittest.TestCase):
         (self.source / 'in.lmp').write_text('original input')
         (self.source / 'asset').write_text('asset')
         launcher = self.root / 'fake mpi'
-        launcher.write_text('#!' + sys.executable + '\nimport os,sys\nos.execv(sys.argv[3],sys.argv[3:])\n')
+        launcher.write_text('#!' + sys.executable + '\nimport os,sys\ni=sys.argv.index("-np")+2\nos.execv(sys.argv[i],sys.argv[i:])\n')
         launcher.chmod(0o755)
         program = self.root / 'fake lammps'
         program.write_text('#!' + sys.executable + '\n'
@@ -126,6 +126,7 @@ class LocalTests(unittest.TestCase):
                 self.assertTrue((directory / 'work/result').is_file())
                 metadata = json.loads((directory / 'execution.json').read_text())
                 self.assertIn('literal; $(no shell)', metadata['argv'])
+                self.assertEqual(metadata['argv'][1:3], ['--bind-to', 'none'])
                 self.assertEqual(metadata['environment']['OMP_NUM_THREADS'], '2' if code == 0 else '1')
             self.assertNotEqual(*directories)
             saved = (directories[0] / 'stdout').read_bytes()
@@ -222,3 +223,25 @@ class LocalTests(unittest.TestCase):
         self.assertEqual(cli('run-local', '--worker-config', str(self.worker_path)), ids)
         self.assertEqual(cli('inspect', ids[0])['state'], 'succeeded')
         self.assertEqual(cli('status')['jobs'][0]['state'], 'succeeded')
+
+
+class MpiBindingTests(unittest.TestCase):
+    def test_effective_binding_policy(self):
+        from lammps_manager.mpi_launch import effective_mpi_args
+        for supplied, expected in [
+            ((), ('--bind-to', 'none')),
+            (('--bind-to', 'none'), ('--bind-to', 'none')),
+            (('--bind-to', 'core'), ('--bind-to', 'core')),
+            (('--bind-to=core',), ('--bind-to=core',)),
+            (('--bind-to-core',), ('--bind-to-core',)),
+            (('--oversubscribe',), ('--bind-to', 'none', '--oversubscribe')),
+        ]:
+            with self.subTest(supplied=supplied):
+                self.assertEqual(effective_mpi_args(supplied), expected)
+        for supplied in [('--bind-to',), ('--bind-to=',), ('--bind-to', ''),
+                         ('--bind-to', '--oversubscribe'),
+                         ('--bind-to', 'none', '--bind-to', 'none'),
+                         ('--bind-to=core', '--bind-to', 'none'),
+                         ('--bind-to-core', '--bind-to-none')]:
+            with self.subTest(supplied=supplied), self.assertRaisesRegex(ValueError, 'mpi_args'):
+                effective_mpi_args(supplied)

@@ -269,3 +269,14 @@ queue step zero without a predecessor checkpoint. Keep original physics, seeds,
 snapshots, attempts and outputs; use distinct generation job paths. Retired jobs
 cannot be retried or advance the new generation. See [segmentation](segmentation.md)
 for monitoring, recovery boundaries and verification limits.
+
+
+## Single-host MPI scheduling policy
+
+The common local/worker executor defaults Open MPI to `--bind-to none`, avoiding
+independent singleton launches all binding to the same core. Reservations still
+account MPI ranks times OpenMP threads. Explicit ordinary-job binding is preserved;
+engineering continuation accepts only empty or exact unbound MPI arguments and
+retains its other validation. Future launches use loaded worker policy; immutable
+specifications and already running processes are unchanged. Assigned progress is
+reported as diagnostic evidence, never process termination or retry authorization.

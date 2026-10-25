@@ -354,8 +354,8 @@ def prepare_launch(store: Store, worker: object, attempt_id: str, work: Path) ->
     engineering = provenance.get('version') in (ENGINEERING_VERSION, PARAMETERIZED_VERSION)
     start = 0 if contract.segment == 0 else contract.segment_ends[contract.segment - 1]
     if engineering:
-        if worker.execution.mpi_args:
-            raise ValueError('Engineering continuation requires the fixed local MPI launcher profile without extra arguments')
+        if worker.execution.mpi_args not in ((), ('--bind-to', 'none')):
+            raise ValueError('Engineering continuation requires the fixed local MPI launcher profile (empty or --bind-to none)')
     renderer = (lambda **kw: render_engineering_input(contract.recipe, **kw)) if engineering else render_abp_input
     spec = store.specification(contract.job_id)
     if provenance.get('version') == PARAMETERIZED_VERSION:

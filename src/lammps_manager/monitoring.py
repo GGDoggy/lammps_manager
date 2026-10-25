@@ -12,6 +12,7 @@ from .store import Store
 
 def initialize(store: Store) -> None:
     """Add runtime tables without modifying submitted specifications."""
+    initialize_launch_progress(store)
     store._db.execute('CREATE TABLE IF NOT EXISTS transfer_progress ('
                       'attempt_id TEXT NOT NULL REFERENCES attempts(attempt_id), direction TEXT NOT NULL, '
                       'phase TEXT NOT NULL, total_bytes INTEGER, total_files INTEGER, '
@@ -25,6 +26,13 @@ def initialize(store: Store) -> None:
                       'alert_key TEXT PRIMARY KEY, kind TEXT NOT NULL, subject TEXT NOT NULL, '
                       'first_seen_at REAL NOT NULL, last_changed_at REAL NOT NULL, '
                       'active INTEGER NOT NULL, resolved_at REAL)')
+
+
+def initialize_launch_progress(store: Store) -> None:
+    """Add assigned diagnostics independently of older feature migrations."""
+    store._db.execute('CREATE TABLE IF NOT EXISTS launch_progress ('
+                      'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                      'phase TEXT NOT NULL, reason TEXT NOT NULL, changed_at REAL NOT NULL)')
 
 
 def transfer(store: Store, attempt_id: str, direction: str, phase: str, *,
@@ -150,6 +158,38 @@ def _age(value: float | None, now: float) -> float | None:
     return now - value if value is not None and value <= now else None
 
 
+def launch_progress(store: Store, attempt_id: str, phase: str, reason: str) -> None:
+    """Persist authenticated worker evidence; unchanged polls are not progress."""
+    if phase not in ('preparing_inputs', 'input_failed', 'waiting_admission', 'launch_claimed'):
+        raise ValueError('Invalid launch progress phase')
+    if not isinstance(reason, str) or len(reason) > 512 or '\x00' in reason:
+        raise ValueError('Invalid launch progress reason')
+    with store._transaction():
+        store._db.execute('INSERT INTO launch_progress VALUES(?,?,?,?) '
+                          'ON CONFLICT(attempt_id) DO UPDATE SET phase=excluded.phase, '
+                          'reason=excluded.reason,changed_at=CASE '
+                          "WHEN phase=excluded.phase OR (phase IN ('preparing_inputs','input_failed') "
+                          "AND excluded.phase IN ('preparing_inputs','input_failed')) THEN changed_at "
+                          'ELSE excluded.changed_at END '
+                          'WHERE phase!=excluded.phase OR reason!=excluded.reason',
+                          (attempt_id, phase, reason, time.time()))
+
+
+def assigned_progress(store: Store, attempt_id: str, now: float, stall_seconds: float) -> dict:
+    """Expose reported evidence without inferring process failure from silence."""
+    row = store._db.execute('SELECT * FROM launch_progress WHERE attempt_id=?', (attempt_id,)).fetchone()
+    progress = transfers(store, attempt_id)['input']
+    last = max([value for value in (
+        row['changed_at'] if row else None,
+        progress['last_progress_at'] if progress else None) if value is not None], default=None)
+    age = _age(last, now)
+    return {'phase': row['phase'] if row else 'awaiting_worker_evidence',
+            'reason': row['reason'] if row else 'Acceptance or launch progress has not been reported',
+            'last_progress_at': last, 'progress_age_seconds': age,
+            'suspected_stall': age > stall_seconds if age is not None else None,
+            'input': progress}
+
+
 def job_view(store: Store, job_id: str, config: ManagerConfig, now: float) -> dict:
     """Summarize operational state without credentials, inputs or environment."""
     spec = store.specification(job_id)
@@ -172,6 +212,8 @@ def job_view(store: Store, job_id: str, config: ManagerConfig, now: float) -> di
             'worker_id': latest.worker_id if latest else None,
             'attempt_id': latest.attempt_id if latest else None,
             'attempt_state': latest.state if latest else None,
+            'assigned_progress': (assigned_progress(store, latest.attempt_id, now, config.monitoring.transfer_stall_seconds)
+                                  if latest and latest.state == 'assigned' else None),
             'execution_elapsed_seconds': (max(0, (_epoch(latest.ended_at) or now) - _epoch(latest.started_at))
                                           if latest and latest.started_at else None),
             'latest_error': latest.reason if latest else None,

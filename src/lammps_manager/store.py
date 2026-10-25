@@ -120,7 +120,7 @@ class Store:
         self._db.row_factory = sqlite3.Row
         try:
             version = self._db.execute('PRAGMA user_version').fetchone()[0]
-            if version == 3:
+            if version == 4:
                 self._db.execute('PRAGMA foreign_keys = ON')
                 return
         except BaseException:
@@ -131,7 +131,7 @@ class Store:
         try:
             with self._transaction():
                 version = self._db.execute('PRAGMA user_version').fetchone()[0]
-                if version != 3:
+                if version not in (3, 4):
                     if version == 0:
                         # executescript would implicitly commit the schema transaction.
                         for statement in SCHEMA.split(';'):
@@ -201,7 +201,10 @@ class Store:
                     initialize_multihost(self)
                     if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
                         raise StoreError('Database foreign key check failed')
-                self._db.execute('PRAGMA user_version = 3')
+                if version == 3:
+                    from .monitoring import initialize_launch_progress
+                    initialize_launch_progress(self)
+                self._db.execute('PRAGMA user_version = 4')
             self._db.execute('PRAGMA foreign_keys = ON')
         except BaseException:
             self._db.close()

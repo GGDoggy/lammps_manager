@@ -247,3 +247,19 @@ without skipping unit cleanup. The pre-stop evidence is retained in
 Keep reports, source fingerprints, unit restart counts and output hash audits.
 Do not mark acceptance complete if duration, cancellation termination, resource
 release, integrity, responsiveness or required concurrency is unverified.
+
+
+## Lightweight single-host binding acceptance
+
+`PYTHONPATH=src python3 tools/verification/mpi_binding_acceptance.py --root /fresh/private/root --lammps /absolute/lmp`
+launches four independent one-rank/one-thread jobs with atomic scheduler
+reservations (four slots, 1 GiB aggregate budget, 0.1 GiB per job). It captures
+four samples spaced 0.5 seconds apart after all four ranks appear, then requests
+normal cancellation of only its own jobs. Launches have a 20-second deadline.
+Evidence includes affinity, thread CPU deltas, sampled physical cores, raw per-CPU
+counters, load averages, effective argv, unchanged snapshots and termination/
+reservation checks. The gate requires overlapping CPU activity on at least three
+physical cores, rather than broad affinity alone. Use a host with at least four
+available logical CPUs and sufficient physical cores; this is a bounded placement
+check, not a throughput or scientific-equivalence benchmark. Existing services and
+simulation directories are untouched.

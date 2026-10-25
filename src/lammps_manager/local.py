@@ -234,7 +234,8 @@ def execute_attempt(store: Store, worker: WorkerConfig, attempt: 'Attempt') -> b
                         if source.read(len(data) + 1) != data:
                             raise ValueError('Sampling input differs from submitted specification')
         prepare_launch(store, worker, attempt.attempt_id, work)
-        args = [worker.execution.mpi_launcher_path, *worker.execution.mpi_args,
+        from .mpi_launch import effective_mpi_args
+        args = [worker.execution.mpi_launcher_path, *effective_mpi_args(worker.execution.mpi_args),
                 '-np', str(spec.resources.mpi_ranks), worker.execution.lammps_path,
                 *worker.execution.lammps_args, '-in', spec.input_file]
         environment = dict(worker.execution.environment)

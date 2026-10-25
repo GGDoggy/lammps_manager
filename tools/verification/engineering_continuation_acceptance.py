@@ -194,6 +194,15 @@ def run_scenario(root: Path, lammps: Path, mpi: Path, ranks: int, mode: str,
             if time.monotonic() > deadline:
                 raise RuntimeError('Engineering smoke exceeded its observation deadline')
             time.sleep(.01)
+        launches = []
+        for path in sorted(work_root.glob('*/*/execution.json')):
+            metadata = json.loads(path.read_text())
+            if metadata['argv'][1:5] != ['--bind-to', 'none', '-np', str(ranks)]:
+                raise ValueError('Initial/successor/retry MPI launch policy differs')
+            launches.append(metadata['argv'])
+        if len(launches) != 4:
+            raise ValueError('Missing initial/successor/retry launch metadata')
+        evidence['effective_launches'] = launches
         if not evidence['manager_restarted']:
             raise ValueError('Manager restart was not exercised')
     finally:

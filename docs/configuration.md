@@ -33,6 +33,18 @@ See [worker.yaml](../examples/worker.yaml). Required fields: `worker` (same capa
 
 `execution` requires absolute `lammps_path` and `mpi_launcher_path`; `lammps_args` and `mpi_args` default to empty string lists. `environment` is a string-to-string mapping, copied into immutable pairs. Values may be empty (for example, `CUDA_VISIBLE_DEVICES: ""`) or contain only whitespace and are preserved exactly; NUL characters and non-string values are rejected. Names must remain nonempty strings without NUL. Keep secrets out of environment entries committed to version control; reference a protected token file using `token_file`. No secret contents are loaded by validation. No arbitrary shell command is accepted.
 
+Single-host execution targets Open MPI and defaults to `--bind-to none` when
+`mpi_args` contains no explicit binding policy. An explicit binding policy is
+preserved for ordinary jobs; repeated/conflicting binding options and missing
+policy values are rejected. Explicit `["--bind-to", "none"]` is not duplicated.
+Other MPI implementations need a separately validated launcher profile; this
+Open MPI option is not a portable MPI standard. Multi-host execution retains
+its separate launch protocol. Engineering continuation permits only the empty
+or exact unbound profile described in [engineering continuation](engineering-continuation.md).
+Configuration remains current launch policy: old specifications are unchanged;
+running attempts retain their launch, and subsequent segments/retries use the
+loaded worker policy. This does not validate scientific equivalence.
+
 Elements of `lammps_args` and `mpi_args` may be empty or whitespace-only strings and are preserved exactly. NUL characters and non-string elements remain invalid; required paths and labels still require nonempty strings.
 
 Configuration is intended to take effect on service restart once services exist. The scheduler reconciles worker, manager, and detected hardware capacity conservatively; callers supply worker snapshots.

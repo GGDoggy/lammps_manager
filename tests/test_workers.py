@@ -43,7 +43,7 @@ class WorkerTests(unittest.TestCase):
             path.chmod(0o600)
             self.tokens[name] = str(path)
         self.launcher = self.root / 'fake mpi'
-        self.launcher.write_text('#!' + sys.executable + '\nimport os,sys\nos.execv(sys.argv[3],sys.argv[3:])\n')
+        self.launcher.write_text('#!' + sys.executable + '\nimport os,sys\ni=sys.argv.index("-np")+2\nos.execv(sys.argv[i],sys.argv[i:])\n')
         self.launcher.chmod(0o700)
         self.program = self.root / 'fake lammps'
         self.program.write_text('#!' + sys.executable + '\n'

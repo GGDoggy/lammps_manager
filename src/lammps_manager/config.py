@@ -179,6 +179,12 @@ def _scalar(kind: type, value: Any, path: str, *, allow_empty: bool = False) -> 
 
 
 def _validate(instance: Any, location: str) -> None:
+    if isinstance(instance, Execution):
+        from .mpi_launch import effective_mpi_args
+        try:
+            effective_mpi_args(instance.mpi_args)
+        except ValueError as exc:
+            raise ConfigurationError(f'{location}.{exc}') from exc
     for entry in fields(instance):
         name, value = entry.name, getattr(instance, entry.name)
         if type(value) in (int, float) and name != 'default_priority':

@@ -82,16 +82,16 @@ Launch inventories the actual executable again. New builds remain scientifically
 `not_assessed`; removing admission restrictions does not validate compatibility. The initial tracked MPI session's
 bounded restart smoke exercises the actual required atom/pair/fix styles before
 production integration; unsupported commands fail the attempt. Engineering layouts use positive fixed MPI ranks (up to the engine/launcher integer bound `2^31-1`)
-and one OpenMP thread, with matching job resources. The local MPI launcher profile
-accepts no extra MPI arguments, LAMMPS arguments or execution environment overrides.
-For a dedicated continuation worker, retain the configured executable paths and set
-`execution.mpi_args: []`, `execution.lammps_args: []` and
-`execution.environment: {}`. In particular, `--bind-to core`, `OMP_PROC_BIND`
-and `OPENBLAS_NUM_THREADS` in those configuration fields are rejected even if
-appropriate for independent jobs. The launcher still supplies `OMP_NUM_THREADS`
-from the immutable job resources. Validate the worker configuration and restart
-the worker to load changes; restarting services alone does not remove conflicting
-settings. Review existing attempt state before explicitly retrying failed jobs.
+and one OpenMP thread, with matching job resources. The local Open MPI launcher profile accepts empty `execution.mpi_args` or exactly
+`["--bind-to", "none"]`; both produce an effective `--bind-to none` launch.
+All other MPI arguments, LAMMPS arguments and execution environment overrides
+remain rejected. Keep `execution.lammps_args: []` and `execution.environment: {}`.
+The launcher supplies `OMP_NUM_THREADS` from immutable job resources. This policy
+applies to initial segments, successors and retries through the common executor.
+It changes future launches only, without rewriting submitted snapshots, checkpoint
+contracts, build/boot bindings or scientific evidence. Existing running processes
+retain their affinity. Confirm termination before restarting a worker; retain
+all outputs and checkpoints. `execution.json` records effective arguments.
 
 A failed actual MPI startup remains a failed attempt, never a successful checkpoint.
 Run the explicit bounded smoke below for each intended rank count/build environment;

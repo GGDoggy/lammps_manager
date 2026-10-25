@@ -240,6 +240,9 @@ class ManagerService:
                                  total_bytes=sum(f.size for f in input_spec.input_manifest),
                                  total_files=len(input_spec.input_manifest))
                     old = store.attempt(report['attempt_id'])
+                    if old.state == 'assigned' and report['state'] == 'assigned' and 'launch_progress' in report:
+                        from .monitoring import launch_progress
+                        launch_progress(store, old.attempt_id, **report['launch_progress'])
                     state = report['state']
                     if state not in {'assigned', 'running', 'cancelling', 'unknown', *TERMINAL}:
                         raise ValueError('Unsupported worker state')
