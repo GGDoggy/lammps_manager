@@ -208,3 +208,42 @@ versioned WCA continuation, separate from the withdrawn V009 equivalence study.
 See [procedure and limits](../../docs/engineering-continuation.md#explicit-external-engineering-smoke).
 Default tests exercise its actual shared/staged restart/retry driver with fake
 executables only; they do not establish real build/layout or scientific acceptance.
+
+## Control-path contention acceptance
+
+`control_load.py --root NEW_PATH --seconds 1800` explicitly runs 58 large-model
+continuation parents with three fake workers and 39 total CPU reservations. It
+uses loopback HTTP, fake engines, temporary journals and real transfer/collection
+paths; `--snapshot-backup PATH` can source initial parameters from a previously
+created SQLite API backup. It never connects to deployed workers. Reports separate
+control HTTP latency, tick latency, retries, completed segments, heartbeat expiry,
+actual elapsed time and remaining reservations. A shorter diagnostic run is not
+30-minute acceptance.
+
+`control_real.py --remote-config remote.local.yaml --known-hosts PATH --seconds
+3600` uses two explicitly configured SSH accounts plus poincare, new tokens,
+private-CA HTTPS on unused port 18443, isolated /tmp roots and transient systemd
+units. It reads existing execution settings, copies only Python source, subtracts
+production reservations from affinity CPU counts and retains two slots per host.
+Only its test runs are cancelled. Units use control-group cleanup to contain test
+processes; production units/configuration, journals and outputs are untouched.
+The SSH credentials remain local and outside Git. Test parents use a small WCA
+model with sparse sampling; this does not establish scientific equivalence or
+reproduce the local large-initial-state byte profile. A lower resource ceiling is
+reported explicitly and cannot establish 39-way real-host acceptance.
+
+The real-host control latency gates include successful polls, HTTP errors and
+transport failures, measured through response consumption or failure. JSONL samples
+record outcome and available HTTP status; retryable errors still reach the worker.
+Reports identify this all-request scope. Historical successful-response-only
+measurements do not establish these gates.
+
+Manager health is queried with a bounded systemctl call before stopping isolated
+units. Acceptance requires a successful query showing an active manager and zero
+restarts; missing/malformed properties, query failures and timeouts fail acceptance
+without skipping unit cleanup. The pre-stop evidence is retained in
+`manager_service_before_stop` in the report. Worker restart gates still apply.
+
+Keep reports, source fingerprints, unit restart counts and output hash audits.
+Do not mark acceptance complete if duration, cancellation termination, resource
+release, integrity, responsiveness or required concurrency is unverified.

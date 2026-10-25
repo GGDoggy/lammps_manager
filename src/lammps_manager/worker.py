@@ -139,6 +139,10 @@ class Worker:
         self.cleanup_pool = ThreadPoolExecutor(max_workers=1)
         self.cleanup_future: Future | None = None
         self.cleanup_cursor = 0
+        self.input_pool = ThreadPoolExecutor(max_workers=1)
+        self.input_future: Future | None = None
+        self.input_attempt: str | None = None
+        self.input_cursor = ''
         self.monitor = LinuxMonitor()
         from uuid import uuid4
         self.session_id = str(uuid4())
@@ -156,6 +160,7 @@ class Worker:
         """Join execution and collection before releasing the journal lock."""
         self.collection_stop.set()
         try:
+            self.input_pool.shutdown(wait=True)
             self.pool.shutdown(wait=True)
         finally:
             try:
@@ -166,12 +171,39 @@ class Worker:
                 finally:
                     self.lock.close()
 
+    def _queue_input(self, store: Store) -> None:
+        """Rotate eligible reservations so failed inputs cannot starve peers."""
+        if self.input_future is not None or self.collection_stop.is_set():
+            return
+        candidates = []
+        for reserved in store.reservations():
+            attempt_id = reserved.attempt_id
+            if (store.attempt(attempt_id).state != 'assigned'
+                    or store.launch_claimed(attempt_id) or store.cancellation(attempt_id)):
+                continue
+            transfer = store.input_transfer(attempt_id)
+            if not transfer or transfer['status'] != 'ready':
+                candidates.append(attempt_id)
+        if candidates:
+            attempt_id = next((value for value in candidates if value > self.input_cursor), candidates[0])
+            self.input_cursor = attempt_id
+            self.input_attempt = attempt_id
+            self.input_future = self.input_pool.submit(self._prepare_input, attempt_id)
+
+    def _prepare_input(self, attempt_id: str) -> None:
+        with Store(self.database) as store:
+            self._stage(store, attempt_id)
+
     def _execute(self, attempt_id: str) -> None:
         with Store(self.database) as store:
             execute_attempt(store, self.config, store.attempt(attempt_id))
 
     def tick(self) -> dict:
         """Send one heartbeat, report durable outcomes, and accept eligible concurrent jobs."""
+        if self.input_future is not None and self.input_future.done():
+            self.input_future.result()
+            self.input_future = None
+            self.input_attempt = None
         if self.cleanup_future is not None and self.cleanup_future.done():
             self.cleanup_future.result()
             self.cleanup_future = None
@@ -246,6 +278,9 @@ class Worker:
             with self.opener.open(request, timeout=10) as response:
                 result = json.load(response)
         except HTTPError as exc:
+            if exc.code == 503:
+                exc.close()
+                return {'assignments': [], 'retry_after': 1}
             if exc.code == 409:
                 exc.close()
                 raise ValueError('Incompatible manager storage protocol or mode') from None
@@ -299,11 +334,13 @@ class Worker:
                 self.collection_future = self.collection_pool.submit(self._collect_results, eligible)
         with Store(self.database) as store:
             if self.config.storage_mode == 'staged':
-                launch_poll_current = True
+                closed = (result['paused'] or not self.ready or self.draining
+                          or not self.config.worker.enabled or not result['manager_capacity']['enabled'])
                 for reserved in store.reservations():
                     if reserved.attempt_id not in self.futures:
-                        launch_poll_current = self._stage(store, reserved.attempt_id) and launch_poll_current
-                        if launch_poll_current:
+                        transfer = store.input_transfer(reserved.attempt_id)
+                        if closed or (transfer and transfer['status'] == 'ready'
+                                      and self.input_attempt != reserved.attempt_id):
                             self._launch_staged(store, reserved.attempt_id, result, snapshot)
             for assignment in result['assignments']:
                 spec_data = assignment['specification']
@@ -361,8 +398,6 @@ class Worker:
                         store.request_cancel(attempt['attempt_id'], cancelled['reason'])
                         store.transition(attempt['attempt_id'], 'cancelled', reason=cancelled['reason'],
                             termination_evidence='Launch did not start a process')
-                    else:
-                        self._stage(store, attempt['attempt_id'])
                     continue
                 try:
                     job_root = Path(spec.work_directory).resolve(strict=True)
@@ -411,6 +446,8 @@ class Worker:
                         continue
                     if store.claim_launch(accepted.attempt_id):
                         self.futures[accepted.attempt_id] = self.pool.submit(self._execute, accepted.attempt_id)
+            if self.config.storage_mode == 'staged' and not closed:
+                self._queue_input(store)
         if hasattr(self, 'cpu_admission'):
             result['local_cpu_admission'] = self.cpu_admission
         return result
@@ -464,85 +501,27 @@ class Worker:
             return False
         return True
 
-    def _stage(self, store: Store, attempt_id: str) -> bool:
-        """Prepare inputs; permit launch only if the normal poll is still current."""
+    def _stage(self, store: Store, attempt_id: str) -> None:
+        """Prepare inputs independently; only a later normal poll may authorize launch."""
         from .staging import publish_inputs
         attempt = store.attempt(attempt_id)
         if attempt.state != 'assigned':
-            return True
+            return
         previous = store.input_transfer(attempt_id)
         if previous and previous['status'] == 'ready':
-            return True
+            return
         if not self._prepare_staged_directory(store, attempt_id):
-            return True
+            return
         destination = Path(attempt.directory) / 'inputs'
         store.set_input_transfer(attempt_id, str(destination), 'downloading')
         spec = store.specification(attempt.job_id)
 
-        last_heartbeat = time.monotonic()
-        polled_during_transfer = False
-        last_heartbeat_error = None
-
-        def heartbeat() -> None:
-            nonlocal last_heartbeat, polled_during_transfer, last_heartbeat_error
-            if time.monotonic() - last_heartbeat < min(1, self.config.heartbeat_interval_seconds):
-                return
-            # Input preparation stays synchronous, but bounded read/hash chunks
-            # keep the original assignment alive. New assignments remain durable
-            # at the manager until the next normal tick accepts them.
-            snapshot = self.monitor.sample(self.config)
-            snapshot.update(ready=self.ready, draining=self.draining, continuation_ready=True)
-            import shutil
-            try:
-                snapshot['staged_free_disk_gib'] = shutil.disk_usage(self.config.work_root).free / 2**30
-            except OSError:
-                snapshot['staged_free_disk_gib'] = None
-            request = Request(self.config.manager_endpoint.rstrip('/') + '/v1/poll',
-                data=json.dumps({'proof': self.proof, 'snapshot': snapshot,
-                    'reports': [], 'protocol': 2, 'recovery_protocol': 1,
-                    'generation': {'boot_id': self.boot_id, 'session_id': self.session_id},
-                    'storage_mode': self.config.storage_mode, 'heartbeat_only': True,
-                    'continuation_fingerprint': self._continuation_inventory()}).encode(),
-                headers={'Content-Type': 'application/json', 'X-Worker-ID': self.config.worker.id,
-                         'Authorization': 'Bearer ' + self.token})
-            # Any control-poll attempt invalidates tick's earlier launch policy,
-            # including one whose response is lost. A transient control failure
-            # does not invalidate bytes from the separately authenticated file
-            # stream; hash verification and a fresh normal poll still gate launch.
-            polled_during_transfer = True
-            try:
-                # Leave time to resume reading the artifact before its sender's
-                # ten-second socket timeout; this control response is retryable.
-                with self.opener.open(request, timeout=1) as response:
-                    reply = json.load(response)
-            except HTTPError:
-                raise  # Authentication/protocol failures still abort preparation.
-            except (OSError, URLError, IncompleteRead) as exc:
-                last_heartbeat = time.monotonic()
-                reason = f'Input heartbeat deferred: {type(exc).__name__}: {exc}'
-                if reason != last_heartbeat_error:
-                    print(reason, file=sys.stderr)
-                    store.set_input_transfer(attempt_id, str(destination), 'downloading', reason)
-                    last_heartbeat_error = reason
-                return
-            last_heartbeat = time.monotonic()
-            if last_heartbeat_error is not None:
-                store.set_input_transfer(attempt_id, str(destination), 'downloading')
-                last_heartbeat_error = None
-            for command in reply.get('cancellations', []):
-                try:
-                    current = store.attempt(command['attempt_id'])
-                except ValueError:
-                    continue  # The next normal tick accepts pending assignments.
-                store.request_cancel(current.attempt_id, command['reason'])
-                if not store.launch_claimed(current.attempt_id):
-                    store.transition(current.attempt_id, 'cancelled', reason=command['reason'],
-                                     termination_evidence='Launch did not start a process')
-            if store.attempt(attempt_id).state != 'assigned':
-                raise ValueError('Input preparation stopped after cancellation')
+        def check_cancelled() -> None:
+            if self.collection_stop.is_set() or store.attempt(attempt_id).state != 'assigned':
+                raise ValueError('Input preparation stopped')
 
         def fetch(index: int) -> BinaryIO:
-            heartbeat()
+            check_cancelled()
             request = Request(self.config.manager_endpoint.rstrip('/') +
                               f'/v2/inputs/{attempt_id}/files/{index}',
                               headers={'X-Worker-ID': self.config.worker.id,
@@ -553,7 +532,7 @@ class Worker:
 
         def verified(index: int) -> None:
             nonlocal last_report
-            heartbeat()
+            check_cancelled()
             if time.monotonic() - last_report < 1 and index != len(spec.input_manifest) - 1:
                 return
             last_report = time.monotonic()
@@ -579,16 +558,14 @@ class Worker:
             publish_inputs(destination, spec.input_manifest, fetch,
                            dict(max_files=self.config.max_input_files,
                                 max_file_bytes=self.config.max_input_file_bytes,
-                                max_total_bytes=self.config.max_input_total_bytes), verified=verified, progress=heartbeat)
+                                max_total_bytes=self.config.max_input_total_bytes), verified=verified, progress=check_cancelled)
         except (OSError, ValueError, IncompleteRead, URLError) as exc:
             store.set_input_transfer(attempt_id, str(destination), 'failed',
                                      f'{type(exc).__name__}: {exc}')
-            return not polled_during_transfer
+            return
         store.set_input_transfer(attempt_id, str(destination), 'ready',
                                  'Inputs verified')
-        # Heartbeat replies may supersede pause/capacity/policy in tick's reply.
-        # Refresh both admission policy and local metrics in the next normal poll.
-        return not polled_during_transfer
+        # The normal polling thread consumes this future before launch admission.
 
     def _launch_staged(self, store: Store, attempt_id: str, result: dict, snapshot: dict) -> None:
         """Consume a durable launch right only after resource and input checks."""
@@ -829,6 +806,9 @@ class Worker:
             with self.result_opener.open(request, timeout=self.config.result_request_timeout_seconds) as response:
                 return json.load(response)
         except HTTPError as exc:
+            if exc.code == 503:
+                exc.close()
+                raise TimeoutError('Manager database busy; retry later') from None
             try:
                 detail = json.loads(exc.read(4096)).get('error', 'Artifact request rejected')
             except (ValueError, AttributeError):
@@ -840,9 +820,16 @@ class Worker:
     def run(self) -> None:
         """Poll continuously; transport errors retain reservations and local work."""
         from urllib.error import URLError
+        busy_backoff = 1.0
         while True:
+            delay = self.config.heartbeat_interval_seconds
             try:
-                self.tick()
+                result = self.tick()
+                if result.get('retry_after'):
+                    delay = max(delay, busy_backoff)
+                    busy_backoff = min(30.0, busy_backoff * 2)
+                else:
+                    busy_backoff = 1.0
             except (URLError, TimeoutError, ConnectionError, IncompleteRead) as exc:
                 print(f'Worker poll failed: {type(exc).__name__}', file=sys.stderr)
-            time.sleep(self.config.heartbeat_interval_seconds)
+            time.sleep(delay)

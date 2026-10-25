@@ -8,6 +8,24 @@ from lammps_manager.sampling import (normalize_sampling, segment_steps, steps_by
 
 
 class SamplingTests(unittest.TestCase):
+    def test_validation_cache_reuses_only_identical_complete_content(self):
+        import copy
+        from unittest.mock import patch
+        import lammps_manager.sampling as sampling
+        schedule = normalize_sampling(dict(unit='step', positions=[4, 9]), dt=.003, dr=.17)
+        with sampling._VALIDATED_LOCK:
+            sampling._VALIDATED.clear()
+        original = sampling.normalize_sampling
+        with patch.object(sampling, 'normalize_sampling', wraps=original) as normalize:
+            validate_sampling(schedule)
+            validate_sampling(copy.deepcopy(schedule))
+            self.assertEqual(normalize.call_count, 1)
+            schedule['steps'][0] = 5
+            with self.assertRaises(ValueError):
+                validate_sampling(schedule)
+            self.assertEqual(normalize.call_count, 2)
+        self.assertLessEqual(len(sampling._VALIDATED), 128)
+
     def test_split_run_commands_reopen_schedule_without_skipping_points(self):
         from lammps_manager.continuation import MAX_RUN_COMMAND, Recipe, render_engineering_input
         end = MAX_RUN_COMMAND + 10

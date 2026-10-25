@@ -2,6 +2,7 @@
 from dataclasses import asdict
 from datetime import datetime
 import json
+import sqlite3
 import time
 from typing import BinaryIO
 
@@ -129,7 +130,14 @@ class ProgressReader:
 
     def flush(self) -> None:
         if self.pending:
-            file_progress(self.store, self.attempt_id, self.direction, self.index, transferred=self.pending)
+            from .store import is_busy
+            try:
+                file_progress(self.store, self.attempt_id, self.direction, self.index, transferred=self.pending)
+            except sqlite3.Error as exc:
+                if not is_busy(exc):
+                    raise
+                self.updated = time.monotonic()
+                return
             self.pending = 0
         self.updated = time.monotonic()
 

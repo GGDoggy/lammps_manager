@@ -194,11 +194,15 @@ The [explicit continuation API and external comparison drivers](continuation.md)
 
 [V006](verification/v006-large-artifacts.md) verifies the agreed 64 MiB plus
 1000-small-file workload, streamed interruption/replay and actual test-process
-restarts within declared RSS, disk, latency and elapsed-time gates. Input
-preparation remains synchronous but now sends authenticated heartbeat-only
-polls between files and read/hash chunks, applying cancellation before launch.
-Blocking I/O may still delay polling. No broader transfer-performance guarantee
-is implied. [V007](verification/v007-service-lifecycle.md) verifies the
+restarts within declared RSS, disk, latency and elapsed-time gates. The historical input
+preparer was synchronous and sent heartbeat-only polls between read/hash chunks.
+The current preparer runs on a dedicated worker thread, while normal polls handle
+control independently. Manager maintenance runs outside the accept and poll paths;
+short atomic dispatch transactions and retryable SQLite contention protect control
+service. Continuation file preparation precedes guarded database publication.
+See [workers](workers.md#concurrent-control-and-maintenance) and the reliability
+task record for current verification scope; no broader network-performance
+guarantee is implied. [V007](verification/v007-service-lifecycle.md) verifies the
 [documented transient user-service lifecycle](service-lifecycle.md), protected
 TLS/authentication, CLI smoke jobs, service restarts and cleanup-setting changes
 without modifying immutable specifications. Neither acceptance includes a host

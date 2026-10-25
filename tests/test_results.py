@@ -90,7 +90,7 @@ class ResultTests(unittest.TestCase):
 
     def tick(self, worker: Worker) -> dict:
         """Await delivery explicitly in tests that inspect collection outcomes."""
-        result = worker.tick()
+        result = staging_tests.StagedWorkerTests.tick(self, worker)
         if worker.collection_future is not None:
             worker.collection_future.result(timeout=10)
         return result
@@ -261,7 +261,7 @@ class ResultTests(unittest.TestCase):
                                 Path(second_spec.work_directory) / 'inputs')
                 with Store(self.config.manager.database_path) as store:
                     store.submit(second_spec)
-                worker.tick()  # Accept and stage while earlier commit is blocked.
+                staging_tests.StagedWorkerTests.tick(self, worker)  # Await input preparation independently of collection.
                 worker.tick()  # Execute using the independent process executor.
                 self.assertTrue(worker.futures)
                 next(iter(worker.futures.values())).result(timeout=5)
@@ -846,14 +846,14 @@ class ResultTests(unittest.TestCase):
         self.configure_process()
         worker = self.worker()
         self.tick(worker)
-        poll = self.service._poll
+        poll = self.service._reply
         for field in ('staged_launch_enabled', 'results_protocol'):
             def old_manager(*args):
                 response = poll(*args)
                 response.pop(field)
                 return response
 
-            with patch.object(self.service, '_poll', side_effect=old_manager):
+            with patch.object(self.service, '_reply', side_effect=old_manager):
                 self.tick(worker)
             self.assertFalse(worker.futures)
             with Store(worker.database) as store:

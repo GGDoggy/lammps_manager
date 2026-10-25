@@ -72,7 +72,7 @@ class ContinuationTests(unittest.TestCase):
                 while True:
                     try:
                         state = Path(f'/proc/{descendant}/stat').read_text().split(') ', 1)[1][0]
-                    except FileNotFoundError:
+                    except (FileNotFoundError, ProcessLookupError):
                         break
                     if state == 'Z':  # Dead descendant awaits its system reaper.
                         break

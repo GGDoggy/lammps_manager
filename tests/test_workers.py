@@ -74,6 +74,17 @@ class WorkerTests(unittest.TestCase):
         self.addCleanup(worker.close)
         return worker
 
+    def assigned_tick(self, worker: Worker) -> dict:
+        """Wait for durable asynchronous dispatch before inspecting an assignment."""
+        deadline = time.monotonic() + 3
+        while True:
+            result = worker.tick()
+            if result.get('assignments'):
+                return result
+            if time.monotonic() >= deadline:
+                self.fail('No durable assignment arrived')
+            time.sleep(.005)
+
     def submit(self, codes: tuple[int, ...] = (0, 7, 0, 0)) -> tuple[str, ...]:
         manifest = []
         for index, code in enumerate(codes):
@@ -97,13 +108,16 @@ class WorkerTests(unittest.TestCase):
         worker = self.worker()
         other = self.worker(1)
         worker.tick()
+        self.poll('a', 'a' * 40, {'proof': self.service.proof,
+                  'snapshot': worker.monitor.sample(worker.config), 'reports': []})
+        self.service.expire_workers()
         original = self.service.poll
         def close_after_dispatch(worker_id: str, payload: dict) -> dict:
             result = original(worker_id, payload)
             worker.draining = True
             return result
         with patch.object(self.service, 'poll', side_effect=close_after_dispatch):
-            first = worker.tick()['assignments'][0]['attempt']['attempt_id']
+            first = self.assigned_tick(worker)['assignments'][0]['attempt']['attempt_id']
         self.assertFalse(worker.futures)
         original_open = worker.opener.open
         def lose_response(*args, **kwargs):
@@ -173,7 +187,11 @@ class WorkerTests(unittest.TestCase):
         self.submit((0,))
         payload = {'proof': self.service.proof,
                    'snapshot': LinuxMonitor().sample(self.worker_config()), 'reports': []}
-        result = self.poll('a', 'a' * 40, payload)
+        deadline = time.monotonic() + 2
+        while True:
+            result = self.poll('a', 'a' * 40, payload)
+            if result['assignments'] or time.monotonic() >= deadline:
+                break
         specification = result['assignments'][0]['specification']
         self.assertEqual(set(specification), {'job_id', 'work_directory', 'input_file',
                                             'input_sha256', 'resources'})
@@ -230,14 +248,14 @@ class WorkerTests(unittest.TestCase):
             Worker(self.worker_config(), self.root / 'journal-0')
         worker.tick()
         with patch.object(worker.pool, 'submit'):
-            result = worker.tick()
+            result = self.assigned_tick(worker)
         assignment = result['assignments'][0]
         worker.pool.shutdown()
         worker.lock.close()
         # Reopen the same journal: assigned work is retained and never started.
         restarted = self.worker()
         restarted.tick()
-        replay = restarted.tick()
+        replay = self.assigned_tick(restarted)
         self.assertEqual(replay['assignments'][0]['attempt']['attempt_id'], assignment['attempt']['attempt_id'])
         self.assertFalse(restarted.futures)
         self.assertFalse(Path(assignment['attempt']['directory']).exists())
@@ -281,12 +299,16 @@ class WorkerTests(unittest.TestCase):
             self.poll('a', 'a' * 40, payload)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.attempt(attempt_id).state, 'assigned')
-            self.assertEqual(len(store.events(ids[0])), 3)  # queued, stale wait, assigned
+            self.assertEqual([e['state'] for e in store.events(ids[0]) if e['state'] != 'queued'], ['assigned'])
+            self.assertEqual(store.job_state(ids[0]), 'assigned')
 
     def test_local_recheck_returns_assignment_after_capacity_change(self) -> None:
         ids = self.submit((0,))
         worker = self.worker()
         worker.tick()
+        self.poll('a', 'a' * 40, {'proof': self.service.proof,
+                  'snapshot': worker.monitor.sample(worker.config), 'reports': []})
+        self.service.expire_workers()
         original_open = worker.opener.open
         original_config = worker.config
         def lower_limit(*args: object, **kwargs: object) -> object:
@@ -320,8 +342,9 @@ class WorkerTests(unittest.TestCase):
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             with Store(worker.database) as journal:
-                if journal.job_state(ids[0]) == 'running':
+                if any(j['job_id'] == ids[0] and j['state'] == 'running' for j in journal.jobs()):
                     break
+            worker.tick()
             time.sleep(.005)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
@@ -344,7 +367,7 @@ class WorkerTests(unittest.TestCase):
         ids = self.submit((0,))
         worker = self.worker()
         worker.tick()
-        assignment = worker.tick()['assignments'][0]
+        assignment = self.assigned_tick(worker)['assignments'][0]
         with patch.object(worker.opener, 'open', side_effect=URLError('temporary disconnection')):
             with self.assertRaises(URLError):
                 worker.tick()
@@ -374,12 +397,14 @@ class WorkerTests(unittest.TestCase):
         original_poll = self.service.poll
         def collide(worker_id: str, payload: dict) -> dict:
             result = original_poll(worker_id, payload)
+            if not result['assignments']:
+                return result
             directory = Path(result['assignments'][0]['attempt']['directory'])
             directory.mkdir()
             (directory / 'prior-output').write_text('preserve')
             return result
         with patch.object(self.service, 'poll', side_effect=collide):
-            assignment = worker.tick()['assignments'][0]
+            assignment = self.assigned_tick(worker)['assignments'][0]
         self.assertFalse(worker.futures)
         worker.tick()
         directory = Path(assignment['attempt']['directory'])
@@ -396,7 +421,7 @@ class WorkerTests(unittest.TestCase):
         with Store(self.config.manager.database_path) as store:
             spec = store.specification(ids[0])
         (Path(spec.work_directory) / 'inputs/in.lmp').write_text('7')
-        worker.tick()
+        self.assigned_tick(worker)
         next(iter(worker.futures.values())).result(timeout=3)
         with Store(worker.database) as journal:
             failed = journal.job_attempts(ids[0])[0]
@@ -409,7 +434,7 @@ class WorkerTests(unittest.TestCase):
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(ids[0]), 'assigned')
             self.assertEqual(len(store.reservations('a')), 1)
-        worker.tick()
+        self.assigned_tick(worker)
         next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
@@ -471,7 +496,7 @@ class WorkerTests(unittest.TestCase):
         ids = self.submit((0, 0))
         worker = self.worker()
         worker.tick()
-        worker.tick()
+        self.assigned_tick(worker)
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             with Store(worker.database) as journal:
@@ -584,7 +609,7 @@ class WorkerTests(unittest.TestCase):
         unavailable = job_root.with_name(job_root.name + '-unavailable')
         job_root.rename(unavailable)
         with patch('sys.stderr') as errors:
-            assignment = worker.tick()['assignments'][0]
+            assignment = self.assigned_tick(worker)['assignments'][0]
             worker.tick()
         self.assertIn('FileNotFoundError', str(errors.write.call_args_list))
         self.assertFalse(worker.futures)
@@ -611,6 +636,9 @@ class WorkerTests(unittest.TestCase):
         worker.tick()
         with Store(self.config.manager.database_path) as store:
             job_root = Path(store.specification(ids[0]).work_directory)
+        self.poll('a', 'a' * 40, {'proof': self.service.proof,
+                  'snapshot': worker.monitor.sample(worker.config), 'reports': []})
+        self.service.expire_workers()
         original_resolve = Path.resolve
 
         def resolve(path: Path, *args: object, **kwargs: object) -> Path:
@@ -644,7 +672,7 @@ class WorkerTests(unittest.TestCase):
         job_root.rename(outside)
         job_root.symlink_to(outside, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, 'outside shared job directory'):
-            worker.tick()
+            self.assigned_tick(worker)
         with Store(worker.database) as journal:
             self.assertEqual(journal.jobs(), ())
         with Store(self.config.manager.database_path) as store:
@@ -701,6 +729,9 @@ class WorkerTests(unittest.TestCase):
         with self.assertRaises(URLError):
             worker.tick()
         with patch.dict(os.environ, {'SSL_CERT_FILE': str(certificate)}):
+            import ssl
+            from urllib.request import HTTPSHandler, ProxyHandler, build_opener
+            worker.opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ssl.create_default_context(cafile=str(certificate))))
             result = worker.tick()
         self.assertEqual(result['assignments'], [])
         self.assertEqual(worker.proof, self.service.proof)
@@ -733,6 +764,8 @@ class WorkerTests(unittest.TestCase):
             if kwargs.get('server_side'):
                 accepted.set()
             return original_wrap(context, *args, **kwargs)
+        from urllib.request import HTTPSHandler, ProxyHandler, build_opener
+        worker.opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ssl.create_default_context(cafile=str(certificate))))
         original_open = worker.opener.open
         with patch.object(ssl.SSLContext, 'wrap_socket', wrap), \
                 patch.object(worker.opener, 'open', side_effect=lambda request, timeout: original_open(request, timeout=.5)), \

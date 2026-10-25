@@ -36,6 +36,55 @@ class EnvironmentTests(unittest.TestCase):
         seg.refresh(self.store, self.config, now=now)
         return seg.inspect_run(self.store, 'run')
 
+    def test_reset_during_successor_preparation_preserves_new_generation_inputs(self):
+        from io import BytesIO
+        import hashlib
+
+        self.setup_run()
+        self.finish()
+        snapshot = self.store._db.execute(
+            "SELECT snapshot FROM simulation_runs WHERE run_id='run'").fetchone()[0]
+        self.store._db.execute("UPDATE run_environments SET missing_since=110 WHERE run_id='run'")
+        original = seg.publish_inputs
+        reset = []
+
+        def prepare(*args, **kwargs):
+            self.assertFalse(self.store._db.in_transaction)
+            if not reset:
+                reset.append(True)
+                with Store(self.db, timeout=0) as other:
+                    seg.reconcile_environments(other, self.config, now=170)
+            return original(*args, **kwargs)
+
+        with patch.object(seg, 'publish_inputs', side_effect=prepare):
+            seg.advance(self.store, 'run')
+        self.assertTrue(reset)
+        self.assertEqual(seg.environment(self.store, 'run')['generation'], 1)
+        self.assertEqual(self.current()['job_id'], 'run.g000001.s000000')
+        self.assertFalse((self.root / 'run.g000001.s000001').exists())
+        self.assertEqual(len(self.store.jobs()), 2)
+
+        # New execution may produce different bytes even at the same step.
+        seg.observe_environment(self.store, 'worker', self.boot, 'f' * 64, 180)
+        attempt = self.assign()
+        self.finish(checkpoint=False)
+        contract = cp.record(self.store, attempt.attempt_id)['contract']
+        data = b'checkpoint from the restarted generation'
+        manifest = dict(contract=contract, files=[dict(path='checkpoint.restart',
+            size=len(data), sha256=hashlib.sha256(data).hexdigest())])
+        cp.operation(self.store, 'worker', attempt.attempt_id, 'manifest', fixtures.LIMITS, payload=manifest)
+        cp.operation(self.store, 'worker', attempt.attempt_id, '0', fixtures.LIMITS,
+                     stream=BytesIO(data), length=len(data))
+        cp.operation(self.store, 'worker', attempt.attempt_id, 'commit', fixtures.LIMITS)
+        seg.advance(self.store, 'run')
+        self.assertEqual(self.current()['job_id'], 'run.g000001.s000001')
+        self.assertEqual((self.root / 'run.g000001.s000001/inputs/checkpoint.restart').read_bytes(), data)
+        self.assertEqual(self.store._db.execute(
+            "SELECT snapshot FROM simulation_runs WHERE run_id='run'").fetchone()[0], snapshot)
+        old = cp.record(self.store, 'run.s000000.attempt')
+        self.assertEqual((Path(old['directory']) / 'checkpoint.restart').read_bytes(), b'state at 600')
+        self.assertEqual(self.store.reservations(), ())
+
     def test_reconciliation_rechecks_candidates_after_another_writer(self):
         self.setup_run()
         for action in ('reset', 'cancel', 'complete', 'return'):
@@ -304,6 +353,7 @@ class EnvironmentTests(unittest.TestCase):
         before = seg.inspect_run(self.store, 'run')['snapshot']
         contract = cp.record(self.store, attempt.attempt_id)['contract']
         self.store._db.execute('DROP TABLE run_environments')
+        self.store._db.execute('PRAGMA user_version=2')
         self.store.close()
         self.store = Store(self.db)
         binding = seg.environment(self.store, 'run')

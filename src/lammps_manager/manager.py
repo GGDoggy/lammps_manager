@@ -6,6 +6,8 @@ import hmac
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 import ipaddress
 import json
+import logging
+import sqlite3
 import os
 from pathlib import Path
 import socket
@@ -19,7 +21,7 @@ from uuid import uuid4
 from .config import ManagerConfig, WorkerCapacity
 from .models import JobSpecification
 from .scheduler import WorkerSnapshot, schedule
-from .store import Store, TERMINAL
+from .store import Store, TERMINAL, is_busy
 
 
 # A checkpoint contract can contain 100000 positive signed-bigint boundaries:
@@ -59,7 +61,7 @@ def is_loopback(host: str) -> bool:
 
 
 class ManagerService:
-    """Serialize poll state while serving artifacts independently."""
+    """Serve control and artifacts independently of periodic maintenance."""
 
     def __init__(self, config: ManagerConfig, token_files: dict[str, str]) -> None:
         self.config = config
@@ -77,23 +79,75 @@ class ManagerService:
         if config.storage.mode == 'shared':
             self.challenge.write_text(self.proof)
         self.last_schedule = 0.0
-        self._poll_lock = threading.Lock()
         self._result_lock = threading.Lock()
         self._result_cache: OrderedDict[tuple, tuple] = OrderedDict()
-        self.expire_workers()
+        self._maintenance_stop = threading.Event()
+        self._maintenance_wake = threading.Event()
+        self._maintenance_done = threading.Event()
+        self._maintenance_thread: threading.Thread | None = None
+        try:
+            with Store(config.manager.database_path, timeout=.2) as store:
+                store.expire_workers(time.time(), config.manager.heartbeat_timeout_seconds)
+        except sqlite3.Error as exc:
+            if not is_busy(exc):
+                raise
+            logging.getLogger(__name__).warning('Startup maintenance deferred: SQLite busy')
         self._input_cache_lock = threading.Lock()
         self._input_cache: OrderedDict[tuple[str, str, int, int, int], JobSpecification] = OrderedDict()
 
     def expire_workers(self) -> None:
         """Run at startup and periodically even while all workers are disconnected."""
-        with self._poll_lock, Store(self.config.manager.database_path) as store:
-            store.expire_workers(time.time(), self.config.manager.heartbeat_timeout_seconds)
+        with Store(self.config.manager.database_path, timeout=.2) as store:
+            now = time.time()
+            store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             from .segments import refresh
             refresh(store, self.config)
             from .monitoring import refresh_alerts
-            refresh_alerts(store, self.config, time.time())
+            now = time.time()
+            refresh_alerts(store, self.config, now)
+            if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
+                snapshots = []
+                for worker_id, record in store.worker_records().items():
+                    if worker_id in self.tokens and record['snapshot']:
+                        saved = record['snapshot']
+                        snapshots.append(WorkerSnapshot(**{**saved,
+                            'capacity': WorkerCapacity(**saved['capacity']),
+                            'paused': record['paused']}))
+                if snapshots:
+                    # Polls remain live during maintenance and snapshot reads.
+                    # Compare their timestamps against time after those reads.
+                    now = time.time()
+                    result = schedule(store, self.config, tuple(snapshots), now=now, max_assignments=4)
+                    if len(result.assignments) < 4:
+                        self.last_schedule = now
+
+    def start_maintenance(self) -> None:
+        """Start exactly one maintenance owner; request threads never run it."""
+        if self._maintenance_thread is not None:
+            return
+        def maintain() -> None:
+            while not self._maintenance_stop.is_set():
+                self._maintenance_wake.clear()
+                self._maintenance_done.clear()
+                try:
+                    self.expire_workers()
+                except sqlite3.Error as exc:
+                    if is_busy(exc):
+                        logging.getLogger(__name__).warning('Maintenance deferred: SQLite busy')
+                    else:
+                        logging.getLogger(__name__).exception('Maintenance database failure')
+                except Exception:
+                    logging.getLogger(__name__).exception('Maintenance failure')
+                self._maintenance_done.set()
+                self._maintenance_wake.wait(max(.05, min(1, self.config.manager.schedule_interval_seconds)))
+        self._maintenance_thread = threading.Thread(target=maintain, name='manager-maintenance')
+        self._maintenance_thread.start()
 
     def close(self) -> None:
+        self._maintenance_stop.set()
+        self._maintenance_wake.set()
+        if self._maintenance_thread is not None:
+            self._maintenance_thread.join()
         self.challenge.unlink(missing_ok=True)
 
     def authenticate(self, worker_id: str, authorization: str) -> bool:
@@ -103,11 +157,27 @@ class ManagerService:
 
     def poll(self, worker_id: str, payload: dict) -> dict:
         """Accept metrics/results only for the authenticated worker, then dispatch."""
-        with self._poll_lock:
-            return self._poll(worker_id, payload)
+        began = time.monotonic()
+        try:
+            return self._control_poll(worker_id, payload)
+        finally:
+            logging.getLogger(__name__).debug('Control poll worker=%s elapsed=%.6f', worker_id,
+                                              time.monotonic() - began)
+
+    def _control_poll(self, worker_id: str, payload: dict) -> dict:
+        result = self._poll(worker_id, payload)
+        # A bounded normal-poll wait reduces an extra network roundtrip after
+        # reporting capacity. Heartbeat-only requests never wait for maintenance.
+        if 'policy' in result and not payload.get('heartbeat_only') and self._maintenance_thread is not None:
+            self._maintenance_done.clear()
+            self._maintenance_wake.set()
+            self._maintenance_done.wait(.2)
+            with Store(self.config.manager.database_path, timeout=.2) as store:
+                result = self._reply(store, worker_id, payload)
+        return result
 
     def _poll(self, worker_id: str, payload: dict) -> dict:
-        """Keep reports, scheduling cadence and assignments in one serialized poll."""
+        """Commit reports atomically and return durable dispatch/control state."""
         if worker_id not in self.tokens:
             raise ValueError('Unregistered worker')
         heartbeat_only = payload.get('heartbeat_only', False)
@@ -129,9 +199,9 @@ class ManagerService:
             raise ValueError('Snapshot identity mismatch')
         snapshot = WorkerSnapshot(**{**data, 'capacity': capacity, 'heartbeat_at': now,
                                      'paused': False, 'online': True})
-        with Store(self.config.manager.database_path) as store:
+        with Store(self.config.manager.database_path, timeout=.2) as store:
             # Validate the whole report before applying any state changes.
-            reports = payload.get('reports', [])
+            reports = [] if heartbeat_only else payload.get('reports', [])
             for report in reports:
                 attempt = store.attempt(report['attempt_id'])
                 if attempt.worker_id != worker_id:
@@ -218,57 +288,49 @@ class ManagerService:
                     if optional not in data:
                         saved_snapshot.pop(optional, None)
                 store.set_worker(worker_id, snapshot=saved_snapshot)
-            store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
-            from .segments import refresh
-            refresh(store, self.config)
-            if now - self.last_schedule >= self.config.manager.schedule_interval_seconds:
-                snapshots = []
-                for saved_id, record in store.worker_records().items():
-                    if saved_id in self.tokens and record['snapshot']:
-                        saved = record['snapshot']
-                        snapshots.append(WorkerSnapshot(**{**saved,
-                            'capacity': WorkerCapacity(**saved['capacity']),
-                            'paused': record['paused']}))
-                schedule(store, self.config, tuple(snapshots), now=now)
-                self.last_schedule = now
-            assignments = []
-            for reservation in (() if heartbeat_only else store.reservations(worker_id)):
-                attempt = store.attempt(reservation.attempt_id)
-                if store._db.execute('SELECT 1 FROM mpi_groups WHERE attempt_id=?',(attempt.attempt_id,)).fetchone():
-                    continue  # Native MPI groups use the explicit coordinator, not ordinary worker launches.
-                if attempt.state in {'assigned', 'unknown', 'cancelling'}:
-                    specification = asdict(store.specification(attempt.job_id))
-                    # Submission provenance stays on the manager; workers need only rendered inputs.
-                    specification.pop('sweep', None)
-                    if specification['sampling'] is None:
-                        specification.pop('sampling')
-                    if not specification['mpi_placement']:
-                        specification.pop('mpi_placement')
-                    if payload.get('recovery_protocol') != 1:
-                        specification.pop('infrastructure_recovery', None)
-                    if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':
-                        # Legacy shared workers accept only the original specification keys.
-                        specification.pop('storage_mode')
-                        specification.pop('input_manifest')
-                    from .checkpoints import record as checkpoint_record
-                    checkpoint = checkpoint_record(store, attempt.attempt_id)
-                    assignments.append({'attempt': asdict(attempt), 'specification': specification,
-                                        **({'checkpoint_contract': checkpoint['contract']} if checkpoint else {})})
-            policy = self.config.scheduler
-            return {'challenge': str(self.challenge), 'assignments': assignments,
-                    'protocol': 2, 'storage_mode': self.config.storage.mode,
-                    'staged_launch_enabled': True, 'results_protocol': 1,
-                    'cancellations': [{'attempt_id': r.attempt_id, 'reason': store.cancellation(r.attempt_id)}
-                                      for r in store.reservations(worker_id) if store.cancellation(r.attempt_id)],
-                    'paused': store.worker_records()[worker_id]['paused'],
-                    'prelaunch_protocol': 1, 'recovery_protocol': 1,
-                    'policy': asdict(policy),
-                    'manager_capacity': asdict(next(w for w in self.config.workers if w.id == worker_id))}
+            self._maintenance_wake.set()
+            return self._reply(store, worker_id, payload)
+
+    def _reply(self, store: Store, worker_id: str, payload: dict) -> dict:
+        assignments = []
+        for reservation in (() if payload.get('heartbeat_only', False) else store.reservations(worker_id)):
+            attempt = store.attempt(reservation.attempt_id)
+            if store._db.execute('SELECT 1 FROM mpi_groups WHERE attempt_id=?',(attempt.attempt_id,)).fetchone():
+                continue  # Native MPI groups use the explicit coordinator, not ordinary worker launches.
+            if attempt.state in {'assigned', 'unknown', 'cancelling'}:
+                specification = asdict(store.specification(attempt.job_id))
+                # Submission provenance stays on the manager; workers need only rendered inputs.
+                specification.pop('sweep', None)
+                if specification['sampling'] is None:
+                    specification.pop('sampling')
+                if not specification['mpi_placement']:
+                    specification.pop('mpi_placement')
+                if payload.get('recovery_protocol') != 1:
+                    specification.pop('infrastructure_recovery', None)
+                if payload.get('protocol') != 2 and specification['storage_mode'] == 'shared':
+                    # Legacy shared workers accept only the original specification keys.
+                    specification.pop('storage_mode')
+                    specification.pop('input_manifest')
+                from .checkpoints import record as checkpoint_record
+                checkpoint = checkpoint_record(store, attempt.attempt_id)
+                assignments.append({'attempt': asdict(attempt), 'specification': specification,
+                                    **({'checkpoint_contract': checkpoint['contract']} if checkpoint else {})})
+        policy = self.config.scheduler
+        return {'challenge': str(self.challenge), 'assignments': assignments,
+                'protocol': 2, 'storage_mode': self.config.storage.mode,
+                'staged_launch_enabled': True, 'results_protocol': 1,
+                'cancellations': [{'attempt_id': r.attempt_id, 'reason': store.cancellation(r.attempt_id)}
+                                  for r in store.reservations(worker_id) if store.cancellation(r.attempt_id)],
+                'paused': store.worker_records()[worker_id]['paused'],
+                'prelaunch_protocol': 1, 'recovery_protocol': 1,
+                'policy': asdict(policy),
+                'manager_capacity': asdict(next(w for w in self.config.workers if w.id == worker_id))}
+
 
     def input_verified(self, worker_id: str, attempt_id: str, index: int) -> dict:
         """Accept only bounded input verification identities owned by this worker."""
         from .monitoring import file_progress, transfer
-        with Store(self.config.manager.database_path) as store:
+        with Store(self.config.manager.database_path, timeout=0) as store:
             attempt = store.attempt(attempt_id)
             spec = store.specification(attempt.job_id)
             if attempt.worker_id != worker_id or spec.storage_mode != 'staged':
@@ -291,13 +353,13 @@ class ManagerService:
         from .monitoring import worker_view
         if worker_id not in self.tokens:
             raise ValueError('Unregistered worker')
-        with Store(self.config.manager.database_path) as store:
+        with Store(self.config.manager.database_path, timeout=.2) as store:
             return next(row for row in worker_view(store, self.config, time.time()) if row['worker_id'] == worker_id)
 
     def input_artifact(self, worker_id: str, attempt_id: str, index: int) -> tuple[BinaryIO, int]:
         """Authorize an assigned attempt before opening one bounded input file."""
         from .staging import open_regular, validate_manifest
-        with Store(self.config.manager.database_path) as store:
+        with Store(self.config.manager.database_path, timeout=.2) as store:
             attempt = store.attempt(attempt_id)
             participant = store._db.execute('SELECT 1 FROM mpi_members WHERE attempt_id=? AND worker_id=?',
                                             (attempt_id,worker_id)).fetchone()
@@ -325,12 +387,11 @@ class ManagerService:
         if not 0 <= index < len(spec.input_manifest):
             raise ValueError('Unknown input index')
         from .monitoring import transfer
-        with Store(self.config.manager.database_path) as telemetry:
-            previous = telemetry._db.execute("SELECT total_bytes FROM transfer_progress WHERE attempt_id=? AND direction='input'",
-                                              (attempt_id,)).fetchone()
-            transfer(telemetry, attempt_id, 'input', 'transferring',
-                     total_bytes=sum(f.size for f in spec.input_manifest) if not previous or previous[0] is None else None,
-                     total_files=len(spec.input_manifest))
+        try:
+            self._input_telemetry(attempt_id, spec)
+        except sqlite3.Error as exc:
+            if not is_busy(exc):
+                raise
         item = spec.input_manifest[index]
         stream = open_regular(Path(spec.work_directory) / 'inputs', item.path)
         if os.fstat(stream.fileno()).st_size != item.size:
@@ -338,12 +399,21 @@ class ManagerService:
             raise ValueError('Stored input size differs from snapshot')
         return stream, item.size
 
+    def _input_telemetry(self, attempt_id: str, spec: JobSpecification) -> None:
+        from .monitoring import transfer
+        with Store(self.config.manager.database_path, timeout=.2) as telemetry:
+            telemetry._db.execute('PRAGMA busy_timeout = 0')
+            previous = telemetry._db.execute("SELECT total_bytes FROM transfer_progress WHERE attempt_id=? AND direction='input'",
+                                              (attempt_id,)).fetchone()
+            transfer(telemetry, attempt_id, 'input', 'transferring',
+                     total_bytes=sum(f.size for f in spec.input_manifest) if not previous or previous[0] is None else None,
+                     total_files=len(spec.input_manifest))
     def mpi_result_operation(self, worker_id: str, attempt_id: str, operation: str,
                              payload: dict | None=None, stream: BinaryIO | None=None,
                              length: int | None=None) -> dict:
         """Bind authenticated participant output to one terminated native MPI group."""
         from .multihost import result_operation
-        with self._result_lock,Store(self.config.manager.database_path) as store:
+        with self._result_lock,Store(self.config.manager.database_path, timeout=.2) as store:
             return result_operation(store,self.config.storage,worker_id,attempt_id,operation,payload,stream,length)
 
     def result_operation(self, worker_id: str, attempt_id: str, operation: str,
@@ -351,7 +421,7 @@ class ManagerService:
                          length: int | None = None) -> dict:
         """Serialize manifest binding, bounded file writes and durable acknowledgement."""
         from .results import authorize, commit_results, output_limits, upload_file, validate_results
-        with self._result_lock, Store(self.config.manager.database_path) as store:
+        with self._result_lock, Store(self.config.manager.database_path, timeout=.2) as store:
             directory = authorize(store, worker_id, attempt_id)
             limits = output_limits(self.config.storage)
             from .monitoring import transfer, file_progress, ProgressReader
@@ -411,7 +481,7 @@ class ManagerService:
         """Use the artifact lock and authenticated assignment for checkpoint writes."""
         from .checkpoints import operation
         from .results import output_limits
-        with self._result_lock, Store(self.config.manager.database_path) as store:
+        with self._result_lock, Store(self.config.manager.database_path, timeout=.2) as store:
             shared_source = None
             if self.config.storage.mode == 'shared' and action == 'commit':
                 shared_source = Path(store.attempt(attempt_id).directory) / 'work'
@@ -431,7 +501,7 @@ class ManagerService:
                             build_fingerprint: str) -> tuple[BinaryIO, int]:
         """Authorize a committed dependency and verify it before sending bytes."""
         from .checkpoints import fetch
-        with Store(self.config.manager.database_path) as store:
+        with Store(self.config.manager.database_path, timeout=.2) as store:
             stream, item = fetch(store, worker_id, attempt_id, index, build_fingerprint)
             return stream, item.size
 
@@ -475,17 +545,34 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     raise ValueError('Unknown input endpoint')
                 else:
                     stream, size = service.input_artifact(worker_id, parts[3], int(parts[5]))
+            except sqlite3.Error as exc:
+                if not is_busy(exc):
+                    logging.getLogger(__name__).exception('Artifact database failure')
+                self.send_response(503 if is_busy(exc) else 500)
+                if is_busy(exc):
+                    self.send_header('Retry-After', '1')
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
             except (ValueError, KeyError, TypeError, OSError):
                 self.send_error(400, 'Input artifact unavailable or unauthorized')
                 return
+            progress_store = None
+            reader = None
             try:
+                if not checkpoint:
+                    from .monitoring import ProgressReader
+                    try:
+                        progress_store = Store(service.config.manager.database_path, timeout=0)
+                        reader = ProgressReader(stream, progress_store, parts[3], 'input', int(parts[5]))
+                    except sqlite3.Error as exc:
+                        if not is_busy(exc):
+                            raise
+                        # Optional telemetry cannot prevent an authorized download.
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/octet-stream')
                 self.send_header('Content-Length', str(size))
                 self.end_headers()
-                from .monitoring import transfer, ProgressReader
-                progress_store = Store(service.config.manager.database_path)
-                reader = None if checkpoint else ProgressReader(stream, progress_store, parts[3], 'input', int(parts[5]))
                 remaining = size
                 while remaining:
                     chunk = stream.read(min(65536, remaining))
@@ -495,14 +582,16 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if reader:
                         reader.record(len(chunk))
                     remaining -= len(chunk)
-            except (OSError, TimeoutError):
+            except OSError:
                 pass  # The receiver verifies length/hash and retries without launching.
             finally:
-                if 'progress_store' in locals():
+                try:
                     if reader:
                         reader.flush()
-                    progress_store.close()
-                stream.close()
+                finally:
+                    if progress_store is not None:
+                        progress_store.close()
+                    stream.close()
 
         def do_PUT(self) -> None:
             self.do_POST()
@@ -564,6 +653,10 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     if not isinstance(payload, dict):
                         raise ValueError('Expected JSON object')
                     result = service.poll(worker_id, payload)
+            except sqlite3.Error as exc:
+                status, result = (503, {'error': 'Database busy; retry request'}) if is_busy(exc) else (500, {'error': 'Database operation failed'})
+                if not is_busy(exc):
+                    logging.getLogger(__name__).exception('Request database failure')
             except StorageProtocolError as exc:
                 status, result = 409, {'error': str(exc)}
             except OSError as exc:
@@ -572,10 +665,15 @@ def make_server(service: ManagerService, host: str, port: int, *,
                 status, result = 400, {'error': 'Invalid poll or artifact request, or incompatible storage protocol'}
             body = json.dumps(result, allow_nan=False).encode()
             self.send_response(status)
+            if status == 503:
+                self.send_header('Retry-After', '1')
             self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except OSError:
+                pass  # Lost response is retried against durable operation identities.
 
     context = None
     if certfile:
@@ -587,7 +685,7 @@ def make_server(service: ManagerService, host: str, port: int, *,
         daemon_threads = False
 
         def service_actions(self) -> None:
-            service.expire_workers()
+            pass  # Maintenance runs outside the accept loop.
 
         def get_request(self) -> tuple:
             connection, address = super().get_request()
@@ -609,4 +707,6 @@ def make_server(service: ManagerService, host: str, port: int, *,
                     raise
             super().process_request_thread(connection, address)
 
-    return BoundedServer((host, port), Handler)
+    server = BoundedServer((host, port), Handler)
+    service.start_maintenance()
+    return server

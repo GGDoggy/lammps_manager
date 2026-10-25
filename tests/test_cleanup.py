@@ -275,7 +275,7 @@ class CleanupIntegrationTests(unittest.TestCase):
                         original(*args)
 
                 with patch.object(cleanup, 'prepare_directory', side_effect=fail_preparation):
-                    worker.tick()
+                    self.tick(worker)
                 with Store(worker.database) as store:
                     attempt, = store.job_attempts(self.job_id)
                     identifier = attempt.attempt_id
@@ -288,13 +288,14 @@ class CleanupIntegrationTests(unittest.TestCase):
                 self.assertFalse(worker.futures)
                 with patch.object(cleanup, 'prepare_directory',
                                   side_effect=PermissionError('Still unavailable')):
-                    worker.tick()  # Report the first failure and retry without exiting.
+                    self.tick(worker)  # Report failure and await the background retry.
                 with Store(self.config.manager.database_path) as store:
                     self.assertEqual(store.input_transfer(identifier)['status'], 'failed')
                 if restart:
                     worker.close()
                     worker = self.worker()
-                self.tick(worker)  # Retry preparation and launch the accepted attempt.
+                self.tick(worker)  # Retry preparation.
+                self.tick(worker)  # Launch only after a fresh normal poll.
                 self.assertTrue(worker.futures)
                 next(iter(worker.futures.values())).result(timeout=5)
                 with Store(worker.database) as store:
@@ -414,7 +415,7 @@ class CleanupIntegrationTests(unittest.TestCase):
                 with Store(self.config.manager.database_path) as store:
                     store.submit(next_spec)
                     before = store.worker_records()['a']['snapshot']['heartbeat_at']
-                worker.tick()
+                results_tests.staging_tests.StagedWorkerTests.tick(self, worker)
                 worker.tick()
                 self.assertIs(worker.cleanup_future, future)
                 self.assertTrue(worker.futures)

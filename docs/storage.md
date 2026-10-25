@@ -147,3 +147,31 @@ cannot regress. The manager alone records delivery after durable publication;
 worker poll diagnostics cannot assert collection. `result_collection()` returns
 the manifest by default; `include_manifest=False` reads only status, reason and
 manifest presence for bounded per-file checks. See [staged results](staged-results.md).
+
+## Contention and initialization
+
+Schema marker 3 records completion of all additive tables and indexes. Opening a
+current database checks the marker without acquiring a writer reservation. New
+and version-1/2 databases initialize under a write transaction and recheck the
+marker after acquiring it; stored specifications are not rewritten. Each Store
+owns one connection and must stay on its creating thread. Future schema changes must bump
+the completed marker; per-open `CREATE IF NOT EXISTS` is not a migration strategy. `Store(path,
+timeout=5)` preserves the Python API default; manager requests use a 0.2-second
+busy wait and optional transfer telemetry uses zero wait. The journal mode is
+unchanged. SQLite JSON functions are required for compact continuation snapshot
+projections; both supported local test runtimes provide them.
+
+Only SQLite BUSY/LOCKED errors are retryable. HTTP returns 503 with
+`Retry-After: 1` before a response starts; other SQLite errors return 500 and are
+logged. Periodic maintenance records contention and retries on a later pass.
+Operations containing filesystem publication are never automatically replayed as
+whole transactions. Durable results/checkpoints still require a successful
+commit before acknowledgement or staged cleanup.
+
+A downgrade to code that only accepts marker 2 requires coordinated idle
+maintenance, a SQLite API backup, and restoring marker 2 in the manager database and every worker journal before
+reopening with that code. Marker 3 changes initialization bookkeeping only; it does not remove
+columns, tables or submission data. Retain the exact previous source/configuration
+and verify schema compatibility before any downgrade. Restoring an older database
+backup after new work has run would discard runtime evidence and is not an
+acceptable routine rollback.

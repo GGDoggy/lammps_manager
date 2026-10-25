@@ -7,6 +7,7 @@ from dataclasses import asdict
 import hashlib
 from io import BytesIO
 import json
+import logging
 import secrets
 import time
 from pathlib import Path
@@ -71,12 +72,18 @@ def initialize(store: Store) -> None:
             (row['run_id'], row['worker_id'], contract.get('execution_boot_id'), contract['build_fingerprint']))
 
 
-def _run(store: Store, run_id: str) -> dict:
-    row = store._db.execute('SELECT * FROM simulation_runs WHERE run_id=?', (run_id,)).fetchone()
+def _run(store: Store, run_id: str, *, snapshot: bool | str = True) -> dict:
+    columns = 'run_id,status,committed_step,initial_override,continuation_override,first_priority,cancelled,reason'
+    if snapshot:
+        columns += (",json_remove(snapshot,'$.model_parameters','$.sampling') AS snapshot" if snapshot == 'control' else ',snapshot')
+    row = store._db.execute(f'SELECT {columns} FROM simulation_runs WHERE run_id=?', (run_id,)).fetchone()
     if row is None:
         raise StoreError('Unknown simulation run: ' + run_id)
     result = dict(row)
-    result['snapshot'] = json.loads(result['snapshot'])
+    if snapshot:
+        logging.getLogger(__name__).debug('Run snapshot decode compact=%s bytes=%d',
+                                          snapshot == 'control', len(result['snapshot']))
+        result['snapshot'] = json.loads(result['snapshot'])
     return result
 
 
@@ -198,7 +205,7 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
                 run = _run(store, identity)
                 if run['cancelled']:
                     raise StoreError('Run cancelled before input publication')
-                _enqueue(store, run, 0, None)
+                _enqueue(store, run, 0, None, generation=environment(store, identity)['generation'])
                 store._db.execute('INSERT INTO run_events(run_id,description) VALUES(?,?)', (identity, 'Run submitted'))
         return identity
     with store.scheduling_round():
@@ -210,55 +217,61 @@ def submit_run(store: Store, config: ManagerConfig, *, total_steps: int,
         store._db.execute('INSERT INTO simulation_runs(run_id,snapshot,status,committed_step,initial_override,'
             'continuation_override) VALUES(?,?,?,?,?,?)',
             (identity, cp.canonical(snapshot), 'queued', start_step, initial_priority, continuation_priority))
-        _enqueue(store, _run(store, identity), 0, None)
+        _enqueue(store, _run(store, identity), 0, None, generation=0)
         store._db.execute('INSERT INTO run_events(run_id,description) VALUES(?,?)', (identity, 'Run submitted'))
     return identity
 
 
-def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None) -> None:
-    """Publish complete inputs before creating a unique queued segment transactionally."""
+def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None, *,
+             generation: int, prepare_only: bool = False, prepared: object = None) -> object:
+    """Publish inputs in the captured generation before transactionally enqueueing."""
     from .models import JobSpecification, Resources, InfrastructureRecovery
-    snapshot = run['snapshot']
-    ends = snapshot['segment_ends']
-    start = snapshot['start_step'] if ordinal == 0 else ends[ordinal - 1]
-    stop = ends[ordinal]
-    generation = environment(store, run['run_id'])['generation']
-    suffix = f'.g{generation:06d}' if generation else ''
-    job = f"{run['run_id']}{suffix}.s{ordinal:06d}"
-    root = Path(snapshot['work_root']) / job
-    if any(path.is_symlink() or path.resolve() != path for path in (root.parent, root)):
-        raise ValueError('Unsafe segment input root')
-    seeds = json.loads(snapshot['stream_provenance'])['seeds']
-    renderer = (lambda **kw: render_engineering_input(Recipe(**snapshot['recipe']), **kw)) if snapshot.get('contract_version') else render_abp_input
-    if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
-        renderer = lambda **kw: render_parameterized_input(Recipe(**snapshot['recipe']), snapshot['model'], **kw)
-    script = renderer(start=start, stop=stop, total=snapshot['total_steps'],
-        stream_seed=seeds[2 + ordinal], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
-    primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
-    generated = {'in.lmp': script}
-    if snapshot.get('sampling') is not None:
-        from .sampling import apply_sampling, sampling_files
-        script = apply_sampling(script.decode()).encode()
-        generated['in.lmp'] = script
+    if prepared is None:
+        snapshot = run['snapshot']
+        ends = snapshot['segment_ends']
+        start = snapshot['start_step'] if ordinal == 0 else ends[ordinal - 1]
+        stop = ends[ordinal]
+        suffix = f'.g{generation:06d}' if generation else ''
+        job = f"{run['run_id']}{suffix}.s{ordinal:06d}"
+        root = Path(snapshot['work_root']) / job
+        if any(path.is_symlink() or path.resolve() != path for path in (root.parent, root)):
+            raise ValueError('Unsafe segment input root')
+        seeds = json.loads(snapshot['stream_provenance'])['seeds']
+        renderer = (lambda **kw: render_engineering_input(Recipe(**snapshot['recipe']), **kw)) if snapshot.get('contract_version') else render_abp_input
+        if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
+            renderer = lambda **kw: render_parameterized_input(Recipe(**snapshot['recipe']), snapshot['model'], **kw)
+        script = renderer(start=start, stop=stop, total=snapshot['total_steps'],
+            stream_seed=seeds[2 + ordinal], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
         primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
-        generated.update(sampling_files(snapshot['sampling'], start=start, stop=stop))
-    if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
-        generated['model-parameters.json'] = cp.canonical(snapshot['model_parameters']).encode()
-        if start == 0:
-            generated['initial-state.lmp'] = render_initialization(Recipe(**snapshot['recipe']),
-                snapshot['model_parameters'], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
-    files = tuple(InputFile(path, len(data), hashlib.sha256(data).hexdigest()) for path, data in generated.items())
-    if checkpoint:
-        if not checkpoint['acknowledged'] or not checkpoint['directory']:
-            raise StoreError('Successor requires committed checkpoint publication')
-        files += tuple(InputFile(**entry) for entry in checkpoint['manifest']['files'])
-    root.mkdir(exist_ok=True)
-    publish_inputs(root / 'inputs', files,
-        lambda index: BytesIO(generated[files[index].path]) if files[index].path in generated else open_regular(Path(checkpoint['directory']), files[index].path),
-        snapshot['input_limits'])
-    spec = JobSpecification(job, str(root), 'in.lmp', primary.sha256,
-        Resources(**snapshot['resources']), snapshot['storage_mode'], files,
-        InfrastructureRecovery(**snapshot['infrastructure_recovery']), sampling=snapshot.get('sampling'))
+        generated = {'in.lmp': script}
+        if snapshot.get('sampling') is not None:
+            from .sampling import apply_sampling, sampling_files
+            script = apply_sampling(script.decode()).encode()
+            generated['in.lmp'] = script
+            primary = InputFile('in.lmp', len(script), hashlib.sha256(script).hexdigest())
+            generated.update(sampling_files(snapshot['sampling'], start=start, stop=stop))
+        if snapshot.get('contract_version') == PARAMETERIZED_VERSION:
+            generated['model-parameters.json'] = cp.canonical(snapshot['model_parameters']).encode()
+            if start == 0:
+                generated['initial-state.lmp'] = render_initialization(Recipe(**snapshot['recipe']),
+                    snapshot['model_parameters'], position_seed=seeds[0], orientation_seed=seeds[1]).encode()
+        files = tuple(InputFile(path, len(data), hashlib.sha256(data).hexdigest()) for path, data in generated.items())
+        if checkpoint:
+            if not checkpoint['acknowledged'] or not checkpoint['directory']:
+                raise StoreError('Successor requires committed checkpoint publication')
+            files += tuple(InputFile(**entry) for entry in checkpoint['manifest']['files'])
+        root.mkdir(exist_ok=True)
+        publish_inputs(root / 'inputs', files,
+            lambda index: BytesIO(generated[files[index].path]) if files[index].path in generated else open_regular(Path(checkpoint['directory']), files[index].path),
+            snapshot['input_limits'])
+        spec = JobSpecification(job, str(root), 'in.lmp', primary.sha256,
+            Resources(**snapshot['resources']), snapshot['storage_mode'], files,
+            InfrastructureRecovery(**snapshot['infrastructure_recovery']), sampling=snapshot.get('sampling'))
+        prepared = (spec, start, stop)
+    if prepare_only:
+        return prepared
+    spec, start, stop = prepared
+    job = spec.job_id
     store.submit(spec)
     store._db.execute('INSERT INTO run_segments VALUES(?,?,?,?,?,?,0)',
         (run['run_id'], ordinal, job, start, stop, checkpoint['identity'] if checkpoint else None))
@@ -287,7 +300,7 @@ def on_assignment(store: Store, job_id: str, attempt_id: str) -> None:
     item = segment(store, job_id)
     if item is None:
         return
-    run = _run(store, item['run_id'])
+    run = _run(store, item['run_id'], snapshot='control')
     if run['cancelled'] or item['completed']:
         raise StoreError('Run cancelled or segment already committed')
     other = store._db.execute('SELECT 1 FROM run_segments s JOIN attempts a USING(job_id) '
@@ -328,7 +341,7 @@ def worker_blocker(store: Store, job_id: str, worker_id: str, *,
         if store._db.execute('SELECT 1 FROM run_segment_history WHERE job_id=?', (job_id,)).fetchone():
             return 'retired_continuation_generation'
         return None
-    run = _run(store, item['run_id'])
+    run = _run(store, item['run_id'], snapshot=False)
     if run['cancelled']:
         return 'parent_cancelled'
     binding = environment(store, run['run_id'])
@@ -353,7 +366,7 @@ def worker_blocker(store: Store, job_id: str, worker_id: str, *,
 def advance(store: Store, run_id: str) -> None:
     """Count one committed boundary and enqueue one successor, or complete parent."""
     with store.scheduling_round():
-        run = _run(store, run_id)
+        run = _run(store, run_id, snapshot=False)
         if run['cancelled']:
             _finish_cancel(store, run)
             return
@@ -397,13 +410,31 @@ def advance(store: Store, run_id: str) -> None:
         if reason:
             store._db.execute("UPDATE simulation_runs SET status='blocked',reason=? WHERE run_id=?", (reason, run_id))
             return
-        # Reverify committed state, including already published input copies after
-        # a database rollback. Corruption must not create runnable successor input.
-        files = tuple(InputFile(**entry) for entry in checkpoint['manifest']['files'])
-        publish_inputs(Path(checkpoint['directory']), files, lambda _: None, {})
-        final = item['ordinal'] + 1 == len(run['snapshot']['segment_ends'])
+        generation = environment(store, run_id)['generation']
+        expected_attempt = attempt
+        expected_checkpoint = checkpoint
+    # File hashing, copying and immutable snapshot decoding do not own the writer.
+    run = _run(store, run_id)
+    files = tuple(InputFile(**entry) for entry in checkpoint['manifest']['files'])
+    publish_inputs(Path(checkpoint['directory']), files, lambda _: None, {})
+    final = item['ordinal'] + 1 == len(run['snapshot']['segment_ends'])
+    prepared = None if final else _enqueue(store, run, item['ordinal'] + 1, checkpoint,
+                                           generation=generation, prepare_only=True)
+    with store.scheduling_round():
+        current = _run(store, run_id, snapshot=False)
+        binding = environment(store, run_id)
+        membership = segment(store, item['job_id'])
+        if (current['cancelled'] or current['status'] == 'succeeded'
+                or binding['reset_pending'] or binding['generation'] != generation
+                or membership is None or membership['completed']
+                or store.attempt(attempt.attempt_id) != expected_attempt
+                or cp.record(store, attempt.attempt_id) != expected_checkpoint
+                or store.result_collection(attempt.attempt_id)['status'] != 'collected'):
+            return
+        # Reload runtime priorities after preparation; submitted input is immutable.
+        run.update(current)
         if not final:
-            _enqueue(store, run, item['ordinal'] + 1, checkpoint)
+            _enqueue(store, run, item['ordinal'] + 1, checkpoint, generation=generation, prepared=prepared)
         store._db.execute('UPDATE run_segments SET completed=1 WHERE run_id=? AND ordinal=?',
                            (run_id, item['ordinal']))
         store._db.execute('UPDATE simulation_runs SET committed_step=?,status=?,reason=NULL WHERE run_id=?',
@@ -421,12 +452,15 @@ def refresh(store: Store, config: ManagerConfig | None = None, *, now: float | N
     for row in store._db.execute("SELECT run_id FROM simulation_runs WHERE status NOT IN ('succeeded','cancelled')").fetchall():
         if row['run_id'] in reset_blocked:
             continue
+        generation = environment(store, row['run_id'])['generation']
         try:
             advance(store, row['run_id'])
         except (OSError, ValueError) as exc:
             with store.scheduling_round():
-                store._db.execute("UPDATE simulation_runs SET status='blocked',reason=? WHERE run_id=?",
-                                  (f'Checkpoint/enqueue blocked: {exc}', row['run_id']))
+                store._db.execute("UPDATE simulation_runs SET status='blocked',reason=? WHERE run_id=? "
+                    "AND cancelled=0 AND status NOT IN ('succeeded','cancelled') AND EXISTS "
+                    '(SELECT 1 FROM run_environments e WHERE e.run_id=simulation_runs.run_id AND e.generation=?)',
+                    (f'Checkpoint/enqueue blocked: {exc}', row['run_id'], generation))
 
 
 def set_priorities(store: Store, run_id: str, *, initial: int | None = None,
@@ -437,7 +471,7 @@ def set_priorities(store: Store, run_id: str, *, initial: int | None = None,
     if initial is None and continuation is None:
         raise ValueError('Supply an initial or continuation priority')
     with store.scheduling_round():
-        run = _run(store, run_id)
+        run = _run(store, run_id, snapshot=False)
         if initial is not None:
             if run['first_priority'] is not None:
                 raise StoreError('Initial priority already frozen at first dispatch')
@@ -457,7 +491,7 @@ def cancel_run(store: Store, run_id: str, reason: str = 'Parent run cancellation
     if not isinstance(reason, str) or not reason.strip() or len(reason) > 2048:
         raise ValueError('Invalid parent cancellation reason')
     with store.scheduling_round():
-        run = _run(store, run_id)
+        run = _run(store, run_id, snapshot=False)
         if run['status'] == 'succeeded':
             raise StoreError('Completed run cannot be cancelled')
         store._db.execute("UPDATE simulation_runs SET cancelled=1,status='cancelling',reason=? WHERE run_id=?", (reason, run_id))
@@ -469,7 +503,7 @@ def cancel_run(store: Store, run_id: str, reason: str = 'Parent run cancellation
                 if attempt.state not in TERMINAL:
                     store.request_cancel(attempt.attempt_id, reason)
         store._db.execute('INSERT INTO run_events(run_id,description) VALUES(?,?)', (run_id, reason))
-        _finish_cancel(store, _run(store, run_id))
+        _finish_cancel(store, _run(store, run_id, snapshot=False))
 
 
 def _finish_cancel(store: Store, run: dict) -> None:
@@ -523,7 +557,7 @@ def retry_blocker(store: Store, job_id: str) -> str | None:
     if store._db.execute('SELECT 1 FROM run_segment_history WHERE job_id=?', (job_id,)).fetchone():
         return 'Retired continuation generation cannot be retried'
     item = segment(store, job_id)
-    if item is not None and (environment(store, item['run_id'])['reset_pending'] or item['completed'] or _run(store, item['run_id'])['cancelled']):
+    if item is not None and (environment(store, item['run_id'])['reset_pending'] or item['completed'] or _run(store, item['run_id'], snapshot=False)['cancelled']):
         return 'Parent run cancelled or segment already committed'
     return None
 
@@ -533,7 +567,7 @@ def monitoring_view(store: Store, job_id: str) -> dict | None:
     item = segment(store, job_id)
     if item is None:
         return None
-    run = _run(store, item['run_id'])
+    run = _run(store, item['run_id'], snapshot='control')
     attempts = store.job_attempts(job_id, limit=1)
     latest = attempts[-1] if attempts else None
     checkpoint = cp.record(store, latest.attempt_id) if latest else None
@@ -695,6 +729,6 @@ def _reconcile_environment(store: Store, config: ManagerConfig, binding: dict, n
     store._db.execute('UPDATE run_environments SET generation=generation+1,worker_id=NULL,boot_id=NULL,'
         'fingerprint=NULL,missing_since=NULL,reset_pending=0 WHERE run_id=?', (run_id,))
     store._db.execute("UPDATE simulation_runs SET committed_step=0,status='queued',reason=NULL WHERE run_id=?", (run_id,))
-    _enqueue(store, _run(store, run_id), 0, None)
+    _enqueue(store, _run(store, run_id), 0, None, generation=binding['generation'] + 1)
     store._db.execute('INSERT INTO run_events(run_id,description) VALUES(?,?)',
         (run_id, f"Environment timeout: retired generation {binding['generation']}; restarted from step zero"))

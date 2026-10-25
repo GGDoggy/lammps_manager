@@ -315,7 +315,9 @@ class ConcurrentStagedTests(unittest.TestCase):
         try:
             with patch.object(worker.monitor, 'sample', side_effect=sample_memory), \
                     patch.object(worker, '_execute', side_effect=held_execute):
-                worker.tick()  # Accept and stage both while combined memory fits.
+                worker.tick()  # Accept before any launch admission.
+                if worker.input_future is not None:
+                    worker.input_future.result(timeout=3)
                 with Store(worker.database) as store:
                     self.assertEqual(len(store.reservations()), 2)
                 available = .015  # Still enough for either individual .01 GiB job.
@@ -331,7 +333,12 @@ class ConcurrentStagedTests(unittest.TestCase):
                                              for r in store.reservations()), 1)
                 release.set()
                 first_future.result(timeout=5)
-                worker.tick()
+                deadline = time.monotonic() + 3
+                while time.monotonic() < deadline:
+                    worker.tick()
+                    if worker.futures:
+                        break
+                    time.sleep(.01)
                 self.assertEqual(len(worker.futures), 1)
                 next(iter(worker.futures.values())).result(timeout=5)
                 worker.tick()
@@ -418,8 +425,10 @@ class ConcurrentStagedTests(unittest.TestCase):
                 self.assertTrue(entered.wait(2))
                 with Store(self.config.manager.database_path) as store:
                     third, = submit_batch(store, self.config, self.root / 'batch.json')
-                worker.tick()
-                worker.tick()
+                deadline = time.monotonic() + 3
+                while third not in self._owned_jobs(worker) and time.monotonic() < deadline:
+                    worker.tick()
+                    time.sleep(.01)
                 self.assertIn(third, self._owned_jobs(worker))
                 # An in-flight upload cannot prevent heartbeats/new execution.
                 self.assertFalse(worker.collection_future.done())

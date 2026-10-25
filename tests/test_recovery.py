@@ -1,6 +1,7 @@
 """Recovery checks use isolated local processes; real MPI runs separately."""
 
 from dataclasses import asdict, replace
+import errno
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,33 @@ from lammps_manager.worker import Worker
 from lammps_manager.manager import ManagerService
 import test_local
 import test_workers
+
+
+class ProcessObservationTests(unittest.TestCase):
+    def test_identity_read_normalizes_disappearing_process(self) -> None:
+        with patch.object(Path, 'read_text', side_effect=ProcessLookupError(errno.ESRCH, 'Process exited')):
+            with self.assertRaises(FileNotFoundError) as caught:
+                process_identity(123)
+        self.assertEqual(caught.exception.errno, errno.ENOENT)
+        self.assertEqual(caught.exception.filename, '/proc/123/stat')
+
+    def test_session_scan_skips_exited_process_and_retains_live_member(self) -> None:
+        def read_stat(path):
+            if path == Path('/proc/123/stat'):
+                raise ProcessLookupError(errno.ESRCH, 'Process exited')
+            return '456 (live rank) S 1 456 456'
+
+        with patch.object(Path, 'iterdir', return_value=iter([Path('/proc/123'), Path('/proc/456')])), \
+                patch.object(Path, 'read_text', read_stat):
+            self.assertEqual(session_members(456), ((456, 456),))
+
+    def test_permission_failure_cannot_establish_process_absence(self) -> None:
+        with patch.object(Path, 'read_text', side_effect=PermissionError('Cannot inspect process')):
+            with self.assertRaises(PermissionError):
+                process_identity(123)
+            with patch.object(Path, 'iterdir', return_value=iter([Path('/proc/123')])):
+                with self.assertRaises(PermissionError):
+                    session_members(123)
 
 
 class RecoveryTests(unittest.TestCase):
@@ -263,13 +291,14 @@ class RecoveryWorkerTests(unittest.TestCase):
     worker_config = test_workers.WorkerTests.worker_config
     worker = test_workers.WorkerTests.worker
     submit = test_workers.WorkerTests.submit
+    assigned_tick = test_workers.WorkerTests.assigned_tick
 
     def test_manager_expiry_restart_and_reconnection_keep_reservations(self) -> None:
         job = self.submit((0,))[0]
         worker = self.worker()
         worker.tick()
         with patch.object(worker.pool, 'submit'):
-            worker.tick()
+            self.assigned_tick(worker)
         with Store(self.config.manager.database_path) as store:
             attempt = store.job_attempts(job)[0]
             snapshot = store.worker_records()['a']['snapshot']
@@ -345,7 +374,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         job = self.submit((0,))[0]
         worker = self.worker()
         worker.tick()
-        worker.tick()
+        self.assigned_tick(worker)
         if report_running:
             deadline = time.monotonic() + 3
             while time.monotonic() < deadline:
@@ -404,7 +433,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         job = self.submit((0,))[0]
         worker = self.worker()
         worker.tick()
-        worker.tick()
+        self.assigned_tick(worker)
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             with Store(worker.database) as store:
@@ -432,7 +461,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         job = self.submit((7,))[0]
         worker = self.worker()
         worker.tick()
-        worker.tick()
+        self.assigned_tick(worker)
         next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
@@ -445,7 +474,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)['state'], 'queued')
         worker.acknowledged.clear()  # Old failed report can replay after retry was queued.
-        worker.tick()
+        self.assigned_tick(worker)
         next(iter(worker.futures.values())).result(timeout=3)
         worker.tick()
         with Store(self.config.manager.database_path) as store:
@@ -499,7 +528,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         worker = self.worker()
         worker.tick()
         with patch.object(worker.pool, 'submit'):
-            worker.tick()
+            self.assigned_tick(worker)
         deadline = time.monotonic() + 2
         while time.monotonic() < deadline:
             with Store(self.config.manager.database_path) as store:
@@ -515,7 +544,7 @@ class RecoveryWorkerTests(unittest.TestCase):
         worker.tick()
         # Leave a durable acceptance without starting its executor.
         with patch.object(worker.pool, 'submit'):
-            result = worker.tick()
+            result = self.assigned_tick(worker)
         attempt_id = result['assignments'][0]['attempt']['attempt_id']
         # Simulate the acceptance-before-executor window, with explicit evidence
         # available only to the original newly accepted execution path.
@@ -544,7 +573,8 @@ from pathlib import Path
 from lammps_manager.worker import Worker
 w=Worker(pickle.loads(Path(sys.argv[1]).read_bytes()),sys.argv[2])
 w.tick(); w.tick()
-while not list(Path(w.config.work_root).glob('*/*/process.json')): time.sleep(.01)
+while not list(Path(w.config.work_root).glob('*/*/process.json')):
+ w.tick(); time.sleep(.01)
 os._exit(0)
 '''
         result = subprocess.run([sys.executable, '-c', code, str(config_file),

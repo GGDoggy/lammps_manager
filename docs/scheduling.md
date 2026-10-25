@@ -159,3 +159,8 @@ equal total demand the older queue entry wins. Retry, infrastructure recovery an
 prelaunch return receive a fresh sequence; waiting diagnostics and priority edits
 do not reset queue age. Priority never bypasses readiness, compatibility or quota
 checks. No aging or automatic priority adjustment is applied.
+
+The optional Python argument `schedule(..., max_assignments=N)` bounds one atomic
+round without weakening admission or reservation checks. Omission preserves the
+existing complete-round API. The manager uses four assignments per transaction
+and leaves a full batch due for the next maintenance pass.

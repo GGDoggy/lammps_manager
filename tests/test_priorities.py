@@ -70,6 +70,7 @@ class PriorityTests(unittest.TestCase):
     def test_queue_lookup_work_scales_after_existing_database_reopen(self):
         # Simulate a database created before the queue lookup index existed.
         self.store._db.execute('DROP INDEX IF EXISTS events_job_event')
+        self.store._db.execute('PRAGMA user_version=2')
         for index in range(256):
             self.submit(f'job-{index}', cpu=1)
         before = self.store._db.execute(

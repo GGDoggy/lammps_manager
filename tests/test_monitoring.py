@@ -64,6 +64,7 @@ class MonitoringTests(unittest.TestCase):
                 with Store(path) as store:
                     if reopen:
                         store._db.execute('DROP INDEX IF EXISTS attempts_job')
+                        store._db.execute('PRAGMA user_version=2')
                         seed(store, 0, 256)
                         before = snapshots(store)
                     else:

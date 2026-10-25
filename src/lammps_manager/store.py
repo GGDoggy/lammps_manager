@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 import json
 import math
+import logging
+import time
 import re
 import sqlite3
 from pathlib import Path
@@ -12,6 +14,19 @@ from typing import Iterator
 from uuid import UUID
 
 from .models import InfrastructureRecovery, JobSpecification, Resources, specification_from_dict
+
+
+def is_busy(error: BaseException) -> bool:
+    """Recognize only SQLite lock contention, including extended result codes."""
+    if not isinstance(error, sqlite3.OperationalError):
+        return False
+    code = getattr(error, 'sqlite_errorcode', None)
+    if code is not None:
+        return (code & 255) in (5, 6)  # SQLite BUSY/LOCKED; constants are absent in Python 3.10.
+    message = str(error).lower()
+    return message == 'database is locked' or any(
+        message == prefix or message.startswith(prefix + ':')
+        for prefix in ('database table is locked', 'database schema is locked'))
 
 
 class StoreError(ValueError):
@@ -100,83 +115,93 @@ class Store:
     evidence; the store cannot verify a remote process. Retries require explicit authorization.
     """
 
-    def __init__(self, path: str | Path) -> None:
-        self._db = sqlite3.connect(str(path), isolation_level=None, timeout=5)
+    def __init__(self, path: str | Path, *, timeout: float = 5) -> None:
+        self._db = sqlite3.connect(str(path), isolation_level=None, timeout=timeout)
         self._db.row_factory = sqlite3.Row
+        try:
+            version = self._db.execute('PRAGMA user_version').fetchone()[0]
+            if version == 3:
+                self._db.execute('PRAGMA foreign_keys = ON')
+                return
+        except BaseException:
+            self._db.close()
+            raise
         # Version-1 attempts had a UNIQUE job_id; rebuild without rewriting snapshots.
         self._db.execute('PRAGMA foreign_keys = OFF')
         try:
             with self._transaction():
                 version = self._db.execute('PRAGMA user_version').fetchone()[0]
-                if version == 0:
-                    # executescript would implicitly commit the schema transaction.
-                    for statement in SCHEMA.split(';'):
-                        if statement.strip():
-                            self._db.execute(statement)
-                elif version == 1:
-                    definition = SCHEMA.split('CREATE TABLE attempts (', 1)[1].split(';', 1)[0]
-                    self._db.execute('CREATE TABLE attempts_v2 (' + definition)
-                    self._db.execute('INSERT INTO attempts_v2 SELECT * FROM attempts')
-                    self._db.execute('DROP TABLE attempts')
-                    self._db.execute('ALTER TABLE attempts_v2 RENAME TO attempts')
-                    self._db.execute('PRAGMA user_version = 2')
-                elif version != 2:
-                    raise StoreError(f'Unsupported database schema version: {version}')
-                self._db.execute("CREATE TABLE IF NOT EXISTS input_transfers ("
-                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
-                                 "directory TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
-                self._db.execute("CREATE TABLE IF NOT EXISTS launch_claims ("
-                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))")
-                self._db.execute('CREATE INDEX IF NOT EXISTS attempts_worker '
-                                 'ON attempts(worker_id)')
-                self._db.execute('CREATE INDEX IF NOT EXISTS attempts_job '
-                                 'ON attempts(job_id)')
-                self._db.execute('CREATE INDEX IF NOT EXISTS events_job_event '
-                                 'ON events(job_id,event_id)')
-                self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
-                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
-                                 "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
-                self._db.execute("CREATE TABLE IF NOT EXISTS staged_cleanup ("
-                                 "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
-                                 "identity TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
-                self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
-                                 "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
-                                 "snapshot TEXT)")
-                self._db.execute('CREATE TABLE IF NOT EXISTS cancellations ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
-                                 'reason TEXT NOT NULL)')
-                self._db.execute('CREATE TABLE IF NOT EXISTS worker_generations ('
-                                 'generation INTEGER PRIMARY KEY, worker_id TEXT NOT NULL, '
-                                 'boot_id TEXT NOT NULL, session_id TEXT NOT NULL, '
-                                 'UNIQUE(worker_id, boot_id, session_id))')
-                self._db.execute('CREATE TABLE IF NOT EXISTS explicit_retries ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
-                self._db.execute('CREATE TABLE IF NOT EXISTS interruptions ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
-                                 'evidence TEXT NOT NULL, status TEXT NOT NULL, retry_at REAL, reason TEXT)')
-                self._db.execute('CREATE TABLE IF NOT EXISTS launch_deferrals ('
-                                 'attempt_id TEXT PRIMARY KEY, since REAL NOT NULL)')
-                self._db.execute('CREATE TABLE IF NOT EXISTS prelaunch_acceptances ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
-                self._db.execute('CREATE TABLE IF NOT EXISTS rejections ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
-                                 'code TEXT NOT NULL, reason TEXT NOT NULL, retry_at REAL NOT NULL)')
-                self._db.execute('CREATE TABLE IF NOT EXISTS dispatch_priorities ('
-                                 'job_id TEXT PRIMARY KEY REFERENCES jobs(job_id), '
-                                 'priority INTEGER NOT NULL, origin TEXT NOT NULL)')
-                self._db.execute('CREATE TABLE IF NOT EXISTS assignment_priorities ('
-                                 'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
-                                 'priority INTEGER NOT NULL, origin TEXT NOT NULL, queue_sequence INTEGER NOT NULL)')
-                from .checkpoints import initialize as initialize_checkpoints
-                initialize_checkpoints(self)
-                from .segments import initialize as initialize_segments
-                initialize_segments(self)
-                from .monitoring import initialize
-                initialize(self)
-                from .multihost import initialize as initialize_multihost
-                initialize_multihost(self)
-                if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
-                    raise StoreError('Database foreign key check failed')
+                if version != 3:
+                    if version == 0:
+                        # executescript would implicitly commit the schema transaction.
+                        for statement in SCHEMA.split(';'):
+                            if statement.strip():
+                                self._db.execute(statement)
+                    elif version == 1:
+                        definition = SCHEMA.split('CREATE TABLE attempts (', 1)[1].split(';', 1)[0]
+                        self._db.execute('CREATE TABLE attempts_v2 (' + definition)
+                        self._db.execute('INSERT INTO attempts_v2 SELECT * FROM attempts')
+                        self._db.execute('DROP TABLE attempts')
+                        self._db.execute('ALTER TABLE attempts_v2 RENAME TO attempts')
+                        self._db.execute('PRAGMA user_version = 2')
+                    elif version != 2:
+                        raise StoreError(f'Unsupported database schema version: {version}')
+                    self._db.execute("CREATE TABLE IF NOT EXISTS input_transfers ("
+                                     "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                     "directory TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
+                    self._db.execute("CREATE TABLE IF NOT EXISTS launch_claims ("
+                                     "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))")
+                    self._db.execute('CREATE INDEX IF NOT EXISTS attempts_worker '
+                                     'ON attempts(worker_id)')
+                    self._db.execute('CREATE INDEX IF NOT EXISTS attempts_job '
+                                     'ON attempts(job_id)')
+                    self._db.execute('CREATE INDEX IF NOT EXISTS events_job_event '
+                                     'ON events(job_id,event_id)')
+                    self._db.execute("CREATE TABLE IF NOT EXISTS result_collections ("
+                                     "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                     "status TEXT NOT NULL, manifest TEXT, reason TEXT)")
+                    self._db.execute("CREATE TABLE IF NOT EXISTS staged_cleanup ("
+                                     "attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), "
+                                     "identity TEXT NOT NULL, status TEXT NOT NULL, reason TEXT)")
+                    self._db.execute("CREATE TABLE IF NOT EXISTS workers ("
+                                     "worker_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0, "
+                                     "snapshot TEXT)")
+                    self._db.execute('CREATE TABLE IF NOT EXISTS cancellations ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                     'reason TEXT NOT NULL)')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS worker_generations ('
+                                     'generation INTEGER PRIMARY KEY, worker_id TEXT NOT NULL, '
+                                     'boot_id TEXT NOT NULL, session_id TEXT NOT NULL, '
+                                     'UNIQUE(worker_id, boot_id, session_id))')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS explicit_retries ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS interruptions ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                     'evidence TEXT NOT NULL, status TEXT NOT NULL, retry_at REAL, reason TEXT)')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS launch_deferrals ('
+                                     'attempt_id TEXT PRIMARY KEY, since REAL NOT NULL)')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS prelaunch_acceptances ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS rejections ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                     'code TEXT NOT NULL, reason TEXT NOT NULL, retry_at REAL NOT NULL)')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS dispatch_priorities ('
+                                     'job_id TEXT PRIMARY KEY REFERENCES jobs(job_id), '
+                                     'priority INTEGER NOT NULL, origin TEXT NOT NULL)')
+                    self._db.execute('CREATE TABLE IF NOT EXISTS assignment_priorities ('
+                                     'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id), '
+                                     'priority INTEGER NOT NULL, origin TEXT NOT NULL, queue_sequence INTEGER NOT NULL)')
+                    from .checkpoints import initialize as initialize_checkpoints
+                    initialize_checkpoints(self)
+                    from .segments import initialize as initialize_segments
+                    initialize_segments(self)
+                    from .monitoring import initialize
+                    initialize(self)
+                    from .multihost import initialize as initialize_multihost
+                    initialize_multihost(self)
+                    if version in (0, 1) and self._db.execute('PRAGMA foreign_key_check').fetchone():
+                        raise StoreError('Database foreign key check failed')
+                self._db.execute('PRAGMA user_version = 3')
             self._db.execute('PRAGMA foreign_keys = ON')
         except BaseException:
             self._db.close()
@@ -194,7 +219,9 @@ class Store:
     @contextmanager
     def _transaction(self, *, immediate: bool = True) -> Iterator[None]:
         nested = self._db.in_transaction
+        waiting = time.monotonic()
         self._db.execute('SAVEPOINT store_write' if nested else ('BEGIN IMMEDIATE' if immediate else 'BEGIN'))
+        acquired = time.monotonic()
         try:
             yield
             self._db.execute('RELEASE store_write' if nested else 'COMMIT')
@@ -203,6 +230,10 @@ class Store:
             if nested:
                 self._db.execute('RELEASE store_write')
             raise
+        finally:
+            if not nested:
+                logging.getLogger(__name__).debug('SQLite transaction wait=%.6f held=%.6f',
+                    acquired - waiting, time.monotonic() - acquired)
 
     @contextmanager
     def scheduling_round(self) -> Iterator[None]:

@@ -200,3 +200,20 @@ renderer/model/build/step plan. The historical alternating-worker measurement
 remains recorded, but T023 now pins worker identity during each generation.
 Physical reboot, power loss, arbitrary ranges and production deployment remain
 outside this evidence. See [tasks.md](../tasks.md) for actual verification records.
+
+### Control-path preparation boundaries
+
+Cancellation, eligibility and retry checks read runtime columns without decoding
+full initial-state arrays. Assignment/checkpoint contract and monitoring views
+project compact immutable fields; fully validated sampling content is reused via
+a bounded SHA-256 digest cache, and changed content must validate again.
+
+Successor input verification/publication occurs outside the SQLite writer
+transaction. Preparation uses the generation captured with its predecessor and
+checkpoint, so a concurrent reset cannot redirect old checkpoint bytes into a
+new generation's input directory. The final transaction rechecks cancellation,
+environment generation, reset state, segment membership/completion, attempt
+outcome, checkpoint identity and result acknowledgement. Prepared files alone are never runnable work. A
+cancelled or retired preparation may leave an unpublished input tree, retained
+for diagnosis; rollback/replay reuses identical verified files. Runtime priority
+changes are reread at final publication.

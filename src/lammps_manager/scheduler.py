@@ -67,12 +67,14 @@ class ScheduleResult:
 
 
 def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapshot, ...],
-             *, now: float) -> ScheduleResult:
+             *, now: float, max_assignments: int | None = None) -> ScheduleResult:
     """Reserve a round atomically; never launch processes or release reservations.
 
     Priority/demand/FIFO ordering may skip blocked jobs. Rank by CPU usage, remaining CPU (descending),
     remaining memory (descending), then worker ID. Missing snapshots fail closed.
     """
+    if max_assignments is not None and (type(max_assignments) is not int or max_assignments <= 0):
+        raise ValueError('max_assignments must be a positive integer')
     if type(now) not in (int, float) or not math.isfinite(now) or now < 0:
         raise ValueError('now must be finite nonnegative Unix seconds')
     by_id = {s.capacity.id: s for s in snapshots}
@@ -202,6 +204,8 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 if (policy.account_external_load
                         and by_id[worker_id].cpu_sample_started_at is not None):
                     pending_by_worker[worker_id] += r.cpu_slots
+                if max_assignments is not None and len(assigned) >= max_assignments:
+                    break
             else:
                 reason = json.dumps({'status': 'waiting' if fits_any else 'unschedulable',
                                      'workers': reasons,

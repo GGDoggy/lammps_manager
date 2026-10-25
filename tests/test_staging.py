@@ -10,6 +10,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import threading
+import time
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -171,7 +172,7 @@ class SnapshotTests(unittest.TestCase):
             store.submit(spec)
         with sqlite3.connect(database) as connection:
             self.assertEqual(connection.execute('SELECT specification FROM jobs').fetchone()[0], serialized)
-            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 2)
+            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 3)
 
     def test_staged_yaml_settings(self) -> None:
         import yaml
@@ -246,6 +247,33 @@ class StagedWorkerTests(unittest.TestCase):
         self.addCleanup(launch.stop)
         return worker
 
+    def tick(self, worker):
+        """Advance control while awaiting one background input pass in legacy cases."""
+        from urllib.error import URLError
+        result = worker.tick()
+        deadline = time.monotonic() + 2
+        while (not result.get('assignments') and not result.get('paused')
+               and time.monotonic() < deadline):
+            with Store(worker.database) as store:
+                if any(job['job_id'] == self.job_id for job in store.jobs()):
+                    break
+            time.sleep(.01)
+            result = worker.tick()
+        future = worker.input_future
+        deadline = time.monotonic() + 5
+        while future is not None and not future.done():
+            if time.monotonic() > deadline:
+                self.fail('Input preparation did not finish')
+            time.sleep(.005)
+            if not future.done():
+                try:
+                    worker.tick()
+                except URLError:
+                    pass  # These cases explicitly inject control transport loss.
+        if future is not None:
+            future.result(timeout=1)
+        return result
+
     def assert_pending(self, worker: Worker, status: str) -> dict:
         self.assertFalse(worker.futures)
         with Store(worker.database) as journal:
@@ -261,7 +289,7 @@ class StagedWorkerTests(unittest.TestCase):
             self.assertEqual(len(store.reservations()), 1)
         return transfer
 
-    def test_slow_input_transfer_keeps_authenticated_heartbeat_and_original_attempt(self) -> None:
+    def test_slow_input_transfer_keeps_normal_polling_and_original_attempt(self) -> None:
         import time
         # Force expiry checks on each download. Several slow reads together take
         # longer than the heartbeat timeout, but each read remains bounded.
@@ -281,7 +309,7 @@ class StagedWorkerTests(unittest.TestCase):
             return original_open(request, *args, **kwargs)
 
         with patch.object(worker.opener, 'open', side_effect=slow_open):
-            worker.tick()
+            self.tick(worker)
         self.assert_pending(worker, 'ready')
         self.assertGreaterEqual(len(snapshots), 3)
         with Store(self.config.manager.database_path) as store:
@@ -289,7 +317,7 @@ class StagedWorkerTests(unittest.TestCase):
             self.assertEqual(len(attempts), 1)
             self.assertNotIn('unknown', [e['state'] for e in store.events(self.job_id)])
 
-    def test_failed_input_heartbeats_preserve_stream_but_require_fresh_launch_policy(self) -> None:
+    def test_failed_control_polls_preserve_stream_but_require_fresh_launch_policy(self) -> None:
         import time
         from urllib.error import URLError
         self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
@@ -300,7 +328,7 @@ class StagedWorkerTests(unittest.TestCase):
                 raise URLError('Initial transfer interruption')
             return original_open(request, *args, **kwargs)
         with patch.object(worker.opener, 'open', side_effect=fail_initial_download):
-            worker.tick()
+            self.tick(worker)
         self.assert_pending(worker, 'failed')
         downloads = []
         failures = []
@@ -318,7 +346,7 @@ class StagedWorkerTests(unittest.TestCase):
         with patch.object(worker, '_launch_staged', Worker._launch_staged.__get__(worker)), \
                 patch.object(worker, '_execute') as execute:
             with patch.object(worker.opener, 'open', side_effect=lose_heartbeat), patch('sys.stderr'):
-                worker.tick()
+                self.tick(worker)
             self.assert_pending(worker, 'ready')
             self.assertTrue(failures)
             self.assertEqual(len(downloads), len(self.spec.input_manifest))
@@ -329,37 +357,29 @@ class StagedWorkerTests(unittest.TestCase):
                 self.assertFalse(journal.launch_claimed(attempt.attempt_id))
             # All transfer-time heartbeats failed; the fresh normal reply must
             # still observe the pause and prevent launch using old policy.
-            worker.tick()
+            self.tick(worker)
             execute.assert_not_called()
             with Store(worker.database) as journal:
                 self.assertFalse(journal.launch_claimed(attempt.attempt_id))
                 self.assertEqual(journal.rejection(attempt.attempt_id)['code'], 'not_ready')
 
-    def test_input_heartbeat_authentication_failure_still_aborts_publication(self) -> None:
-        import time
+    def test_input_authentication_failure_aborts_publication(self) -> None:
         from urllib.error import HTTPError
-        self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
         worker = self.worker()
         original_open = worker.opener.open
-        opened = False
-        def unauthorized_heartbeat(request, *args, **kwargs):
-            nonlocal opened
-            if request.full_url.endswith('/v1/poll') and opened:
-                raise HTTPError(request.full_url, 401, 'Unauthorized', {}, None)
-            response = original_open(request, *args, **kwargs)
+        def unauthorized_input(request, *args, **kwargs):
             if '/files/' in request.full_url:
-                opened = True
-                time.sleep(.02)
-            return response
-        with patch.object(worker.opener, 'open', side_effect=unauthorized_heartbeat):
-            worker.tick()
+                raise HTTPError(request.full_url, 401, 'Unauthorized', {}, None)
+            return original_open(request, *args, **kwargs)
+        with patch.object(worker.opener, 'open', side_effect=unauthorized_input):
+            self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         self.assertIn('401', transfer['reason'])
         self.assertFalse(Path(transfer['directory']).exists())
 
     def test_compact_heartbeat_keeps_reservation_and_replays_manifest_on_normal_poll(self) -> None:
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
         payload = dict(proof=worker.proof, snapshot=worker.monitor.sample(worker.config),
                        reports=[], protocol=2, recovery_protocol=1, storage_mode='staged',
@@ -385,7 +405,7 @@ class StagedWorkerTests(unittest.TestCase):
 
     def test_compact_heartbeat_flag_rejects_nonboolean_before_state_changes(self) -> None:
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         payload = dict(proof=worker.proof, snapshot=worker.monitor.sample(worker.config),
                        reports=[], protocol=2, recovery_protocol=1, storage_mode='staged',
                        generation=dict(boot_id=worker.boot_id, session_id=worker.session_id),
@@ -394,7 +414,7 @@ class StagedWorkerTests(unittest.TestCase):
             self.service.poll('a', payload)
         self.assert_pending(worker, 'ready')
 
-    def test_input_heartbeat_cancellation_never_publishes_or_launches(self) -> None:
+    def test_background_input_cancellation_never_publishes_or_launches(self) -> None:
         import time
         self.worker_config = replace(self.worker_config, heartbeat_interval_seconds=.01)
         worker = self.worker()
@@ -414,26 +434,26 @@ class StagedWorkerTests(unittest.TestCase):
             return original_open(request, *args, **kwargs)
 
         with patch.object(worker.opener, 'open', side_effect=cancel_during_download):
-            worker.tick()
+            self.tick(worker)
         with Store(worker.database) as store:
             attempt, = store.job_attempts(self.job_id)
             self.assertEqual(attempt.state, 'cancelled')
             self.assertFalse(store.launch_claimed(attempt.attempt_id))
             self.assertFalse((Path(attempt.directory) / 'inputs').exists())
             self.assertFalse(store.reservations())
-        worker.tick()
+        self.tick(worker)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state(self.job_id), 'cancelled')
             self.assertFalse(store.reservations())
         self.assertFalse(list(self.worker_root.rglob('process.json')))
 
-    def test_input_retry_heartbeat_defers_launch_until_normal_poll(self) -> None:
-        self._check_input_retry_heartbeat(resume=True)
+    def test_pause_during_background_retry_fences_old_attempt_after_resume(self) -> None:
+        self._check_pause_during_background_retry(resume=True)
 
-    def test_input_retry_heartbeat_pause_blocks_next_normal_poll(self) -> None:
-        self._check_input_retry_heartbeat(resume=False)
+    def test_pause_during_background_retry_returns_unclaimed_attempt(self) -> None:
+        self._check_pause_during_background_retry(resume=False)
 
-    def _check_input_retry_heartbeat(self, *, resume: bool) -> None:
+    def _check_pause_during_background_retry(self, *, resume: bool) -> None:
         import time
         from urllib.error import URLError
 
@@ -447,7 +467,7 @@ class StagedWorkerTests(unittest.TestCase):
             return original_open(request, *args, **kwargs)
 
         with patch.object(worker.opener, 'open', side_effect=fail_download):
-            worker.tick()
+            self.tick(worker)
         self.assert_pending(worker, 'failed')
         original_poll = self.service.poll
         heartbeat_pauses = []
@@ -470,45 +490,40 @@ class StagedWorkerTests(unittest.TestCase):
                 patch.object(worker, '_execute') as execute:
             with patch.object(worker.opener, 'open', side_effect=pause_during_download), \
                     patch.object(self.service, 'poll', side_effect=record_poll):
-                worker.tick()
+                self.tick(worker)
             self.assertIn(True, heartbeat_pauses)
             execute.assert_not_called()
-            self.assert_pending(worker, 'ready')
             with Store(worker.database) as store:
                 attempt, = store.job_attempts(self.job_id)
                 self.assertFalse(store.launch_claimed(attempt.attempt_id))
-
+                self.assertEqual(store.rejection(attempt.attempt_id)['code'], 'not_ready')
+                self.assertEqual(attempt.state, 'failed')
             if resume:
                 with Store(self.config.manager.database_path) as store:
                     store.set_worker('a', paused=False)
-            worker.tick()
-            if resume:
-                worker.futures[attempt.attempt_id].result(timeout=5)
-                execute.assert_called_once_with(attempt.attempt_id)
-            else:
-                execute.assert_not_called()
-                with Store(worker.database) as store:
-                    self.assertFalse(store.launch_claimed(attempt.attempt_id))
-                    self.assertEqual(store.rejection(attempt.attempt_id)['code'], 'not_ready')
-                    self.assertEqual(store.specification(self.job_id), self.spec)
+            self.tick(worker)
+            execute.assert_not_called()
+            with Store(worker.database) as store:
+                self.assertFalse(store.launch_claimed(attempt.attempt_id))
+                self.assertEqual(store.specification(self.job_id), self.spec)
 
     def test_separate_roots_replay_restart_and_input_preparation(self) -> None:
         worker = self.worker()
-        result = worker.tick()
+        result = self.tick(worker)
         self.assertTrue(result['staged_launch_enabled'])
         transfer = self.assert_pending(worker, 'ready')
         self.assertTrue(Path(transfer['directory']).is_relative_to(self.worker_root))
         self.assertEqual((Path(transfer['directory']) / 'in.lmp').read_text(), 'input')
         self.assertEqual((Path(transfer['directory']) / 'potential').read_text(), 'potential')
         for _ in range(3):
-            worker.tick()
+            self.tick(worker)
         with Store(self.config.manager.database_path) as store:
             attempt, = store.job_attempts(self.job_id)
             self.assertEqual(store.input_transfer(attempt.attempt_id)['status'], 'ready')
             self.assertEqual(inspect_job(store, self.job_id)['attempts'][0]['input_transfer']['status'], 'ready')
         worker.close()
         restarted = self.worker()
-        restarted.tick()
+        self.tick(restarted)
         self.assert_pending(restarted, 'ready')
         self.assertFalse(list(self.worker_root.rglob('process.json')))
         self.assertFalse(list(self.worker_root.rglob('execution.json')))
@@ -522,8 +537,8 @@ class StagedWorkerTests(unittest.TestCase):
 
     def test_ready_report_resynchronizes_after_heartbeat_expiry(self) -> None:
         worker = self.worker()
-        worker.tick()
-        worker.tick()  # Acknowledge the unchanged assigned/ready report.
+        self.tick(worker)
+        self.tick(worker)  # Acknowledge the unchanged assigned/ready report.
         with Store(self.config.manager.database_path) as store:
             attempt, = store.job_attempts(self.job_id)
             reservations = store.reservations()
@@ -535,9 +550,9 @@ class StagedWorkerTests(unittest.TestCase):
         # Ready input publication must survive resynchronization without a download.
         with patch('lammps_manager.staging.publish_inputs') as publish, patch.object(
                 worker.opener, 'open', wraps=worker.opener.open) as poll:
-            worker.tick()
-            worker.tick()
-            worker.tick()
+            self.tick(worker)
+            self.tick(worker)
+            self.tick(worker)
         publish.assert_not_called()
         reports = [json.loads(call.args[0].data)['reports'] for call in poll.call_args_list]
         self.assertEqual(reports[0], [])
@@ -553,17 +568,17 @@ class StagedWorkerTests(unittest.TestCase):
         worker = self.worker()
         incoming = Path(self.spec.work_directory) / 'inputs/potential'
         incoming.unlink()
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'failed')
         incoming.write_text('xxxxxxxxx')
-        worker.tick()
+        self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         self.assertIn('SHA-256', transfer['reason'])
         self.assertFalse(Path(transfer['directory']).exists())
         incoming.write_text('potential')
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
-        worker.tick()
+        self.tick(worker)
 
     def test_interrupted_download_is_not_published_and_restart_retries(self) -> None:
         worker = self.worker()
@@ -573,18 +588,18 @@ class StagedWorkerTests(unittest.TestCase):
                 return BytesIO(b'')
             return original(request, **kwargs)
         with patch.object(worker.opener, 'open', side_effect=interrupted):
-            worker.tick()
+            self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         self.assertIn('Incomplete', transfer['reason'])
         self.assertFalse(Path(transfer['directory']).exists())
         worker.close()
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
 
     def test_publication_before_ready_record_recovers_without_download(self) -> None:
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         transfer = self.assert_pending(worker, 'ready')
         with Store(worker.database) as journal:
             attempt, = journal.job_attempts(self.job_id)
@@ -594,7 +609,7 @@ class StagedWorkerTests(unittest.TestCase):
         for item in self.spec.input_manifest:
             (Path(self.spec.work_directory) / 'inputs' / item.path).unlink()
         restarted = self.worker()
-        restarted.tick()
+        self.tick(restarted)
         self.assert_pending(restarted, 'ready')
 
     def test_publication_sync_failure_never_reports_ready_on_retry(self) -> None:
@@ -607,12 +622,12 @@ class StagedWorkerTests(unittest.TestCase):
             original(path)
 
         with patch('lammps_manager.staging.sync_directory', side_effect=fail_publication_sync):
-            worker.tick()
+            self.tick(worker)
             transfer = self.assert_pending(worker, 'failed')
             self.assertTrue(Path(transfer['directory']).exists())
-            worker.tick()
+            self.tick(worker)
             self.assert_pending(worker, 'failed')
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
 
     def test_ancestor_sync_failure_retries_until_durable(self) -> None:
@@ -626,22 +641,22 @@ class StagedWorkerTests(unittest.TestCase):
         with patch('lammps_manager.staging.sync_directory', side_effect=fail_ancestor_sync):
             for retry in range(2):
                 with self.subTest(retry=retry):
-                    worker.tick()
+                    self.tick(worker)
                     transfer = self.assert_pending(worker, 'failed')
                     self.assertIn('Worker root sync failed', transfer['reason'])
         # Published content must recover without another artifact download.
         for item in self.spec.input_manifest:
             (Path(self.spec.work_directory) / 'inputs' / item.path).unlink()
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
-        worker.tick()
+        self.tick(worker)
         with Store(self.config.manager.database_path) as store:
             attempt, = store.job_attempts(self.job_id)
             self.assertEqual(store.input_transfer(attempt.attempt_id)['status'], 'ready')
 
     def test_stalled_artifact_allows_other_poll_and_download(self) -> None:
         worker = self.worker()
-        result = worker.tick()
+        result = self.tick(worker)
         attempt = result['assignments'][0]['attempt']['attempt_id']
         reading = threading.Event()
         release = threading.Event()
@@ -692,6 +707,7 @@ class StagedWorkerTests(unittest.TestCase):
     def test_concurrent_polls_preserve_scheduling_interval_and_reservation(self) -> None:
         self.service.config = replace(self.config,
             manager=replace(self.config.manager, schedule_interval_seconds=60))
+        self.service.last_schedule = 0
         entered = threading.Event()
         release = threading.Event()
         overlapping = threading.Event()
@@ -718,8 +734,14 @@ class StagedWorkerTests(unittest.TestCase):
                     self.assertFalse(overlapping.wait(.2), 'Scheduling rounds overlapped')
                 finally:
                     release.set()
-                self.assertEqual(len(first.result(timeout=3)['assignments']), 1)
-                self.assertEqual(second.result(timeout=3)['assignments'], [])
+                first.result(timeout=3)
+                second.result(timeout=3)
+                deadline = time.monotonic() + 2
+                while time.monotonic() < deadline:
+                    with Store(self.config.manager.database_path) as store:
+                        if store.reservations():
+                            break
+                    time.sleep(.01)
             self.assertEqual(scheduling.call_count, 1)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(len(store.reservations()), 1)
@@ -731,20 +753,20 @@ class StagedWorkerTests(unittest.TestCase):
     def test_transfer_limits_and_disk_failure_retain_reservations(self) -> None:
         self.worker_config = replace(self.worker_config, max_input_files=1)
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'failed')
         worker.config = replace(worker.config, max_input_files=10)
         with patch('lammps_manager.staging.copy_verified', side_effect=OSError('Disk full')):
-            worker.tick()
+            self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         self.assertIn('Disk full', transfer['reason'])
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'ready')
 
     def test_artifact_manifest_cached_with_live_security_checks(self) -> None:
         from lammps_manager.staging import validate_manifest
         worker = self.worker()
-        attempt = worker.tick()['assignments'][0]['attempt']['attempt_id']
+        attempt = self.tick(worker)['assignments'][0]['attempt']['attempt_id']
         original = Store.specification
 
         def download(index: int) -> bytes:
@@ -812,7 +834,7 @@ class StagedWorkerTests(unittest.TestCase):
 
     def test_unauthorized_and_nonowner_downloads(self) -> None:
         worker = self.worker()
-        result = worker.tick()
+        result = self.tick(worker)
         attempt = result['assignments'][0]['attempt']['attempt_id']
         for name, token in (('a', 'bad'), ('b', 'b' * 40)):
             request = Request(self.endpoint + f'/v2/inputs/{attempt}/files/0',
@@ -831,7 +853,7 @@ class StagedWorkerTests(unittest.TestCase):
             self.service.poll('a', {})
         with patch.object(self.service, 'poll', return_value={'assignments': []}):
             with self.assertRaisesRegex(ValueError, 'protocol 2'):
-                worker.tick()
+                self.tick(worker)
         shared = Worker(replace(self.worker_config, storage_mode='shared'), self.root / 'shared-journal')
         self.addCleanup(shared.close)
         with self.assertRaisesRegex(ValueError, 'Incompatible manager storage'):
@@ -844,7 +866,7 @@ class StagedWorkerTests(unittest.TestCase):
         with Store(self.config.manager.database_path) as store:
             store.submit(JobSpecification('old', '/shared/old', 'in.lmp', 'a' * 64))
         worker = self.worker()
-        worker.tick()
+        self.tick(worker)
         with Store(self.config.manager.database_path) as store:
             self.assertEqual(store.job_state('old'), 'queued')
             self.assertIn('storage_mode_mismatch', store.events('old')[-1]['reason'])
@@ -853,7 +875,7 @@ class StagedWorkerTests(unittest.TestCase):
         worker = self.worker()
         path = Path(self.spec.work_directory) / 'inputs/potential'
         path.unlink()
-        worker.tick()
+        self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         runtime = Path(transfer['directory']).parent
         for partial in runtime.iterdir():
@@ -863,7 +885,7 @@ class StagedWorkerTests(unittest.TestCase):
         outside.mkdir()
         runtime.symlink_to(outside, target_is_directory=True)
         path.write_text('potential')
-        worker.tick()
+        self.tick(worker)
         transfer = self.assert_pending(worker, 'failed')
         self.assertIn('Unsafe', transfer['reason'])
         self.assertEqual(list(outside.iterdir()), [])
@@ -873,5 +895,5 @@ class StagedWorkerTests(unittest.TestCase):
         path = Path(self.spec.work_directory) / 'inputs/potential'
         path.unlink()
         path.symlink_to(self.root / 'source/potential')
-        worker.tick()
+        self.tick(worker)
         self.assert_pending(worker, 'failed')

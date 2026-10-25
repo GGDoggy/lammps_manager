@@ -1,5 +1,7 @@
 """Immutable global trajectory schedules, independent of segment boundaries."""
 
+from collections import OrderedDict
+from threading import Lock
 from decimal import Decimal, InvalidOperation, ROUND_FLOOR, localcontext
 from bisect import bisect_right
 import hashlib
@@ -10,6 +12,8 @@ import re
 from .continuation import MAX_ENGINE_STEP, MAX_RUN_COMMAND
 
 MAX_SAMPLES = 1000000
+_VALIDATED: OrderedDict[bytes, None] = OrderedDict()
+_VALIDATED_LOCK = Lock()
 
 
 def _positive(value: object, name: str) -> Decimal:
@@ -172,6 +176,13 @@ def validate_sampling(schedule: dict) -> None:
     """Reject inconsistent stored lists, physics and hashes before execution."""
     if not isinstance(schedule, dict):
         raise ValueError('Invalid sampling specification')
+    # Cache only a digest of fully validated content, never caller-owned lists.
+    # Mutation changes the digest and must pass the original validation again.
+    digest = hashlib.sha256(json.dumps(schedule, sort_keys=True, allow_nan=False).encode()).digest()
+    with _VALIDATED_LOCK:
+        if digest in _VALIDATED:
+            _VALIDATED.move_to_end(digest)
+            return
     try:
         expected = normalize_sampling(schedule['request'], dt=schedule['dt'], dr=schedule['Dr'])
     except (KeyError, TypeError) as exc:
@@ -183,6 +194,10 @@ def validate_sampling(schedule: dict) -> None:
         expected['stop_step'] = stop
     if schedule != expected:
         raise ValueError('Sampling specification differs from its request')
+    with _VALIDATED_LOCK:
+        _VALIDATED[digest] = None
+        if len(_VALIDATED) > 128:
+            _VALIDATED.popitem(last=False)
 
 
 def external_sampling(settings: dict) -> dict:

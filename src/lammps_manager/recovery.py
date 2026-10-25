@@ -1,6 +1,7 @@
 """Conservative Linux process identity, termination and journal reconciliation."""
 
 from datetime import datetime, timezone
+import errno
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,13 @@ from .store import Store, Attempt, TERMINAL
 
 def process_identity(pid: int) -> dict:
     """Record boot, PID, start ticks and session/process group together."""
-    fields = Path(f'/proc/{pid}/stat').read_text().rpartition(')')[2].split()
+    stat = Path(f'/proc/{pid}/stat')
+    try:
+        fields = stat.read_text().rpartition(')')[2].split()
+    except ProcessLookupError as exc:
+        # procfs can return ESRCH if the process exits after the file opens.
+        # Callers use the missing-file case to continue whole-session checks.
+        raise FileNotFoundError(errno.ENOENT, 'Process exited during identity read', str(stat)) from exc
     return {'pid': pid, 'process_group': int(fields[2]), 'session': int(fields[3]),
             'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
             'start_ticks': fields[19]}
@@ -27,7 +34,7 @@ def session_members(session: int) -> tuple[tuple[int, int], ...]:
             continue
         try:
             fields = (path / 'stat').read_text().rpartition(')')[2].split()
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             continue
         if int(fields[3]) == session and fields[0] not in {'Z', 'X'}:
             members.append((int(path.name), int(fields[2])))

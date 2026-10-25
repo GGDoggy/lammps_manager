@@ -162,7 +162,7 @@ def expect(store: Store, contract: CheckpointContract) -> None:
     with store.scheduling_round():
         if json.loads(contract.stream_provenance).get('version'):
             from .segments import checkpoint_provenance
-            row = store._db.execute('SELECT snapshot FROM simulation_runs WHERE run_id=?', (contract.run_id,)).fetchone()
+            row = store._db.execute("SELECT json_remove(snapshot,'$.model_parameters','$.sampling') AS snapshot FROM simulation_runs WHERE run_id=?", (contract.run_id,)).fetchone()
             if row:
                 snapshot = json.loads(row['snapshot'])
                 allocation = json.loads(snapshot['stream_provenance'])

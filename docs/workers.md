@@ -45,7 +45,7 @@ Workers POST JSON to `/v1/poll`, identifying themselves with `X-Worker-ID` and a
 
 Before metrics or results are accepted, the worker reads a fresh manager-created challenge file directly under the configured shared root and echoes its contents. The worker checks the challenge's resolved parent. Filesystem errors while resolving the challenge or shared root, or reading the challenge, are logged and defer the poll until the next heartbeat interval. Reports remain unacknowledged and assignments are not accepted during this deferral; existing reservations and execution remain intact. Once access returns, reports are replayed and assignment processing resumes. A resolved challenge outside the configured root remains an error. After durable acceptance, the executor checks the copied input SHA-256 before launching; a mismatch is persisted as a failed attempt with never-started evidence and reported on a later poll, allowing subsequent jobs to proceed. The shared root and job trees must be trusted and writable/readable by the appropriate service accounts. These checks establish current access to shared paths; they do not prove all auxiliary inputs immutable or validate MPI installations.
 
-Linux monitoring reads per-logical-CPU and aggregate CPU deltas from `/proc/stat`, total and available memory from `/proc/meminfo`, and CPU affinity through `sched_getaffinity`. A sample without a measurable CPU interval reports 100% usage conservatively. Hardware measurements do not detect cgroup memory quotas; configured limits must reflect those restrictions. The manager timestamps authenticated heartbeats; sample timestamps are retained so stale/future samples fail admission. The scheduler runs on eligible polls, no more often than `manager.schedule_interval_seconds`, using persisted snapshots and the [scheduler's quota accounting](scheduling.md). There is no scheduling loop when no workers poll.
+Linux monitoring reads per-logical-CPU and aggregate CPU deltas from `/proc/stat`, total and available memory from `/proc/meminfo`, and CPU affinity through `sched_getaffinity`. A sample without a measurable CPU interval reports 100% usage conservatively. Hardware measurements do not detect cgroup memory quotas; configured limits must reflect those restrictions. The manager timestamps authenticated heartbeats; sample timestamps are retained so stale/future samples fail admission. Background maintenance uses persisted snapshots and the [scheduler's quota accounting](scheduling.md). A completed scheduling pass observes `manager.schedule_interval_seconds`; a full four-assignment transaction leaves the next bounded pass due. Expiry and reconciliation continue even when workers do not poll.
 
 `heartbeat_interval_seconds` controls worker polls. Polling and reporting continue while attempts execute in a thread pool bounded by the worker’s `max_concurrent_jobs`. Each executor uses its own SQLite connection and launch session. In staged mode, result enumeration and delivery use another dedicated thread, so slow output collection does not delay heartbeats, cancellation delivery or recovered-process monitoring; see [staged results](staged-results.md). The manager stores last metrics and pause flags in SQLite; expired heartbeats and stale metrics block new admission. Disconnection never releases reservations. T006 marks expired work `unknown` while retaining reservations and adds [Linux reconciliation, cancellation, time limits and explicit bounded retries](recovery.md). Application-error retries remain explicit; T014 adds bounded infrastructure recovery only after conclusive termination evidence.
 
@@ -120,3 +120,34 @@ that grace period.
 Missing shared storage cannot establish safe acceptance and stays reserved.
 Checkpoint-bearing work is not implemented; T018-T019 must extend this protocol
 before introducing continuation copies.
+
+## Concurrent control and maintenance
+
+A single background manager thread owns expiry, continuation refresh, alerts and
+scheduling. `make_server()` starts it; embedded Python callers must call
+`start_maintenance()` and eventually `close()` themselves. The HTTP accept loop performs no database maintenance. Each scheduling
+transaction admits at most four jobs, with capacity checks and reservations still
+atomic; a full batch leaves scheduling due for the next pass. Normal polls commit
+reports and read durable assignments, optionally waiting at most 200 ms for a
+maintenance pass. Dispatch takes its comparison time after reading snapshots so
+heartbeats arriving during maintenance are not treated as future observations.
+Heartbeat-only polls update authenticated liveness/environment
+and return cancellation commands without invoking scheduling or continuation.
+
+Each worker has one background input preparer with its own SQLite connection.
+Eligible unclaimed assignments rotate in attempt-ID order, wrapping after each
+pass; failed input retries cannot continually preempt another reserved attempt.
+Uncertain, cancelling, cancelled and claimed attempts are excluded from preparation.
+Normal monitoring, reports and cancellation continue while a file read blocks.
+Inputs becoming ready do not grant launch permission: a subsequent normal poll
+must pass current cancellation, readiness and resource checks. Closing admission
+can fence and return an unclaimed attempt even before preparation finishes.
+Retryable 503 responses preserve unacknowledged reports and launch fences. The
+worker run loop backs off from one to at most 30 seconds, never below its configured
+heartbeat interval, and resets this backoff after a successful poll.
+
+Input-transfer counters are best effort, coalesced at most once per second;
+SQLite contention must not abort verified input bytes. Missing counters remain
+unknown until later verified/ready reporting. File hashes and durable publication
+acknowledgements remain mandatory. DEBUG logging on `lammps_manager.store` records
+outer-transaction wait/hold seconds without request bodies or credentials.

@@ -28,6 +28,11 @@ A matching live leader is monitored without relaunching. Cancellation and time l
 
 Missing/corrupt metadata, a reused PID with surviving session members, inaccessible process information, and a crash between durable acceptance and recording the launch identity remain conservative `unknown`. If the leader has disappeared while live descendants remain, automatic signaling is refused because identity cannot be safely re-established. Inspect process metadata, output and the full original session manually; only after verifying termination may an administrator use the low-level Store transition API with explicit evidence. There is no force-release CLI. No launch-window recovery path starts the same accepted attempt again.
 
+A process exiting during a `/proc/<pid>/stat` read may report ESRCH instead of a
+missing path. Identity reads treat both as a missing leader and still inspect the
+whole launch session; session scans skip vanished entries while retaining live
+members. Permission and storage errors continue to block termination confirmation.
+
 ## Deployment and upgrade
 
 See the reproducible [isolated user-service lifecycle](service-lifecycle.md) for
