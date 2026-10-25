@@ -1,5 +1,15 @@
 # Development Tasks
 
+## Test suite simplification: consolidate related regression modules
+
+- Status: done
+- Scope: review the default suite for unnecessary duplication and consolidate small related modules without changing production behavior or dropping distinct reliability/scientific-evidence checks.
+- Plan: inspect test responsibilities and imports; merge WCA verification-tool tests and checkpoint clock regressions into their topic modules; compare test method ASTs and discovery counts; run focused tests and make check; self-review.
+- Acceptance: reduce test modules from 43 to 39, retain all 506 discovered cases and their assertions, remove the WCA audit's cross-module fixture import, and preserve offline/default test boundaries.
+- Decisions: similar database, worker and transport tests exercise different failure boundaries and are retained. WCA scientific-evidence tests protect against false acceptance even though they do not launch real simulations. File consolidation is a maintainability change, not a runtime optimization. Historical commands in older task records remain unchanged.
+- Verification (2026-10-26): `PYTHONPATH=src:tests /usr/bin/python3 -m unittest test_wca_verification test_checkpoints -q` passed 31 tests in 3.971 seconds (`/tmp/test-simplification-focused.log`). AST comparison against HEAD confirmed all 42 moved/existing test and fixture methods are unchanged except removal of the obsolete local WCA fixture import. Separate baseline/current discovery with `PYTHONPATH=.:src` confirmed the same 506 class/method identities; test modules decreased from 43 to 39. `make check PYTHON=/usr/bin/python3` passed all 506 tests in 143.096 seconds, compileall and Git whitespace checks (`/tmp/test-simplification-check.log`). No tests were skipped.
+- Self-review and limitations: inspected the new untracked WCA module directly, checked module-global names, fixture reuse, discovery identities and unchanged methods. No production Python changes or removal of distinct cases; no runtime speedup is claimed. Earlier task records describe historical checks and are not current suite inventories. Local fake-process/loopback checks only; no real MPI/LAMMPS, remote services, deployment changes, simulation output deletion, commit or push.
+
 ## T025 review fix: Gate acceptance on manager restart evidence
 
 - Status: done
