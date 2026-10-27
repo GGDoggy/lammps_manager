@@ -36,6 +36,26 @@ class EnvironmentTests(unittest.TestCase):
         seg.refresh(self.store, self.config, now=now)
         return seg.inspect_run(self.store, 'run')
 
+    def test_unchanged_missing_timer_and_reset_wait_do_not_rewrite_state(self):
+        self.setup_run()
+        self.assign()
+        self.refresh(111)
+        statements = []
+        self.store._db.set_trace_callback(statements.append)
+        before = self.store._db.total_changes
+        try:
+            self.refresh(112)
+        finally:
+            self.store._db.set_trace_callback(None)
+        self.assertEqual(self.store._db.total_changes, before)
+        self.assertFalse(any(sql == 'BEGIN IMMEDIATE' for sql in statements))
+        self.refresh(170)
+        self.assertTrue(seg.environment(self.store, 'run')['reset_pending'])
+        before = self.store._db.total_changes
+        self.refresh(171)
+        self.assertEqual(self.store._db.total_changes, before)
+        self.assertEqual(len(self.store.reservations()), 1)
+
     def test_reset_during_successor_preparation_preserves_new_generation_inputs(self):
         from io import BytesIO
         import hashlib
@@ -365,7 +385,7 @@ class EnvironmentTests(unittest.TestCase):
         self.setup_run()
         self.finish()
         self.refresh(100)
-        with patch.object(self.store, 'submit', side_effect=StoreError('database failure')):
+        with patch.object(self.store, '_submit_prepared', side_effect=StoreError('database failure')):
             self.assertEqual(self.refresh(170)['status'], 'blocked')
         path = self.root / 'run.g000001.s000000/inputs/in.lmp'
         data = path.read_bytes()

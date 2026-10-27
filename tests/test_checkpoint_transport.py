@@ -88,6 +88,84 @@ class CheckpointTransportTests(unittest.TestCase):
                         self.assertEqual(store.reservations(), ())
                     worker.close()
 
+    def test_rejected_checkpoint_commit_refreshes_inventory_and_repairs_missing_spool(self):
+        import hashlib
+        mode = 'staged'
+        self.service.config = replace(self.config, storage=replace(self.config.storage, mode=mode))
+        worker_root = self.root / 'checkpoint-worker'
+        worker_root.mkdir()
+        worker = Worker(WorkerConfig(self.capacities[0], self.endpoint, str(worker_root),
+            Execution('/bin/false', '/bin/false'), self.tokens['a'], storage_mode=mode),
+            self.root / 'checkpoint-journal')
+        self.addCleanup(worker.close)
+        with Store(self.config.manager.database_path) as manager, Store(worker.database) as journal:
+            manager.worker_generation('a', worker.boot_id, worker.session_id)
+            seg.observe_environment(manager, 'a', worker.boot_id, fixtures.BUILD, time.time())
+            seg.submit_run(manager, self.service.config, total_steps=2000, step_max=800,
+                segment_ends=(600, 1400, 2000), build_fingerprint=fixtures.BUILD, run_id='rejected')
+            spec = manager.specification('rejected.s000000')
+            attempt = manager.assign(spec.job_id, 'rejected.attempt', 'a',
+                str(Path(spec.work_directory) / 'attempt'))
+            contract = cp.record(manager, attempt.attempt_id)['contract']
+            directory = worker_root / spec.job_id / 'attempt'
+            (directory / 'work').mkdir(parents=True)
+            data = b'checkpoint stand-in'
+            (directory / 'work/checkpoint.restart').write_bytes(data)
+            (directory / 'stdout').write_text('Step Time Atoms\n600 3 1024\nLoop time\n')
+            journal.submit(spec)
+            worker._assign(journal, spec, dict(attempt_id=attempt.attempt_id), directory,
+                dict(checkpoint_contract=contract))
+            for store in (manager, journal):
+                store.transition(attempt.attempt_id, 'running')
+                store.transition(attempt.attempt_id, 'succeeded', exit_code=0,
+                    termination_evidence='Local byte stand-in; no process launched')
+            original = worker._result_request
+            removed = []
+
+            def remove_before_commit(identity, action, *args, **kwargs):
+                if action == 'commit' and not removed:
+                    spool = cp.destination(manager, identity) / '.results-upload'
+                    (spool / hashlib.sha256(b'checkpoint.restart').hexdigest()).unlink()
+                    removed.append(True)
+                return original(identity, action, *args, **kwargs)
+
+            with patch.object(worker, '_result_request', side_effect=remove_before_commit):
+                with self.assertRaisesRegex(ValueError, 'HTTP 400'):
+                    worker._collect_checkpoint(journal, attempt.attempt_id)
+            self.assertFalse(cp.record(journal, attempt.attempt_id)['acknowledged'])
+            self.assertFalse(cp.record(manager, attempt.attempt_id)['acknowledged'])
+            self.assertIsNone(journal._db.execute('SELECT 1 FROM checkpoint_commit_intents WHERE attempt_id=?',
+                                                (attempt.attempt_id,)).fetchone())
+            import sqlite3
+            checkpoint_operation = self.service.checkpoint_operation
+
+            def busy_commit(worker_id, identity, action, *args, **kwargs):
+                if action == 'commit':
+                    raise sqlite3.OperationalError('database is locked')
+                return checkpoint_operation(worker_id, identity, action, *args, **kwargs)
+
+            with patch.object(self.service, 'checkpoint_operation', side_effect=busy_commit), \
+                    patch.object(worker, '_result_request', wraps=original) as requests:
+                with self.assertRaisesRegex(TimeoutError, 'Manager database busy'):
+                    worker._collect_checkpoint(journal, attempt.attempt_id)
+            self.assertEqual([call.args[1] for call in requests.call_args_list], ['manifest', '0', 'commit'])
+            self.assertIsNotNone(journal._db.execute('SELECT 1 FROM checkpoint_commit_intents WHERE attempt_id=?',
+                                                   (attempt.attempt_id,)).fetchone())
+            self.assertFalse(cp.record(journal, attempt.attempt_id)['acknowledged'])
+            self.assertFalse(cp.record(manager, attempt.attempt_id)['acknowledged'])
+            with patch.object(worker, '_result_request', wraps=original) as requests:
+                worker._collect_checkpoint(journal, attempt.attempt_id)
+            self.assertEqual([call.args[1] for call in requests.call_args_list], ['commit'])
+            self.assertIsNone(journal._db.execute('SELECT 1 FROM checkpoint_commit_intents WHERE attempt_id=?',
+                                                (attempt.attempt_id,)).fetchone())
+            self.assertTrue(cp.record(journal, attempt.attempt_id)['acknowledged'])
+            published = cp.record(manager, attempt.attempt_id)
+            self.assertTrue(published['acknowledged'])
+            self.assertEqual(published['identity'], cp.record(journal, attempt.attempt_id)['identity'])
+            self.assertEqual((Path(published['directory']) / 'checkpoint.restart').read_bytes(), data)
+            self.assertEqual(manager.specification(spec.job_id), spec)
+            self.assertEqual(len(manager.job_attempts(spec.job_id)), 1)
+
     def test_oversized_requests_reject_before_reading_or_dispatch(self):
         address = urlsplit(self.endpoint)
         cases = (

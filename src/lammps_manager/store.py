@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Iterator
 from uuid import UUID
 
-from .models import InfrastructureRecovery, JobSpecification, Resources, specification_from_dict
+from .models import InfrastructureRecovery, JobSpecification, MpiParticipant, Resources, specification_from_dict
 
 
 def is_busy(error: BaseException) -> bool:
@@ -63,6 +63,18 @@ class Reservation:
     worker_id: str
     cpu_slots: int
     memory_gib: float
+
+
+@dataclass(frozen=True)
+class AdmissionSpecification:
+    """Small immutable projection; full input validation remains at execution boundaries."""
+
+    job_id: str
+    work_directory: str
+    storage_mode: str
+    resources: Resources
+    mpi_placement: tuple[MpiParticipant, ...]
+    infrastructure_recovery: InfrastructureRecovery
 
 
 SCHEMA = """
@@ -120,7 +132,7 @@ class Store:
         self._db.row_factory = sqlite3.Row
         try:
             version = self._db.execute('PRAGMA user_version').fetchone()[0]
-            if version == 4:
+            if version == 5:
                 self._db.execute('PRAGMA foreign_keys = ON')
                 return
         except BaseException:
@@ -131,7 +143,7 @@ class Store:
         try:
             with self._transaction():
                 version = self._db.execute('PRAGMA user_version').fetchone()[0]
-                if version not in (3, 4):
+                if version not in (3, 4, 5):
                     if version == 0:
                         # executescript would implicitly commit the schema transaction.
                         for statement in SCHEMA.split(';'):
@@ -204,7 +216,36 @@ class Store:
                 if version == 3:
                     from .monitoring import initialize_launch_progress
                     initialize_launch_progress(self)
-                self._db.execute('PRAGMA user_version = 4')
+                self._db.execute('CREATE TABLE IF NOT EXISTS checkpoint_commit_intents ('
+                    'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                self._db.execute('CREATE TABLE IF NOT EXISTS result_commit_intents ('
+                    'attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id))')
+                self._db.execute('CREATE TABLE IF NOT EXISTS admission_specs ('
+                    'job_id TEXT PRIMARY KEY REFERENCES jobs(job_id), payload TEXT NOT NULL)')
+                # JSON is decoded once during migration/submission, never per round.
+                projection = """json_object(
+                    'job_id', NEW.job_id,
+                    'work_directory', json_extract(NEW.specification, '$.work_directory'),
+                    'storage_mode', COALESCE(json_extract(NEW.specification, '$.storage_mode'), 'shared'),
+                    'resources', json(json_extract(NEW.specification, '$.resources')),
+                    'mpi_placement', json(COALESCE(json_extract(NEW.specification, '$.mpi_placement'), '[]')),
+                    'infrastructure_recovery', json(COALESCE(
+                        json_extract(NEW.specification, '$.infrastructure_recovery'), '{"max_retries":0}')))
+                """
+                for action in ('INSERT', 'UPDATE OF specification'):
+                    name = 'admission_insert' if action == 'INSERT' else 'admission_update'
+                    self._db.execute(f'CREATE TRIGGER IF NOT EXISTS {name} AFTER {action} ON jobs BEGIN '
+                        f'INSERT OR REPLACE INTO admission_specs VALUES(NEW.job_id, {projection}); END')
+                self._db.execute('INSERT OR IGNORE INTO admission_specs SELECT job_id, ' +
+                    projection.replace('NEW.', '') + ' FROM jobs')
+                self._db.execute('CREATE TABLE IF NOT EXISTS run_controls ('
+                    'run_id TEXT PRIMARY KEY REFERENCES simulation_runs(run_id), snapshot TEXT NOT NULL)')
+                for action in ('INSERT', 'UPDATE OF snapshot'):
+                    name = 'run_control_insert' if action == 'INSERT' else 'run_control_update'
+                    self._db.execute(f'CREATE TRIGGER IF NOT EXISTS {name} AFTER {action} ON simulation_runs BEGIN '
+                        "INSERT OR REPLACE INTO run_controls VALUES(NEW.run_id, json_remove(NEW.snapshot, '$.model_parameters', '$.sampling')); END")
+                self._db.execute("INSERT OR IGNORE INTO run_controls SELECT run_id, json_remove(snapshot, '$.model_parameters', '$.sampling') FROM simulation_runs")
+                self._db.execute('PRAGMA user_version = 5')
             self._db.execute('PRAGMA foreign_keys = ON')
         except BaseException:
             self._db.close()
@@ -275,14 +316,21 @@ class Store:
         with self._transaction():
             if self.job_state(job_id) != 'queued':
                 raise StoreError('Only queued jobs can have waiting reasons')
-            latest = self.events(job_id)[-1]
+            latest = self.events(job_id, limit=1)[-1]
             if latest['reason'] != reason:
                 self._event(job_id, None, 'queued', reason)
 
     def submit(self, specification: JobSpecification) -> None:
-        """Persist a snapshot; identical submission is a no-op."""
+        """Validate and persist a snapshot; identical submission is a no-op."""
+        self._submit_prepared(self._prepare_submission(specification))
+
+    def _prepare_submission(self, specification: JobSpecification) -> tuple[str, str]:
+        """Freeze and validate caller-owned values before acquiring the writer."""
         if not isinstance(specification, JobSpecification):
             raise StoreError('Expected a JobSpecification')
+        if specification.sampling is not None:
+            from .sampling import validate_sampling
+            validate_sampling(specification.sampling)
         for name in ('job_id', 'work_directory', 'input_file', 'input_sha256'):
             value = getattr(specification, name)
             if not isinstance(value, str) or not value.strip() or '\x00' in value:
@@ -324,21 +372,37 @@ class Store:
         if not specification.mpi_placement:
             snapshot.pop('mpi_placement')
         payload = json.dumps(snapshot, sort_keys=True, allow_nan=False)
+        return specification.job_id, payload
+
+    def _submit_prepared(self, prepared: tuple[str, str]) -> None:
+        """Insert an internally prepared immutable payload; never decode on new insert."""
+        job_id, payload = prepared
         with self._transaction():
             row = self._db.execute('SELECT specification FROM jobs WHERE job_id=?',
-                                   (specification.job_id,)).fetchone()
+                                   (job_id,)).fetchone()
             if row:
-                if specification_from_dict(json.loads(row['specification'])) != specification:
+                if (row['specification'] != payload and
+                        specification_from_dict(json.loads(row['specification'])) != specification_from_dict(json.loads(payload))):
                     raise StoreError('Job ID already has a different specification')
                 return
             self._db.execute('INSERT INTO jobs(job_id,specification,state) VALUES(?,?,?)',
-                             (specification.job_id, payload, 'queued'))
-            self._event(specification.job_id, None, 'queued')
+                             (job_id, payload, 'queued'))
+            self._event(job_id, None, 'queued')
 
     def specification(self, job_id: str) -> JobSpecification:
         row = self._job(job_id)
         data = json.loads(row['specification'])
         return specification_from_dict(data)
+
+    def admission_specification(self, job_id: str) -> AdmissionSpecification:
+        """Load only bounded resource/placement metadata, without sampling arrays."""
+        row = self._db.execute('SELECT payload FROM admission_specs WHERE job_id=?', (job_id,)).fetchone()
+        if row is None:
+            raise StoreError(f'Unknown job: {job_id}')
+        data = json.loads(row['payload'])
+        return AdmissionSpecification(**{**data, 'resources': Resources(**data['resources']),
+            'mpi_placement': tuple(MpiParticipant(**p) for p in data['mpi_placement']),
+            'infrastructure_recovery': InfrastructureRecovery(**data['infrastructure_recovery'])})
 
     def jobs(self) -> tuple[dict[str, str], ...]:
         """List jobs in stable submission order."""
@@ -361,7 +425,7 @@ class Store:
 
     def scheduling_metadata(self, job_id: str, default: int = 0) -> dict:
         """Return mutable policy separately from immutable simulation inputs."""
-        self._job(job_id)
+        self.job_state(job_id)
         row = self._db.execute('SELECT priority,origin FROM dispatch_priorities WHERE job_id=?',
                                (job_id,)).fetchone()
         queue = self._db.execute("SELECT event_id,created_at FROM events WHERE job_id=? AND state='queued' "
@@ -375,7 +439,8 @@ class Store:
     def queued_jobs(self, default_priority: int = 0) -> tuple[dict, ...]:
         """Priority, total CPU demand descending, then fresh queue entry and ID."""
         jobs = [{**job, **self.scheduling_metadata(job['job_id'], default_priority),
-                 'cpu_demand': self.specification(job['job_id']).resources.cpu_slots}
+                 'admission': (spec := self.admission_specification(job['job_id'])),
+                 'cpu_demand': spec.resources.cpu_slots}
                 for job in self.jobs() if job['state'] == 'queued']
         return tuple(sorted(jobs, key=lambda j: (-j['priority'], -j['cpu_demand'],
                                                  j['queue_sequence'], j['job_id'])))
@@ -389,7 +454,7 @@ class Store:
     def job_attempts(self, job_id: str, *, limit: int | None = None,
                      before: str | None = None) -> tuple[Attempt, ...]:
         """Read attempts; optional bounded history pages run newest to oldest."""
-        self._job(job_id)
+        self.job_state(job_id)
         args: list = [job_id]
         query = 'SELECT * FROM attempts WHERE job_id=?'
         if before is not None:
@@ -406,7 +471,10 @@ class Store:
         return tuple(Attempt(**dict(row)) for row in self._db.execute(query + ' ORDER BY rowid', args))
 
     def job_state(self, job_id: str) -> str:
-        return str(self._job(job_id)['state'])
+        row = self._db.execute('SELECT state FROM jobs WHERE job_id=?', (job_id,)).fetchone()
+        if row is None:
+            raise StoreError(f'Unknown job: {job_id}')
+        return str(row['state'])
 
     def cpu_accounting_attempts(self, worker_id: str, since: str, *,
                                 candidate_id: str | None = None,
@@ -419,9 +487,9 @@ class Store:
         Completed history still matters when its creation/start overlaps a sample.
         """
         rows = self._db.execute(
-            'SELECT a.*, j.specification, m.mpi_ranks AS participant_ranks, '
+            'SELECT a.*, j.payload, m.mpi_ranks AS participant_ranks, '
             'm.memory_gib AS participant_memory FROM attempts a '
-            'JOIN jobs j ON j.job_id=a.job_id '
+            'JOIN admission_specs j ON j.job_id=a.job_id '
             'LEFT JOIN mpi_members m ON m.attempt_id=a.attempt_id AND m.worker_id=? '
             'WHERE a.attempt_id IN (SELECT attempt_id FROM attempts WHERE worker_id=? '
             'UNION SELECT attempt_id FROM mpi_members WHERE worker_id=?) '
@@ -434,7 +502,7 @@ class Store:
         result = []
         for row in rows:
             data = dict(row)
-            resources = specification_from_dict(json.loads(data.pop('specification'))).resources
+            resources = Resources(**json.loads(data.pop('payload'))['resources'])
             ranks = data.pop('participant_ranks')
             memory = data.pop('participant_memory')
             if ranks is not None:
@@ -494,7 +562,7 @@ class Store:
                 blocked = retry_blocker(self, job_id)
                 if blocked:
                     raise StoreError(blocked)
-                specification = self.specification(job_id)
+                specification = self.admission_specification(job_id)
                 if specification.mpi_placement and not coordinated:
                     raise StoreError('Multi-host MPI requires coordinated assignment')
                 resources = specification.resources
@@ -607,7 +675,7 @@ class Store:
                        and not self.interruption(a.attempt_id)]
             explicit = self._db.execute('SELECT COUNT(*) FROM explicit_retries e JOIN attempts a '
                                         'USING(attempt_id) WHERE a.job_id=?', (job_id,)).fetchone()[0]
-            if max(explicit, len(charged) - 1) >= self.specification(job_id).resources.max_retries:
+            if max(explicit, len(charged) - 1) >= self.admission_specification(job_id).resources.max_retries:
                 raise StoreError('Submitted max_retries budget exhausted')
             if any(a.attempt_id in {r.attempt_id for r in self.reservations()} for a in attempts):
                 raise StoreError('Retry blocked by unresolved reservation')
@@ -739,7 +807,7 @@ class Store:
                 return
             attempt = self.attempt(attempt_id)
             attempts = self.job_attempts(attempt.job_id)
-            policy = self.specification(attempt.job_id).infrastructure_recovery
+            policy = self.admission_specification(attempt.job_id).infrastructure_recovery
             used = self.recovery_status(attempt.job_id)['used']
             from .segments import retry_blocker
             reason = retry_blocker(self, attempt.job_id)
@@ -764,7 +832,7 @@ class Store:
         """Summarize the frozen budget, consumed recoveries and latest decision."""
         records = [self.interruption(a.attempt_id) for a in self.job_attempts(job_id)]
         records = [record for record in records if record is not None]
-        policy = self.specification(job_id).infrastructure_recovery
+        policy = self.admission_specification(job_id).infrastructure_recovery
         used = sum(record['status'] == 'queued' for record in records)
         latest = records[-1] if records else None
         return {'policy': asdict(policy), 'used': used, 'remaining': max(0, policy.max_retries - used),
@@ -900,7 +968,7 @@ class Store:
             raise StoreError('Invalid staged directory identity')
         with self._transaction():
             attempt = self.attempt(attempt_id)
-            if self.specification(attempt.job_id).storage_mode != 'staged':
+            if self.admission_specification(attempt.job_id).storage_mode != 'staged':
                 raise StoreError('Cleanup ownership requires staged storage')
             old = self.cleanup_record(attempt_id)
             if old and old['identity'] != identity:
@@ -957,7 +1025,7 @@ class Store:
     def events(self, job_id: str, *, limit: int | None = None,
                before: int | None = None) -> tuple[dict[str, object], ...]:
         """Return ordered history, optionally bounded before an event ID."""
-        self._job(job_id)
+        self.job_state(job_id)
         query = 'SELECT * FROM events WHERE job_id=?'
         args: list = [job_id]
         if before is not None:

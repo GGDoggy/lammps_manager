@@ -25,6 +25,14 @@ from .models import JobSpecification, Resources, specification_from_dict
 from .store import Attempt, Store, StoreError, TERMINAL
 
 
+class ArtifactRequestError(ValueError):
+    """Explicit artifact rejection with HTTP status retained for retry decisions."""
+
+    def __init__(self, status_code: int, detail: str) -> None:
+        self.status_code = status_code
+        super().__init__(f'Result transfer HTTP {status_code}: {detail}')
+
+
 class LinuxMonitor:
     """Sample affinity-scoped per-CPU deltas and MemAvailable from Linux procfs."""
 
@@ -731,10 +739,21 @@ class Worker:
                         manifest = enumerate_results(Path(attempt.directory), output_limits(self.config))
                     if self.collection_stop.is_set():
                         return
+                    if store._db.execute('SELECT 1 FROM result_commit_intents WHERE attempt_id=?',
+                                         (attempt.attempt_id,)).fetchone():
+                        acknowledgement = self._result_request(attempt.attempt_id, 'commit', {})
+                        if acknowledgement.get('status') != 'collected':
+                            raise ValueError('Manager did not acknowledge durable result publication')
+                        store.set_result_collection(attempt.attempt_id, 'collected')
+                        store._db.execute('DELETE FROM result_commit_intents WHERE attempt_id=?', (attempt.attempt_id,))
+                        continue
                     store.set_result_collection(attempt.attempt_id, 'uploading', manifest)
                     reply = self._result_request(attempt.attempt_id, 'manifest', manifest)
                     if reply['status'] != 'collected':
+                        verified = set(reply.get('verified_files', ()))
                         for index, item in enumerate(manifest['files']):
+                            if index in verified:
+                                continue
                             if self.collection_stop.is_set():
                                 return
                             with open_regular(Path(attempt.directory), item['path']) as incoming:
@@ -743,11 +762,17 @@ class Worker:
                     # have survived an earlier lost response.
                     if self.collection_stop.is_set():
                         return
+                    store._db.execute('INSERT OR IGNORE INTO result_commit_intents VALUES(?)', (attempt.attempt_id,))
                     acknowledgement = self._result_request(attempt.attempt_id, 'commit', {})
                     if acknowledgement.get('status') != 'collected':
                         raise ValueError('Manager did not acknowledge durable result publication')
                     store.set_result_collection(attempt.attempt_id, 'collected')
+                    store._db.execute('DELETE FROM result_commit_intents WHERE attempt_id=?', (attempt.attempt_id,))
                 except (OSError, ValueError, IncompleteRead, URLError) as exc:
+                    # An explicit rejection (e.g. missing/corrupt spool) needs a
+                    # new verified inventory. A lost response retains commit intent.
+                    if isinstance(exc, ArtifactRequestError) and exc.status_code == 400:
+                        store._db.execute('DELETE FROM result_commit_intents WHERE attempt_id=?', (attempt.attempt_id,))
                     store.set_result_collection(attempt.attempt_id, 'failed',
                                                 reason=f'{type(exc).__name__}: {exc}')
 
@@ -776,18 +801,31 @@ class Worker:
                 files.append(asdict(InputFile(name, size, digest.hexdigest())))
             manifest = dict(contract=checkpoint['contract'], files=files)
         bind_manifest(store, self.config.worker.id, attempt_id, manifest, output_limits(self.config))
-        reply = self._result_request(attempt_id, 'manifest', manifest, checkpoint=True)
-        if not reply.get('acknowledged') and self.config.storage_mode == 'staged':
-            for index, item in enumerate(manifest['files']):
-                if self.collection_stop.is_set():
-                    return
-                with open_regular(directory / 'work', item['path']) as incoming:
-                    self._result_request(attempt_id, str(index), incoming, item['size'], checkpoint=True)
-        reply = self._result_request(attempt_id, 'commit', {}, checkpoint=True)
+        pending_commit = store._db.execute('SELECT 1 FROM checkpoint_commit_intents WHERE attempt_id=?',
+                                           (attempt_id,)).fetchone()
+        try:
+            if not pending_commit:
+                reply = self._result_request(attempt_id, 'manifest', manifest, checkpoint=True)
+                if not reply.get('acknowledged') and self.config.storage_mode == 'staged':
+                    verified = set(reply.get('verified_files', ()))
+                    for index, item in enumerate(manifest['files']):
+                        if index in verified:
+                            continue
+                        if self.collection_stop.is_set():
+                            return
+                        with open_regular(directory / 'work', item['path']) as incoming:
+                            self._result_request(attempt_id, str(index), incoming, item['size'], checkpoint=True)
+                store._db.execute('INSERT OR IGNORE INTO checkpoint_commit_intents VALUES(?)', (attempt_id,))
+            reply = self._result_request(attempt_id, 'commit', {}, checkpoint=True)
+        except ArtifactRequestError as exc:
+            if exc.status_code == 400:
+                store._db.execute('DELETE FROM checkpoint_commit_intents WHERE attempt_id=?', (attempt_id,))
+            raise
         if not reply.get('acknowledged') or reply.get('identity') != record(store, attempt_id)['identity']:
             raise ValueError('Manager did not acknowledge matching checkpoint')
         with store.scheduling_round():
             store._db.execute('UPDATE checkpoints SET acknowledged=1 WHERE attempt_id=?', (attempt_id,))
+            store._db.execute('DELETE FROM checkpoint_commit_intents WHERE attempt_id=?', (attempt_id,))
             from .checkpoints import set_error
             set_error(store, attempt_id, None)
 
@@ -832,7 +870,7 @@ class Worker:
                 detail = 'Artifact request rejected'
             finally:
                 exc.close()
-            raise ValueError(f'Result transfer HTTP {exc.code}: {detail}') from None
+            raise ArtifactRequestError(exc.code, detail) from None
 
     def run(self) -> None:
         """Poll continuously; transport errors retain reservations and local work."""

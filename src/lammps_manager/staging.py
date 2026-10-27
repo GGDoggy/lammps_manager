@@ -1,5 +1,6 @@
 """Bounded input snapshots and verified atomic worker-local publication."""
 
+import errno
 import hashlib
 import os
 from pathlib import Path, PurePosixPath
@@ -192,7 +193,14 @@ def publish_inputs(destination: Path, files: tuple[InputFile, ...],
                 verified(index)
         for directory, _, _ in os.walk(temporary, topdown=False):
             sync_directory(Path(directory))
-        os.rename(temporary, destination)
+        try:
+            os.rename(temporary, destination)
+        except OSError as exc:
+            if exc.errno not in (errno.EEXIST, errno.ENOTEMPTY):
+                raise
+            # Another preparer may have published the same immutable tree while
+            # this caller copied outside SQLite. Verify the winner, never overwrite it.
+            publish_inputs(destination, files, fetch, limits, verified, progress)
         _sync_publication_ancestors(destination)
     finally:
         if temporary.exists():

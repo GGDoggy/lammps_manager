@@ -22,6 +22,8 @@ class ManagerSettings:
     database_path: str
     schedule_interval_seconds: float = 10
     heartbeat_timeout_seconds: float = 60
+    control_database_timeout_seconds: float = .2
+    artifact_database_timeout_seconds: float = 2
 
 
 @dataclass(frozen=True)

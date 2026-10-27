@@ -162,7 +162,7 @@ def expect(store: Store, contract: CheckpointContract) -> None:
     with store.scheduling_round():
         if json.loads(contract.stream_provenance).get('version'):
             from .segments import checkpoint_provenance
-            row = store._db.execute("SELECT json_remove(snapshot,'$.model_parameters','$.sampling') AS snapshot FROM simulation_runs WHERE run_id=?", (contract.run_id,)).fetchone()
+            row = store._db.execute("SELECT snapshot FROM run_controls WHERE run_id=?", (contract.run_id,)).fetchone()
             if row:
                 snapshot = json.loads(row['snapshot'])
                 allocation = json.loads(snapshot['stream_provenance'])
@@ -175,7 +175,7 @@ def expect(store: Store, contract: CheckpointContract) -> None:
                         or contract.stream_provenance != checkpoint_provenance(snapshot, contract.segment)):
                     raise StoreError('Checkpoint differs from immutable random allocation')
         attempt = store.attempt(contract.attempt_id)
-        spec = store.specification(attempt.job_id)
+        spec = store.admission_specification(attempt.job_id)
         if (attempt.job_id != contract.job_id or attempt.state != 'assigned'
                 or spec.resources != contract.resources
                 or spec.resources.mpi_ranks != contract.recipe.mpi_ranks
@@ -230,7 +230,7 @@ def bind_manifest(store: Store, worker_id: str, attempt_id: str, manifest: dict,
 def destination(store: Store, attempt_id: str) -> Path:
     """Select a private manager destination, never one supplied by a worker."""
     attempt = store.attempt(attempt_id)
-    root = Path(store.specification(attempt.job_id).work_directory)
+    root = Path(store.admission_specification(attempt.job_id).work_directory)
     path = root / '.checkpoints' / attempt_id
     if any(parent.is_symlink() or parent.resolve() != parent for parent in (root, path.parent, path)):
         raise ValueError('Unsafe checkpoint destination')
@@ -241,7 +241,7 @@ def operation(store: Store, worker_id: str, attempt_id: str, action: str,
               limits: dict, *, payload: dict | None = None, stream: BinaryIO | None = None,
               length: int | None = None, shared_source: Path | None = None) -> dict:
     """Upload or publish shared state, acknowledging only after filesystem + DB commit."""
-    from .results import upload_file, commit_results
+    from .results import upload_file, commit_results, verified_files
     item = authorize(store, worker_id, attempt_id)
     if action == 'manifest':
         item = bind_manifest(store, worker_id, attempt_id, payload, limits)
@@ -272,13 +272,16 @@ def operation(store: Store, worker_id: str, attempt_id: str, action: str,
             raise ValueError('Checkpoint committed; replay commit')
         upload_file(path, files[index], stream)
     saved = record(store, attempt_id)
-    return {'identity': saved['identity'], 'acknowledged': bool(saved['acknowledged'])}
+    reply = {'identity': saved['identity'], 'acknowledged': bool(saved['acknowledged'])}
+    if action == 'manifest':
+        reply['verified_files'] = verified_files(path, files)
+    return reply
 
 
 def pin(store: Store, checkpoint_id: str, consumer_job: str) -> None:
     """Retain dependency before successor dispatch; parent copies are never pruned."""
     with store.scheduling_round():
-        store.specification(consumer_job)
+        store.job_state(consumer_job)
         row = store._db.execute('SELECT * FROM checkpoints WHERE identity=? AND acknowledged=1',
                                  (checkpoint_id,)).fetchone()
         if row is None:
@@ -309,7 +312,7 @@ def fetch(store: Store, worker_id: str, consumer_attempt: str, index: int,
         raise StoreError('Missing committed checkpoint dependency')
     contract = decode_contract(json.loads(row['contract']))
     validate_contract(contract)
-    spec = store.specification(attempt.job_id)
+    spec = store.admission_specification(attempt.job_id)
     # Only the pinned host boot can support a different worker identity. A
     # claimed fingerprint never extends this to another physical host.
     if (not compatible_worker(store, row['attempt_id'], worker_id) or build_fingerprint != contract.build_fingerprint

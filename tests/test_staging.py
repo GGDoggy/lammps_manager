@@ -72,6 +72,22 @@ class SnapshotTests(unittest.TestCase):
                 snapshot_inputs(self.source, self.root / 'rejected', self.limits)
             path.unlink()
 
+    def test_concurrent_publication_verifies_the_winning_tree(self) -> None:
+        files = (file_entry('nested/input', b'abc'),)
+        destination = self.root / 'concurrent/inputs'
+        barrier = threading.Barrier(2)
+        def publish():
+            def fetch(index):
+                barrier.wait(timeout=5)  # Both callers observed no publication.
+                return BytesIO(b'abc')
+            publish_inputs(destination, files, fetch, self.limits)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(publish) for _ in range(2)]
+            for future in futures:
+                future.result(timeout=10)
+        self.assertEqual((destination / 'nested/input').read_bytes(), b'abc')
+        self.assertEqual(list(destination.parent.glob('.inputs-*')), [])
+
     def test_partial_corrupt_and_replayed_publication(self) -> None:
         files = (file_entry('nested/input', b'abc'),)
         destination = self.root / 'worker/inputs'
@@ -172,7 +188,7 @@ class SnapshotTests(unittest.TestCase):
             store.submit(spec)
         with sqlite3.connect(database) as connection:
             self.assertEqual(connection.execute('SELECT specification FROM jobs').fetchone()[0], serialized)
-            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 5)
 
     def test_staged_yaml_settings(self) -> None:
         import yaml

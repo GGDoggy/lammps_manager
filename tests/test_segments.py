@@ -72,6 +72,96 @@ class SegmentTests(unittest.TestCase):
         cp.operation(self.store, 'worker', attempt, '0', LIMITS, stream=BytesIO(data), length=len(data))
         return cp.operation(self.store, 'worker', attempt, 'commit', LIMITS)
 
+    def test_large_queue_allows_concurrent_heartbeat_pause_result_and_checkpoint(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import threading
+        import time
+        from lammps_manager.manager import ManagerService
+        from lammps_manager.scheduler import schedule, WorkerSnapshot
+        from lammps_manager.sampling import normalize_sampling
+        self.submit()
+        attempt = self.finish(checkpoint=False, results=False)
+        token_files = {}
+        for worker in self.config.workers:
+            path = self.root / (worker.id + '.token')
+            path.write_text(worker.id[0] * 40)
+            path.chmod(0o600)
+            token_files[worker.id] = str(path)
+        service = ManagerService(self.config, token_files)
+        self.addCleanup(service.close)
+        contract = cp.record(self.store, attempt.attempt_id)['contract']
+        data = b'checkpoint state'
+        directory = Path(attempt.directory)
+        (directory / 'work').mkdir(parents=True)
+        (directory / 'work/checkpoint.restart').write_bytes(data)
+        manifest = dict(contract=contract, files=[dict(path='checkpoint.restart', size=len(data),
+            sha256=hashlib.sha256(data).hexdigest())])
+        service.checkpoint_operation('worker', attempt.attempt_id, 'manifest', manifest)
+        result_data = b'finished output'
+        result_manifest = dict(files=[dict(path='stdout', size=len(result_data),
+            sha256=hashlib.sha256(result_data).hexdigest())], omitted=[])
+        service.result_operation('worker', attempt.attempt_id, 'manifest', result_manifest)
+        sampling = normalize_sampling(dict(unit='step', positions=list(range(1, 30001))), dt=.005, dr=1.)
+        with self.store.scheduling_round():
+            for index in range(54):
+                self.store.submit(JobSpecification(f'load-{index}', str(self.root / f'load-{index}'),
+                    'in', 'a' * 64, Resources(1, 1, 1), sampling=sampling))
+        now = time.time()
+        snapshot = WorkerSnapshot(self.config.workers[0], 4, 32, now, now, 0, 32, paused=True)
+        barrier = threading.Barrier(5)
+        def dispatch():
+            barrier.wait(timeout=5)
+            with Store(self.db) as store:
+                with patch.object(store, 'specification', side_effect=AssertionError('Full dispatch decode')):
+                    self.assertFalse(schedule(store, self.config, (snapshot,), now=now).assignments)
+        def heartbeat():
+            barrier.wait(timeout=5)
+            return service.poll('worker', dict(proof=service.proof, heartbeat_only=True,
+                snapshot=asdict(snapshot), reports=[]))
+        def pause():
+            barrier.wait(timeout=5)
+            with Store(self.db, timeout=.2) as store:
+                store.set_worker('worker', paused=True)
+        def results():
+            barrier.wait(timeout=5)
+            service.result_operation('worker', attempt.attempt_id, '0', stream=BytesIO(result_data), length=len(result_data))
+            return service.result_operation('worker', attempt.attempt_id, 'commit', {})
+        def checkpoint():
+            barrier.wait(timeout=5)
+            return service.checkpoint_operation('worker', attempt.attempt_id, 'commit', {})
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = [pool.submit(operation) for operation in (dispatch, heartbeat, pause, results, checkpoint)]
+            replies = [future.result(timeout=10) for future in futures]
+        self.assertEqual(replies[3]['status'], 'collected')
+        self.assertTrue(replies[4]['acknowledged'])
+        self.assertTrue(cp.record(self.store, attempt.attempt_id)['acknowledged'])
+        self.assertEqual(self.store.reservations(), ())
+
+    def test_refresh_bounds_pages_and_unchanged_runs_avoid_write_transactions(self):
+        self.submit()
+        self.assign()
+        seg.refresh(self.store, self.config)
+        statements = []
+        self.store._db.set_trace_callback(statements.append)
+        try:
+            seg.refresh(self.store, self.config)
+        finally:
+            self.store._db.set_trace_callback(None)
+        self.assertFalse(any(sql.startswith(('BEGIN IMMEDIATE', 'UPDATE ')) for sql in statements))
+        for name in ('run-b', 'run-c'):
+            seg.submit_run(self.store, self.config, total_steps=2000, step_max=800, segment_ends=(600, 1400, 2000), run_id=name, build_fingerprint=BUILD)
+        with patch.object(seg, 'advance', wraps=seg.advance) as advance:
+            cursor = ''
+            seen = []
+            for _ in range(4):
+                before = advance.call_count
+                cursor = seg.refresh(self.store, self.config, limit=1, after=cursor)
+                self.assertLessEqual(advance.call_count - before, 1)
+                if cursor:
+                    seen.append(cursor)
+            self.assertEqual(seen, ['run', 'run-b', 'run-c'])
+            self.assertEqual(cursor, '')
+
     def test_explicit_sampling_stays_global_across_checkpoint_successor(self):
         run = seg.submit_run(self.store, self.config, total_steps=2000, step_max=800,
             segment_ends=(600, 1400, 2000), build_fingerprint=BUILD,
@@ -82,7 +172,13 @@ class SegmentTests(unittest.TestCase):
         self.assertEqual((root / 'snapshot-steps.txt').read_bytes(), b'1\n600\n601\n')
         self.assertIn('initial.dump', (root / 'sampling.lmp').read_text())
         self.finish(first_job)
-        seg.advance(self.store, run)
+        from lammps_manager.sampling import validate_sampling
+        def validate_outside_writer(value):
+            self.assertFalse(self.store._db.in_transaction)
+            return validate_sampling(value)
+        with patch('lammps_manager.sampling.validate_sampling', side_effect=validate_outside_writer) as validate:
+            seg.advance(self.store, run)
+        self.assertTrue(validate.called)
         second = self.store.specification(seg.inspect_run(self.store, run)['segments'][1]['job_id'])
         second_root = Path(second.work_directory) / 'inputs'
         self.assertEqual((second_root / 'snapshot-steps.txt').read_bytes(), b'601\n1400\n1401\n')
@@ -614,6 +710,13 @@ class SegmentWorkerTests(unittest.TestCase):
             self.addCleanup(stop_restart_server)
             worker = Worker(worker_config, journal_path)
             self.addCleanup(worker.close)
+            replay_operations = []
+            original_replay = worker._result_request
+            def track_replay(identity, action, *args, **kwargs):
+                if identity == lost[0] and kwargs.get('checkpoint'):
+                    replay_operations.append(action)
+                return original_replay(identity, action, *args, **kwargs)
+            worker._result_request = track_replay
             while True:
                 worker.tick()
                 for future in tuple(worker.futures.values()):
@@ -623,6 +726,7 @@ class SegmentWorkerTests(unittest.TestCase):
                 with Store(self.config.manager.database_path) as store:
                     view = seg.inspect_run(store, 'restart-pipeline')
                     if view['status'] == 'succeeded':
+                        self.assertEqual(replay_operations, ['commit'])
                         self.assertEqual(view['committed_steps'], 2000)
                         self.assertEqual(len(view['segments']), 3)
                         self.assertTrue(all(len(store.job_attempts(row['job_id'])) == 1 for row in view['segments']))

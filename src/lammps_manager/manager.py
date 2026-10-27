@@ -1,6 +1,7 @@
 """Authenticated polling API. SQLite remains local to the manager host."""
 
 from collections import OrderedDict
+from contextlib import contextmanager
 from dataclasses import asdict
 import hmac
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
@@ -79,14 +80,17 @@ class ManagerService:
         if config.storage.mode == 'shared':
             self.challenge.write_text(self.proof)
         self.last_schedule = 0.0
-        self._result_lock = threading.Lock()
+        self._run_cursor = ''
+        self._artifact_guard = threading.Lock()
+        self._artifact_locks: dict[str, list] = {}
+        self._result_cache_lock = threading.Lock()
         self._result_cache: OrderedDict[tuple, tuple] = OrderedDict()
         self._maintenance_stop = threading.Event()
         self._maintenance_wake = threading.Event()
         self._maintenance_done = threading.Event()
         self._maintenance_thread: threading.Thread | None = None
         try:
-            with Store(config.manager.database_path, timeout=.2) as store:
+            with Store(config.manager.database_path, timeout=config.manager.control_database_timeout_seconds) as store:
                 store.expire_workers(time.time(), config.manager.heartbeat_timeout_seconds)
         except sqlite3.Error as exc:
             if not is_busy(exc):
@@ -95,13 +99,34 @@ class ManagerService:
         self._input_cache_lock = threading.Lock()
         self._input_cache: OrderedDict[tuple[str, str, int, int, int], JobSpecification] = OrderedDict()
 
+    @contextmanager
+    def _attempt_lock(self, attempt_id: str):
+        """Serialize all artifact protocols for one attempt; retire unused locks."""
+        with self._artifact_guard:
+            entry = self._artifact_locks.setdefault(attempt_id, [threading.Lock(), 0])
+            entry[1] += 1
+        began = time.monotonic()
+        try:
+            with entry[0]:
+                acquired = time.monotonic()
+                try:
+                    yield
+                finally:
+                    logging.getLogger(__name__).debug('Artifact lock attempt=%s wait=%.6f held=%.6f',
+                        attempt_id, acquired - began, time.monotonic() - acquired)
+        finally:
+            with self._artifact_guard:
+                entry[1] -= 1
+                if entry[1] == 0:
+                    del self._artifact_locks[attempt_id]
+
     def expire_workers(self) -> None:
         """Run at startup and periodically even while all workers are disconnected."""
-        with Store(self.config.manager.database_path, timeout=.2) as store:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
             now = time.time()
             store.expire_workers(now, self.config.manager.heartbeat_timeout_seconds)
             from .segments import refresh
-            refresh(store, self.config)
+            self._run_cursor = refresh(store, self.config, limit=16, after=self._run_cursor)
             from .monitoring import refresh_alerts
             now = time.time()
             refresh_alerts(store, self.config, now)
@@ -113,7 +138,8 @@ class ManagerService:
                         snapshots.append(WorkerSnapshot(**{**saved,
                             'capacity': WorkerCapacity(**saved['capacity']),
                             'paused': record['paused']}))
-                if snapshots:
+                if any(s.online and not s.paused and s.ready and not s.draining
+                       and s.capacity.enabled for s in snapshots):
                     # Polls remain live during maintenance and snapshot reads.
                     # Compare their timestamps against time after those reads.
                     now = time.time()
@@ -172,7 +198,7 @@ class ManagerService:
             self._maintenance_done.clear()
             self._maintenance_wake.set()
             self._maintenance_done.wait(.2)
-            with Store(self.config.manager.database_path, timeout=.2) as store:
+            with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
                 result = self._reply(store, worker_id, payload)
         return result
 
@@ -199,7 +225,7 @@ class ManagerService:
             raise ValueError('Snapshot identity mismatch')
         snapshot = WorkerSnapshot(**{**data, 'capacity': capacity, 'heartbeat_at': now,
                                      'paused': False, 'online': True})
-        with Store(self.config.manager.database_path, timeout=.2) as store:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
             # Validate the whole report before applying any state changes.
             reports = [] if heartbeat_only else payload.get('reports', [])
             for report in reports:
@@ -356,13 +382,13 @@ class ManagerService:
         from .monitoring import worker_view
         if worker_id not in self.tokens:
             raise ValueError('Unregistered worker')
-        with Store(self.config.manager.database_path, timeout=.2) as store:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
             return next(row for row in worker_view(store, self.config, time.time()) if row['worker_id'] == worker_id)
 
     def input_artifact(self, worker_id: str, attempt_id: str, index: int) -> tuple[BinaryIO, int]:
         """Authorize an assigned attempt before opening one bounded input file."""
         from .staging import open_regular, validate_manifest
-        with Store(self.config.manager.database_path, timeout=.2) as store:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
             attempt = store.attempt(attempt_id)
             participant = store._db.execute('SELECT 1 FROM mpi_members WHERE attempt_id=? AND worker_id=?',
                                             (attempt_id,worker_id)).fetchone()
@@ -404,7 +430,7 @@ class ManagerService:
 
     def _input_telemetry(self, attempt_id: str, spec: JobSpecification) -> None:
         from .monitoring import transfer
-        with Store(self.config.manager.database_path, timeout=.2) as telemetry:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as telemetry:
             telemetry._db.execute('PRAGMA busy_timeout = 0')
             previous = telemetry._db.execute("SELECT total_bytes FROM transfer_progress WHERE attempt_id=? AND direction='input'",
                                               (attempt_id,)).fetchone()
@@ -416,7 +442,7 @@ class ManagerService:
                              length: int | None=None) -> dict:
         """Bind authenticated participant output to one terminated native MPI group."""
         from .multihost import result_operation
-        with self._result_lock,Store(self.config.manager.database_path, timeout=.2) as store:
+        with self._attempt_lock(attempt_id), Store(self.config.manager.database_path, timeout=self.config.manager.artifact_database_timeout_seconds) as store:
             return result_operation(store,self.config.storage,worker_id,attempt_id,operation,payload,stream,length)
 
     def result_operation(self, worker_id: str, attempt_id: str, operation: str,
@@ -424,7 +450,7 @@ class ManagerService:
                          length: int | None = None) -> dict:
         """Serialize manifest binding, bounded file writes and durable acknowledgement."""
         from .results import authorize, commit_results, output_limits, upload_file, validate_results
-        with self._result_lock, Store(self.config.manager.database_path, timeout=.2) as store:
+        with self._attempt_lock(attempt_id), Store(self.config.manager.database_path, timeout=self.config.manager.artifact_database_timeout_seconds) as store:
             directory = authorize(store, worker_id, attempt_id)
             limits = output_limits(self.config.storage)
             from .monitoring import transfer, file_progress, ProgressReader
@@ -440,13 +466,15 @@ class ManagerService:
             if collection is None or not collection['has_manifest']:
                 raise ValueError('Result manifest required')
             key = (self.config.manager.database_path, attempt_id, *limits.values())
-            files = self._result_cache.get(key)
+            with self._result_cache_lock:
+                files = self._result_cache.get(key)
             if files is None:
                 files = validate_results(store.result_collection(attempt_id)['manifest'], limits)
+            with self._result_cache_lock:
                 self._result_cache[key] = files
+                self._result_cache.move_to_end(key)
                 if len(self._result_cache) > 32:
                     self._result_cache.popitem(last=False)
-            self._result_cache.move_to_end(key)
             transfer(store, attempt_id, 'result',
                      'acknowledged' if collection['status'] == 'collected' else 'transferring',
                      total_bytes=sum(f.size for f in files), total_files=len(files))
@@ -476,7 +504,11 @@ class ManagerService:
                 finally:
                     incoming.flush()
             saved = store.result_collection(attempt_id, include_manifest=False)
-            return {'status': saved['status'], 'reason': saved['reason']}
+            reply = {'status': saved['status'], 'reason': saved['reason']}
+            if operation == 'manifest':
+                from .results import verified_files
+                reply['verified_files'] = verified_files(directory, files)
+            return reply
 
     def checkpoint_operation(self, worker_id: str, attempt_id: str, action: str,
                              payload: dict | None = None, stream: BinaryIO | None = None,
@@ -484,7 +516,7 @@ class ManagerService:
         """Use the artifact lock and authenticated assignment for checkpoint writes."""
         from .checkpoints import operation
         from .results import output_limits
-        with self._result_lock, Store(self.config.manager.database_path, timeout=.2) as store:
+        with self._attempt_lock(attempt_id), Store(self.config.manager.database_path, timeout=self.config.manager.artifact_database_timeout_seconds) as store:
             shared_source = None
             if self.config.storage.mode == 'shared' and action == 'commit':
                 shared_source = Path(store.attempt(attempt_id).directory) / 'work'
@@ -504,7 +536,7 @@ class ManagerService:
                             build_fingerprint: str) -> tuple[BinaryIO, int]:
         """Authorize a committed dependency and verify it before sending bytes."""
         from .checkpoints import fetch
-        with Store(self.config.manager.database_path, timeout=.2) as store:
+        with Store(self.config.manager.database_path, timeout=self.config.manager.control_database_timeout_seconds) as store:
             stream, item = fetch(store, worker_id, attempt_id, index, build_fingerprint)
             return stream, item.size
 

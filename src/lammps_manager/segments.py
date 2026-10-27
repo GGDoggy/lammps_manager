@@ -75,7 +75,8 @@ def initialize(store: Store) -> None:
 def _run(store: Store, run_id: str, *, snapshot: bool | str = True) -> dict:
     columns = 'run_id,status,committed_step,initial_override,continuation_override,first_priority,cancelled,reason'
     if snapshot:
-        columns += (",json_remove(snapshot,'$.model_parameters','$.sampling') AS snapshot" if snapshot == 'control' else ',snapshot')
+        columns += (",(SELECT snapshot FROM run_controls c WHERE c.run_id=simulation_runs.run_id) AS snapshot"
+                    if snapshot == 'control' else ',snapshot')
     row = store._db.execute(f'SELECT {columns} FROM simulation_runs WHERE run_id=?', (run_id,)).fetchone()
     if row is None:
         raise StoreError('Unknown simulation run: ' + run_id)
@@ -267,12 +268,11 @@ def _enqueue(store: Store, run: dict, ordinal: int, checkpoint: dict | None, *,
         spec = JobSpecification(job, str(root), 'in.lmp', primary.sha256,
             Resources(**snapshot['resources']), snapshot['storage_mode'], files,
             InfrastructureRecovery(**snapshot['infrastructure_recovery']), sampling=snapshot.get('sampling'))
-        prepared = (spec, start, stop)
+        prepared = (spec.job_id, store._prepare_submission(spec), start, stop)
     if prepare_only:
         return prepared
-    spec, start, stop = prepared
-    job = spec.job_id
-    store.submit(spec)
+    job, submission, start, stop = prepared
+    store._submit_prepared(submission)
     store._db.execute('INSERT INTO run_segments VALUES(?,?,?,?,?,?,0)',
         (run['run_id'], ordinal, job, start, stop, checkpoint['identity'] if checkpoint else None))
     if checkpoint:
@@ -324,7 +324,7 @@ def on_assignment(store: Store, job_id: str, attempt_id: str) -> None:
     contract = cp.CheckpointContract(run['run_id'], item['ordinal'], attempt_id, job_id,
         Recipe(**snapshot['recipe']), binding['fingerprint'], snapshot['total_steps'],
         tuple(snapshot['segment_ends']), item['stop_step'], item['stop_step'] * snapshot.get('model', {}).get('dt', .005),
-        checkpoint_provenance(snapshot, item['ordinal']), resources=store.specification(job_id).resources,
+        checkpoint_provenance(snapshot, item['ordinal']), resources=store.admission_specification(job_id).resources,
         recipe_sha256=snapshot.get('recipe_sha256', cp.abp_recipe_digest()),
         parent_checkpoint_id=item['checkpoint_id'],
         execution_boot_id=(store.generations(store.attempt(attempt_id).worker_id)[-1]['boot_id']
@@ -363,8 +363,53 @@ def worker_blocker(store: Store, job_id: str, worker_id: str, *,
     return None
 
 
+def _advance_needed(store: Store, run_id: str) -> bool:
+    """Read-only fast path for unchanged queued, executing or blocked runs.
+
+    Positive decisions are rechecked by advance under its write transaction.
+    A racing change after a negative decision is picked up by the next pass.
+    """
+    run = _run(store, run_id, snapshot=False)
+    if run['cancelled']:
+        return run['status'] != 'cancelled'
+    if run['status'] == 'succeeded' or environment(store, run_id)['reset_pending']:
+        return False
+    item = store._db.execute('SELECT job_id FROM run_segments WHERE run_id=? AND completed=0 '
+                             'ORDER BY ordinal LIMIT 1', (run_id,)).fetchone()
+    if item is None:
+        return False
+    attempts = store.job_attempts(item['job_id'], limit=1)
+    if not attempts:
+        return False
+    attempt = attempts[-1]
+    if attempt.state not in TERMINAL:
+        target = (attempt.state, attempt.reason)
+    elif store.job_state(item['job_id']) == 'queued':
+        target = ('queued', 'Segment recovery queued from its last committed input checkpoint')
+    elif attempt.state != 'succeeded':
+        target = (attempt.state, attempt.reason)
+    else:
+        checkpoint = cp.record(store, attempt.attempt_id)
+        collection = store.result_collection(attempt.attempt_id, include_manifest=False)
+        if not attempt.termination_evidence:
+            reason = 'Awaiting confirmed process termination'
+        elif not checkpoint or not checkpoint['acknowledged']:
+            reason = 'Awaiting committed checkpoint acknowledgement'
+            failure = cp.error(store, attempt.attempt_id)
+            if failure:
+                reason += ': ' + failure
+        elif not collection or collection['status'] != 'collected':
+            reason = 'Awaiting durable segment results'
+        else:
+            return True
+        target = ('blocked', reason)
+    return (run['status'], run['reason']) != target
+
+
 def advance(store: Store, run_id: str) -> None:
     """Count one committed boundary and enqueue one successor, or complete parent."""
+    if not _advance_needed(store, run_id):
+        return
     with store.scheduling_round():
         run = _run(store, run_id, snapshot=False)
         if run['cancelled']:
@@ -396,7 +441,7 @@ def advance(store: Store, run_id: str) -> None:
                               (attempt.state, attempt.reason, run_id))
             return
         checkpoint = cp.record(store, attempt.attempt_id)
-        collection = store.result_collection(attempt.attempt_id)
+        collection = store.result_collection(attempt.attempt_id, include_manifest=False)
         reason = None
         if not attempt.termination_evidence:
             reason = 'Awaiting confirmed process termination'
@@ -429,7 +474,7 @@ def advance(store: Store, run_id: str) -> None:
                 or membership is None or membership['completed']
                 or store.attempt(attempt.attempt_id) != expected_attempt
                 or cp.record(store, attempt.attempt_id) != expected_checkpoint
-                or store.result_collection(attempt.attempt_id)['status'] != 'collected'):
+                or store.result_collection(attempt.attempt_id, include_manifest=False)['status'] != 'collected'):
             return
         # Reload runtime priorities after preparation; submitted input is immutable.
         run.update(current)
@@ -445,11 +490,16 @@ def advance(store: Store, run_id: str) -> None:
                            (run_id, f"Committed segment {item['ordinal']} at step {item['stop_step']}"))
 
 
-def refresh(store: Store, config: ManagerConfig | None = None, *, now: float | None = None) -> None:
-    """Reconcile durable boundaries after polling, transfer or manager restart."""
-    reset_blocked = (reconcile_environments(store, config, now=time.time() if now is None else now)
-                     if config is not None else set())
-    for row in store._db.execute("SELECT run_id FROM simulation_runs WHERE status NOT IN ('succeeded','cancelled')").fetchall():
+def refresh(store: Store, config: ManagerConfig | None = None, *, now: float | None = None,
+            limit: int | None = None, after: str = '') -> str:
+    """Reconcile a bounded, fair page; unchanged runs take the read-only path."""
+    query = "SELECT run_id FROM simulation_runs WHERE status NOT IN ('succeeded','cancelled') AND run_id>? ORDER BY run_id"
+    rows = store._db.execute(query + (' LIMIT ?' if limit is not None else ''),
+                             (after, limit) if limit is not None else (after,)).fetchall()
+    ids = {row['run_id'] for row in rows}
+    reset_blocked = (reconcile_environments(store, config, now=time.time() if now is None else now,
+                                          run_ids=ids) if config is not None else set())
+    for row in rows:
         if row['run_id'] in reset_blocked:
             continue
         generation = environment(store, row['run_id'])['generation']
@@ -457,10 +507,12 @@ def refresh(store: Store, config: ManagerConfig | None = None, *, now: float | N
             advance(store, row['run_id'])
         except (OSError, ValueError) as exc:
             with store.scheduling_round():
+                reason = f'Checkpoint/enqueue blocked: {exc}'
                 store._db.execute("UPDATE simulation_runs SET status='blocked',reason=? WHERE run_id=? "
-                    "AND cancelled=0 AND status NOT IN ('succeeded','cancelled') AND EXISTS "
+                    "AND cancelled=0 AND status NOT IN ('succeeded','cancelled') AND (status!='blocked' OR reason IS NOT ?) AND EXISTS "
                     '(SELECT 1 FROM run_environments e WHERE e.run_id=simulation_runs.run_id AND e.generation=?)',
-                    (f'Checkpoint/enqueue blocked: {exc}', row['run_id'], generation))
+                    (reason, row['run_id'], reason, generation))
+    return rows[-1]['run_id'] if rows else ''
 
 
 def set_priorities(store: Store, run_id: str, *, initial: int | None = None,
@@ -655,12 +707,34 @@ def bind_assignment(store: Store, run_id: str, attempt_id: str) -> dict:
     return environment(store, run_id)
 
 
-def reconcile_environments(store: Store, config: ManagerConfig, *, now: float) -> set[str]:
+def reconcile_environments(store: Store, config: ManagerConfig, *, now: float,
+                           run_ids: set[str] | None = None) -> set[str]:
     """Fence expired generations and restart only after positive process termination."""
-    bindings = store._db.execute('SELECT e.run_id,e.generation FROM run_environments e JOIN simulation_runs r USING(run_id) '
-        "WHERE e.fingerprint IS NOT NULL AND r.cancelled=0 AND r.status NOT IN ('succeeded','cancelled')").fetchall()
+    query = ('SELECT e.run_id,e.generation FROM run_environments e JOIN simulation_runs r USING(run_id) '
+        "WHERE e.fingerprint IS NOT NULL AND r.cancelled=0 AND r.status NOT IN ('succeeded','cancelled')")
+    args = ()
+    if run_ids is not None:
+        if not run_ids:
+            return set()
+        args = tuple(sorted(run_ids))
+        query += ' AND e.run_id IN (' + ','.join('?' for _ in args) + ')'
+    bindings = store._db.execute(query, args).fetchall()
     blocked = set()
     for row in bindings:
+        if run_ids is not None and row['run_id'] not in run_ids:
+            continue
+        # Available unchanged bindings need no writer reservation.
+        binding = environment(store, row['run_id'])
+        observed = worker_environment(store, binding['worker_id'])
+        available = (observed is not None
+            and any(w.id == binding['worker_id'] and w.enabled for w in config.workers)
+            and now - observed['observed_at'] <= config.manager.heartbeat_timeout_seconds
+            and all(binding[key] == observed[key] for key in ('worker_id', 'boot_id', 'fingerprint')))
+        if not binding['reset_pending'] and (
+                (available and binding['missing_since'] is None)
+                or (not available and binding['missing_since'] is not None
+                    and now - binding['missing_since'] < config.segmentation.environment_reset_seconds)):
+            continue
         try:
             with store.scheduling_round():
                 # Candidate discovery holds no write lock. Another Store may
@@ -692,7 +766,7 @@ def _reconcile_environment(store: Store, config: ManagerConfig, binding: dict, n
     expired = (binding['missing_since'] is not None
                and now - binding['missing_since'] >= config.segmentation.environment_reset_seconds)
     if available and not binding['reset_pending'] and not expired:
-        store._db.execute('UPDATE run_environments SET missing_since=NULL WHERE run_id=?', (run_id,))
+        store._db.execute('UPDATE run_environments SET missing_since=NULL WHERE run_id=? AND missing_since IS NOT NULL', (run_id,))
         return
     since = binding['missing_since']
     if since is None:
@@ -703,9 +777,10 @@ def _reconcile_environment(store: Store, config: ManagerConfig, binding: dict, n
         store._db.execute('UPDATE run_environments SET missing_since=? WHERE run_id=?', (since, run_id))
     if not binding['reset_pending'] and now - since < config.segmentation.environment_reset_seconds:
         return
-    store._db.execute('UPDATE run_environments SET reset_pending=1 WHERE run_id=?', (run_id,))
+    store._db.execute('UPDATE run_environments SET reset_pending=1 WHERE run_id=? AND reset_pending=0', (run_id,))
     reason = 'Bound environment expired; awaiting confirmed termination before full restart'
-    store._db.execute("UPDATE simulation_runs SET status='resetting',reason=? WHERE run_id=?", (reason, run_id))
+    store._db.execute("UPDATE simulation_runs SET status='resetting',reason=? WHERE run_id=? "
+        "AND (status!='resetting' OR reason IS NOT ?)", (reason, run_id, reason))
     items = store._db.execute('SELECT * FROM run_segments WHERE run_id=?', (run_id,)).fetchall()
     unresolved = False
     for item in items:

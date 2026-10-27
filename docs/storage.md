@@ -175,3 +175,46 @@ columns, tables or submission data. Retain the exact previous source/configurati
 and verify schema compatibility before any downgrade. Restoring an older database
 backup after new work has run would discard runtime evidence and is not an
 acceptable routine rollback.
+
+## Admission projections and contention (T026)
+
+Schema version 5 transactionally adds small `admission_specs` and `run_controls`
+projections plus worker-local result/checkpoint commit intent tables. Existing
+immutable snapshots are retained byte for byte. SQL triggers maintain projections
+when snapshots are inserted or explicitly updated; ordinary runtime transitions
+do not rebuild them. The one-time upgrade reads existing snapshot JSON and may
+need an offline maintenance window on large databases. Back up before upgrading;
+older binaries must not open a version-5 database. Current-version opens require
+no write transaction. SQLite JSON functions are required (already used by run
+control queries in the previous schema).
+
+Admission, reservations, CPU accounting and recovery budgets read only the small
+projection. Queue ordering reuses each decoded admission record. Full sampling
+validation remains at submission and full specification/input loading, including
+mutation detection. Per-segment immutable snapshots are deliberately retained;
+this migration does not deduplicate historical sampling arrays or reclaim their
+storage.
+
+The manager skips dispatch when no supplied snapshot is online, enabled, ready,
+unpaused and not draining. Heartbeats, artifact collection, worker expiry, alerts
+and continuation recovery still run. Continuation maintenance visits up to 16
+runs per pass in run-ID order, wraps fairly and skips unchanged runtime state
+without acquiring the writer lock. Changes racing a read-only skip are revisited
+on the next pass; positive advancement/reset decisions are rechecked atomically.
+This bounds run count, not the cost of copying a single large artifact.
+
+Control/maintenance SQLite waits default to 0.2 seconds; artifact publication
+waits default to 2 seconds, separately configurable under `manager`. These waits
+apply to lock acquisition, not total request duration. HTTP busy responses remain
+503 with Retry-After, normal worker control backoff remains bounded at 1–30
+seconds, and artifact retries retain their existing collection cadence.
+SQLite debug transaction wait/held measurements are separate from per-attempt
+Python artifact lock wait/held measurements.
+
+WAL is not automatically enabled: it improves reader/writer overlap but still
+serializes writers and does not remove a long admission transaction. The explicit
+`tools/verification/scheduler_contention.py` harness opens its source read-only,
+backs it up into a disposable database, requires paused workers and compares
+DELETE/WAL admission against a concurrent 0.2-second control writer. It never
+launches jobs or changes the source. Memory-backed timing does not establish
+production disk durability or real service throughput.

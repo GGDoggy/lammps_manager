@@ -19,7 +19,7 @@ See [manager.yaml](../examples/manager.yaml). Every nested section rejects unkno
 
 | Section | Fields and defaults |
 |---|---|
-| `manager` (required) | Required absolute `database_path`; positive `schedule_interval_seconds=10`, `heartbeat_timeout_seconds=60` |
+| `manager` (required) | Required absolute `database_path`; positive `schedule_interval_seconds=10`, `heartbeat_timeout_seconds=60`; positive finite `control_database_timeout_seconds=0.2`, `artifact_database_timeout_seconds=2` |
 | `storage` (required) | Required absolute `work_root`; `mode=shared` (`shared` or `staged`); boolean `preserve_failed_jobs=true`; positive integers `max_input_files=10000`, `max_input_file_bytes=1073741824`, `max_input_total_bytes=10737418240`; positive output limits `max_output_files=10000`, `max_output_file_bytes=1073741824`, `max_output_total_bytes=10737418240` |
 | `workers` (required nonempty list) | Each item requires unique string `id`, positive integer `cpu_slots`, positive `memory_budget_gib`, positive integer `max_concurrent_jobs`; boolean `enabled=true`, string list `labels=[]` |
 | `job_defaults` | Positive integers `mpi_ranks=4`, `omp_threads_per_rank=1`, `time_limit_seconds=86400`; positive `memory_gib=8`; nonnegative integer `max_retries=0` |

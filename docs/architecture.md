@@ -2,6 +2,8 @@
 
 ## Status and scope
 
+T026 adds [small admission projections and bounded maintenance](storage.md#admission-projections-and-contention-t026) and [file-level artifact resumption](staged-results.md#file-level-resumption-t026). Full immutable sampling validation remains at input boundaries, with atomic reservations and durable checkpoint/result acknowledgement barriers retained. WAL is evaluated explicitly rather than enabled automatically.
+
 T024 adds [global trajectory sampling and verified gzip](trajectory-sampling.md).
 Sampling belongs to immutable submission intent; generated segment inputs retain
 the global schedule. Confirmed termination precedes streaming trajectory

@@ -187,7 +187,7 @@ class AdmissionTests(unittest.TestCase):
         self.assertEqual(len(result.waiting), 120)
         self.assertEqual(result.assignments, ())
         self.assertLess(len(statements), 120 * 20)
-        history_reads = [sql for sql in statements if sql.startswith('SELECT a.*, j.specification')]
+        history_reads = [sql for sql in statements if sql.startswith('SELECT a.*, j.payload')]
         self.assertEqual(len(history_reads), 1)
 
     def test_pending_history_is_filtered_before_decoding(self):
@@ -209,7 +209,7 @@ class AdmissionTests(unittest.TestCase):
                        wraps=specification_from_dict) as decode:
                 self.assertEqual(pending_slots(self.store, 'w', now,
                                  candidate_id='candidate', skip_unclaimed_staged=True), 4)
-                self.assertEqual(decode.call_count, 1)
+                self.assertEqual(decode.call_count, 0)
         finally:
             self.store._db.set_trace_callback(None)
         self.assertLessEqual(len(statements), 2)

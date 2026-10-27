@@ -1,0 +1,95 @@
+{
+  "queued_jobs": 54,
+  "sampling_points": [
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000,
+    30000
+  ],
+  "full_specification_decodes": 0,
+  "sampling_validations": 0,
+  "rounds": [
+    {
+      "journal_mode": "DELETE",
+      "schedule_seconds": 0.10860510598286055,
+      "competing_control_seconds": 0.1294825320073869
+    },
+    {
+      "journal_mode": "DELETE",
+      "schedule_seconds": 0.1088606989942491,
+      "competing_control_seconds": 0.12925406300928444
+    },
+    {
+      "journal_mode": "DELETE",
+      "schedule_seconds": 0.10818972199922428,
+      "competing_control_seconds": 0.12921386599191464
+    },
+    {
+      "journal_mode": "WAL",
+      "schedule_seconds": 0.11034980899421498,
+      "competing_control_seconds": 0.1293553609866649
+    },
+    {
+      "journal_mode": "WAL",
+      "schedule_seconds": 0.11025865300325677,
+      "competing_control_seconds": 0.129186144011328
+    },
+    {
+      "journal_mode": "WAL",
+      "schedule_seconds": 0.11107862999779172,
+      "competing_control_seconds": 0.12914362500305288
+    }
+  ],
+  "scope": "Disposable copy only; no processes launched; timings depend on host/storage",
+  "source": "Read-only earlier isolated deployment database copy; measured disposable memory-backed copy"
+}

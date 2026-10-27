@@ -47,7 +47,7 @@ class ControlReliabilityTests(unittest.TestCase):
             return records(store)
 
         with patch('lammps_manager.manager.time.time', side_effect=lambda: clock[0]), \
-                patch('lammps_manager.segments.refresh', side_effect=lambda *args: refreshed.append(True)), \
+                patch('lammps_manager.segments.refresh', side_effect=lambda *args, **kwargs: refreshed.append(True)), \
                 patch.object(Store, 'worker_records', read_records):
             self.service.expire_workers()
         with Store(self.config.manager.database_path) as store:

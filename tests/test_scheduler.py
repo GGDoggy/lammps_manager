@@ -43,6 +43,45 @@ class SchedulerTests(unittest.TestCase):
     def reason(self, result, job='j'):
         return json.loads(result.waiting[job])['workers']['w']
 
+    def test_large_sampling_admission_never_decodes_full_specifications(self):
+        import threading
+        from unittest.mock import patch
+        from lammps_manager.sampling import normalize_sampling
+        sampling = normalize_sampling(dict(unit='step', positions=list(range(1, 30001))), dt=.005, dr=1.)
+        for index in range(54):
+            self.store.submit(JobSpecification(f'large-{index}', f'/work/large-{index}', 'in', 'a' * 64,
+                Resources(mpi_ranks=1, memory_gib=1), sampling=sampling))
+        entered = threading.Event()
+        outcome = []
+        def control():
+            if not entered.wait(5):
+                raise AssertionError('Scheduler did not acquire transaction')
+            with Store(self.path, timeout=.2) as other:
+                other.set_worker('w', paused=True)
+            outcome.append('written')
+        self.store._db.set_trace_callback(lambda sql: entered.set() if sql == 'BEGIN IMMEDIATE' else None)
+        try:
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(control)
+                with patch.object(self.store, 'specification', side_effect=AssertionError('Full decode in admission')), \
+                     patch('lammps_manager.sampling.validate_sampling', side_effect=AssertionError('Sampling in admission')):
+                    result = self.run_round(replace(self.snapshot, paused=True))
+                    self.assertEqual(len(result.waiting), 54)
+                    self.assertEqual(result.assignments, ())
+                    # Also cover assignment and CPU accounting, not only paused scans.
+                    self.assertTrue(self.run_round().assignments)
+                future.result(timeout=5)
+        finally:
+            self.store._db.set_trace_callback(None)
+        self.assertEqual(outcome, ['written'])
+        # Full input loading still detects modified sampling payloads.
+        payload = json.loads(self.store._db.execute('SELECT specification FROM jobs WHERE job_id=?',
+                                                   ('large-0',)).fetchone()[0])
+        payload['sampling']['steps'][0] = 999999
+        self.store._db.execute('UPDATE jobs SET specification=? WHERE job_id=?', (json.dumps(payload), 'large-0'))
+        with self.assertRaises(ValueError):
+            self.store.specification('large-0')
+
     def test_worker_exclusions_and_thresholds(self):
         self.submit()
         cases = [({'ready': False}, 'not_ready'), ({'draining': True}, 'not_ready'),

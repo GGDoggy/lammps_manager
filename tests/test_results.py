@@ -409,6 +409,168 @@ class ResultTests(unittest.TestCase):
                     self.assertEqual(store.cleanup_record(attempt_id)['status'], 'cleaned')
                     self.assertFalse(Path(store.attempt(attempt_id).directory).exists())
 
+    def test_rejected_commit_refreshes_inventory_and_repairs_spool(self) -> None:
+        import hashlib
+        self.configure_process()
+        worker = self.worker()
+        attempt_id = self.finish_process(worker)
+        original = worker._result_request
+        damaged = []
+
+        def corrupt_before_commit(identity, operation, *args, **kwargs):
+            if operation == 'commit' and not damaged:
+                with Store(self.config.manager.database_path) as manager:
+                    directory = Path(manager.attempt(identity).directory)
+                    manifest = manager.result_collection(identity)['manifest']
+                item = manifest['files'][0]
+                spool = directory / '.results-upload' / hashlib.sha256(item['path'].encode()).hexdigest()
+                spool.write_bytes(b'corrupt spool')
+                damaged.append(item)
+            return original(identity, operation, *args, **kwargs)
+
+        with patch.object(worker, '_result_request', side_effect=corrupt_before_commit):
+            self.tick(worker)
+        with Store(worker.database) as journal:
+            self.assertEqual(journal.result_collection(attempt_id)['status'], 'failed')
+            self.assertIn('HTTP 400', journal.result_collection(attempt_id)['reason'])
+            self.assertIsNone(journal._db.execute('SELECT 1 FROM result_commit_intents WHERE attempt_id=?',
+                                                (attempt_id,)).fetchone())
+        with patch.object(worker, '_result_request', wraps=original) as requests:
+            self.tick(worker)
+        self.assertEqual([call.args[1] for call in requests.call_args_list], ['manifest', '0', 'commit'])
+        with Store(worker.database) as journal, Store(self.config.manager.database_path) as manager:
+            self.assertEqual(journal.result_collection(attempt_id)['status'], 'collected')
+            self.assertEqual(manager.result_collection(attempt_id)['status'], 'collected')
+            self.assertEqual(len(manager.job_attempts(self.job_id)), 1)
+            published = Path(manager.attempt(attempt_id).directory) / 'results' / damaged[0]['path']
+            self.assertEqual(hashlib.sha256(published.read_bytes()).hexdigest(), damaged[0]['sha256'])
+
+    def test_busy_commit_retains_intent_and_replays_commit_only(self) -> None:
+        import sqlite3
+        self.configure_process()
+        worker = self.worker()
+        attempt_id = self.finish_process(worker)
+        original = self.service.result_operation
+
+        def busy_commit(worker_id, identity, operation, *args, **kwargs):
+            if operation == 'commit':
+                raise sqlite3.OperationalError('database is locked')
+            return original(worker_id, identity, operation, *args, **kwargs)
+
+        with patch.object(self.service, 'result_operation', side_effect=busy_commit):
+            self.tick(worker)
+        with Store(worker.database) as journal:
+            collection = journal.result_collection(attempt_id)
+            self.assertEqual(collection['status'], 'failed')
+            self.assertIn('Manager database busy', collection['reason'])
+            self.assertIsNotNone(journal._db.execute('SELECT 1 FROM result_commit_intents WHERE attempt_id=?',
+                                                   (attempt_id,)).fetchone())
+        with patch.object(worker, '_result_request', wraps=worker._result_request) as requests:
+            self.tick(worker)
+        self.assertEqual([call.args[1] for call in requests.call_args_list], ['commit'])
+        with Store(worker.database) as journal:
+            self.assertEqual(journal.result_collection(attempt_id)['status'], 'collected')
+            self.assertIsNone(journal._db.execute('SELECT 1 FROM result_commit_intents WHERE attempt_id=?',
+                                                (attempt_id,)).fetchone())
+
+    def test_lost_last_file_reply_resumes_only_verified_missing_files(self) -> None:
+        self._check_lost_file_reply(at_end=True)
+
+    def test_lost_first_file_reply_uploads_only_remaining_files(self) -> None:
+        self._check_lost_file_reply(at_end=False)
+
+    def _check_lost_file_reply(self, *, at_end: bool) -> None:
+        self.configure_process()
+        worker = self.worker()
+        attempt_id = self.finish_process(worker)
+        original = worker._result_request
+        uploaded = []
+        last = []
+        def lose_file_reply(identity, operation, *args, **kwargs):
+            reply = original(identity, operation, *args, **kwargs)
+            if operation == 'manifest':
+                last.append(str(len(args[0]['files']) - 1))
+            if operation.isdigit():
+                uploaded.append(operation)
+                if operation == (last[0] if at_end else '0'):
+                    raise ConnectionError('Lost verified file response')
+            return reply
+        with patch.object(worker, '_result_request', side_effect=lose_file_reply):
+            self.tick(worker)
+        self.assertTrue(uploaded)
+        received = set(uploaded)
+        def track(identity, operation, *args, **kwargs):
+            if operation.isdigit():
+                self.assertNotIn(operation, received)
+                uploaded.append(operation)
+            return original(identity, operation, *args, **kwargs)
+        with patch.object(worker, '_result_request', side_effect=track) as replay:
+            self.tick(worker)
+        self.assertEqual(len(uploaded), len(set(uploaded)))
+        if at_end:
+            self.assertEqual([call.args[1] for call in replay.call_args_list], ['manifest', 'commit'])
+        with Store(worker.database) as store:
+            self.assertEqual(store.result_collection(attempt_id)['status'], 'collected')
+
+    def test_resume_inventory_survives_restart_and_rejects_changed_spool_bytes(self) -> None:
+        import hashlib
+        from lammps_manager.manager import ManagerService
+        self.configure_process()
+        worker = self.worker()
+        attempt_id = self.finish_process(worker)
+        with patch.object(worker, '_collect_results'):
+            self.tick(worker)
+        item = file_entry('stdout', b'abc')
+        manifest = dict(files=[dict(path=item.path, size=item.size, sha256=item.sha256)], omitted=[])
+        reply = self.service.result_operation('a', attempt_id, 'manifest', manifest)
+        self.assertEqual(reply['verified_files'], [])
+        self.service.result_operation('a', attempt_id, '0', stream=BytesIO(b'abc'), length=3)
+        recovered = ManagerService(self.config, self.tokens)
+        self.addCleanup(recovered.close)
+        self.assertEqual(recovered.result_operation('a', attempt_id, 'manifest', manifest)['verified_files'], [0])
+        with Store(self.config.manager.database_path) as store:
+            directory = Path(store.attempt(attempt_id).directory)
+        spool = directory / '.results-upload' / hashlib.sha256(b'stdout').hexdigest()
+        spool.write_bytes(b'xxx')
+        self.assertEqual(recovered.result_operation('a', attempt_id, 'manifest', manifest)['verified_files'], [])
+        with self.assertRaises(ValueError):
+            recovered.result_operation('b', attempt_id, 'manifest', manifest)
+
+    def test_paused_maintenance_keeps_reconciliation_without_dispatch(self) -> None:
+        from dataclasses import asdict
+        import time
+        from lammps_manager.scheduler import WorkerSnapshot
+        from lammps_manager.manager import ManagerService
+        service = object.__new__(ManagerService)
+        service.config, service.tokens = self.config, self.tokens
+        service.last_schedule, service._run_cursor = 0., ''
+        capacity = self.config.workers[0]
+        now = time.time()
+        snapshot = WorkerSnapshot(capacity, capacity.cpu_slots, 32, now, now, 0, 32, paused=True)
+        with Store(self.config.manager.database_path) as store:
+            store.set_worker(capacity.id, paused=True, snapshot=asdict(snapshot))
+        with patch('lammps_manager.manager.schedule', side_effect=AssertionError('Paused scan')), \
+             patch('lammps_manager.segments.refresh', return_value='') as refresh, \
+             patch('lammps_manager.monitoring.refresh_alerts') as alerts:
+            service.expire_workers()
+        refresh.assert_called_once()
+        self.assertEqual(refresh.call_args.kwargs['limit'], 16)
+        alerts.assert_called_once()
+
+    def test_artifact_locks_isolate_attempts_and_retire_waiters(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+        import threading
+        entered = threading.Event()
+        def unrelated():
+            with self.service._attempt_lock('other'):
+                entered.set()
+        with self.service._attempt_lock('blocked'):
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(unrelated)
+                self.assertTrue(entered.wait(2))
+                future.result(timeout=2)
+        self.assertEqual(self.service._artifact_locks, {})
+
     def test_lost_ack_restart_replays_without_execution(self) -> None:
         self.configure_process()
         worker = self.worker()
@@ -432,8 +594,10 @@ class ResultTests(unittest.TestCase):
         self.addCleanup(recovered.close)
         self.service.result_operation = recovered.result_operation
         restarted = self.worker()
-        with patch.object(restarted, '_execute', side_effect=AssertionError('Duplicate launch')):
+        with patch.object(restarted, '_execute', side_effect=AssertionError('Duplicate launch')), \
+             patch.object(restarted, '_result_request', wraps=restarted._result_request) as requests:
             self.tick(restarted)
+            self.assertEqual([call.args[1] for call in requests.call_args_list], ['commit'])
         with Store(restarted.database) as store:
             self.assertEqual(store.result_collection(attempt_id)['status'], 'collected')
         with Store(self.config.manager.database_path) as store:

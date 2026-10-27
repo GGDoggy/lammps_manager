@@ -263,3 +263,17 @@ physical cores, rather than broad affinity alone. Use a host with at least four
 available logical CPUs and sufficient physical cores; this is a bounded placement
 check, not a throughput or scientific-equivalence benchmark. Existing services and
 simulation directories are untouched.
+
+### Scheduler contention on a paused database copy
+
+```bash
+PYTHONPATH=src python3 tools/verification/scheduler_contention.py \
+  --database /path/to/isolated-copy.sqlite3 \
+  --config /path/to/manager.yaml --output /tmp/scheduler-contention.json
+```
+
+The source is opened read-only and copied into a temporary database. All source
+workers must be paused. DELETE and WAL are measured on that copy only; no job
+processes are started and no source state is modified. Full specification decoding
+and sampling validation are forbidden during measured admission. Each round
+competes with a control writer using a 0.2-second SQLite timeout.

@@ -99,7 +99,7 @@ def schedule(store: Store, config: ManagerConfig, snapshots: tuple[WorkerSnapsho
                 store.record_waiting(job['job_id'], blocker)
                 waiting[job['job_id']] = blocker
                 continue
-            spec = store.specification(job['job_id'])
+            spec = job['admission']
             if spec.mpi_placement:
                 reason = 'multi_host_protocol_unavailable: coordinated MPI assignment is required'
                 store.record_waiting(spec.job_id, reason)

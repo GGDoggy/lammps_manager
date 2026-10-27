@@ -146,7 +146,7 @@ def enumerate_results(directory: Path, limits: dict, *, publication_prefix: str 
 def authorize(store: Store, worker_id: str, attempt_id: str) -> Path:
     """Return a manager-owned destination for an owned, terminated attempt."""
     attempt = store.attempt(attempt_id)
-    spec = store.specification(attempt.job_id)
+    spec = store.admission_specification(attempt.job_id)
     if (attempt.worker_id != worker_id
             or attempt.state not in TERMINAL or not attempt.termination_evidence):
         raise ValueError('Result ownership or termination mismatch')
@@ -178,6 +178,34 @@ def upload_file(directory: Path, item: InputFile, stream: BinaryIO) -> None:
         sync_directory(spool)
     finally:
         Path(temporary).unlink(missing_ok=True)
+
+
+def verified_files(directory: Path, files: tuple[InputFile, ...]) -> list[int]:
+    """Recheck durable spool/publication bytes before advertising resumable files.
+
+    No journal-only acknowledgement: missing or changed bytes are uploaded again.
+    This read runs under the attempt lock, outside any SQLite transaction.
+    """
+    verified = []
+    for index, item in enumerate(files):
+        candidates = ((directory / 'results', item.path),
+                      (directory / '.results-upload', hashlib.sha256(item.path.encode()).hexdigest()))
+        for root, name in candidates:
+            try:
+                with open_regular(root, name) as incoming:
+                    digest = hashlib.sha256()
+                    size = 0
+                    while chunk := incoming.read(CHUNK):
+                        size += len(chunk)
+                        if size > item.size:
+                            break
+                        digest.update(chunk)
+                if size == item.size and digest.hexdigest() == item.sha256:
+                    verified.append(index)
+                    break
+            except (OSError, ValueError):
+                continue
+    return verified
 
 
 def commit_results(directory: Path, files: tuple[InputFile, ...], limits: dict) -> None:

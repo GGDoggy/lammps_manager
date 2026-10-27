@@ -56,7 +56,7 @@ class EngineeringTests(unittest.TestCase):
         self.assertEqual(len(self.store.jobs()), 1)
 
     def test_database_rollback_after_publication_replays_same_tree(self):
-        with patch.object(self.store, 'submit', side_effect=StoreError('injected DB rollback')):
+        with patch.object(self.store, '_submit_prepared', side_effect=StoreError('injected DB rollback')):
             with self.assertRaises(StoreError):
                 self.submit()
         path = self.root / 'run.s000000/inputs/in.lmp'

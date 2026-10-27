@@ -79,3 +79,25 @@ Journal specifications, attempts, launch claims, termination evidence, immutable
 ## Local verification
 
 `tests/test_results.py` uses fake executable processes, temporary SQLite journals, distinct manager/worker roots and authenticated loopback HTTP. It covers success/nonzero exit, output hashes, omissions, limits, unsafe paths/types, ownership, partial/corrupt uploads, injected disk and publication/acknowledgement failures, mid-transfer restart, lost acknowledgements, durable launch fences and prelaunch cancellation. `tests/test_staging.py` retains isolated input preparation coverage. Background-collection regressions block enumeration, upload and commit while checking continued heartbeats, cancellation and recovered-process timeouts, and cover single-pass scheduling, terminal-report acknowledgement ordering, unexpected errors and shutdown/restart. `tests/test_cleanup.py` additionally checks acknowledgement gates, bounded partial cleanup, injected permission/crash failures, restart after removal, path/ancestor replacement (including a symlink race), protected files, legacy/shared retention, disabled cleanup, manager result hashes and progress during blocked cleanup. These checks do not establish real network performance, physical power-loss durability or MPI cleanup on remote machines.
+
+## File-level resumption (T026)
+
+Authenticated manifest responses add `verified_files`, a list of file indices
+whose complete size and SHA-256 match the bound immutable manifest on the manager.
+The manager checks spool/published bytes outside SQLite transactions, including
+after restart; missing or changed files are omitted. Workers skip those indices
+and upload only missing files. Older peers without this field retain full-file
+replay behavior. This is file-level resumption, not byte-range resumption.
+
+Before sending result or checkpoint commit, the worker durably records commit
+intent. A lost response/restart replays commit first, without another manifest
+or artifact upload. Explicit HTTP 400 rejection clears the intent so a later
+pass can obtain a fresh verified inventory. Cleanup/continuation still require
+the matching durable acknowledgement; local intent alone authorizes neither.
+Commit replay continues to verify and synchronize published files.
+
+Results, checkpoints and native MPI artifact operations serialize under one lock
+per attempt. Distinct attempts may upload/verify concurrently. Lock registry
+entries are removed only after the owner and every waiter leave; a small separate
+mutex protects the shared manifest cache. Verification/publication of the same
+attempt remains ordered across protocols.

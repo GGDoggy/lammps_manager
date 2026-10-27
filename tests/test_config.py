@@ -20,6 +20,20 @@ class ConfigurationTests(unittest.TestCase):
         self.path.write_text(yaml.safe_dump(data))
         return load_config(self.path, kind, check_local_paths=local)
 
+    def test_database_waits_are_independently_configurable_and_finite(self):
+        settings = self.manager['manager']
+        settings.update(control_database_timeout_seconds=.1, artifact_database_timeout_seconds=3)
+        config = self.load(self.manager)
+        self.assertEqual(config.manager.control_database_timeout_seconds, .1)
+        self.assertEqual(config.manager.artifact_database_timeout_seconds, 3)
+        for field in ('control_database_timeout_seconds', 'artifact_database_timeout_seconds'):
+            for value in (0, -1, True, float('inf'), float('nan')):
+                with self.subTest(field=field, value=value):
+                    settings[field] = value
+                    with self.assertRaises(ConfigurationError):
+                        self.load(self.manager)
+            settings[field] = 1
+
     def test_examples(self):
         for kind in ('manager', 'worker'):
             load_config(f'examples/{kind}.yaml', kind)

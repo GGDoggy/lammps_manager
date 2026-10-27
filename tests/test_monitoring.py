@@ -101,7 +101,7 @@ class MonitoringTests(unittest.TestCase):
         with Store(self.path) as upgraded:
             self.assertEqual(snapshot(upgraded), before)
             view = status(upgraded, self.config, now=100)['jobs'][0]['assigned_progress']
-            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 5)
             self.assertEqual(view['phase'], 'awaiting_worker_evidence')
             launch_progress(upgraded, 'legacy-attempt', 'waiting_admission', 'Waiting for metrics')
         with Store(self.path) as reopened:
@@ -126,7 +126,7 @@ class MonitoringTests(unittest.TestCase):
         self.assertIsNone(self.store._db.execute(
             "SELECT name FROM sqlite_master WHERE name='launch_progress'").fetchone())
         with Store(self.path) as upgraded:
-            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 4)
+            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 5)
         # Current-schema opens must retain the existing read-only fast path.
         with sqlite3.connect(self.path) as writer:
             writer.execute('BEGIN IMMEDIATE')

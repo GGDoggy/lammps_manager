@@ -1,5 +1,7 @@
 manager:
   database_path: /var/lib/lammps-manager/state.sqlite3
+  control_database_timeout_seconds: 0.2
+  artifact_database_timeout_seconds: 2
 storage:
   mode: shared
   work_root: /shared/lammps/jobs

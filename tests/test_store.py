@@ -25,6 +25,31 @@ class StoreTests(unittest.TestCase):
     def assign(self):
         return self.store.assign('j1', 'a1', 'w1', '/work/j1/a1')
 
+    def test_version_four_projection_upgrade_is_atomic_and_preserves_snapshot(self):
+        from unittest.mock import patch
+        before = self.store._db.execute('SELECT specification FROM jobs').fetchone()[0]
+        for trigger in ('admission_insert', 'admission_update', 'run_control_insert', 'run_control_update'):
+            self.store._db.execute('DROP TRIGGER ' + trigger)
+        for table in ('admission_specs', 'run_controls', 'result_commit_intents', 'checkpoint_commit_intents'):
+            self.store._db.execute('DROP TABLE ' + table)
+        self.store._db.execute('PRAGMA user_version=4')
+        # Failure after DDL but before commit must retain the version-4 schema.
+        original = sqlite3.connect
+        def failing_connection(*args, **kwargs):
+            connection = original(*args, **kwargs)
+            connection.set_authorizer(lambda action, *rest:
+                sqlite3.SQLITE_DENY if action == sqlite3.SQLITE_CREATE_TRIGGER else sqlite3.SQLITE_OK)
+            return connection
+        with patch('lammps_manager.store.sqlite3.connect', side_effect=failing_connection):
+            with self.assertRaises(sqlite3.DatabaseError):
+                Store(self.path)
+        self.assertEqual(self.store._db.execute('PRAGMA user_version').fetchone()[0], 4)
+        self.assertIsNone(self.store._db.execute("SELECT name FROM sqlite_master WHERE name='admission_specs'").fetchone())
+        with Store(self.path) as upgraded:
+            self.assertEqual(upgraded.admission_specification('j1').resources, self.spec.resources)
+            self.assertEqual(upgraded._db.execute('SELECT specification FROM jobs').fetchone()[0], before)
+            self.assertEqual(upgraded._db.execute('PRAGMA user_version').fetchone()[0], 5)
+
     def test_restart_snapshots_and_history(self):
         self.assign()
         running = self.store.transition('a1', 'running')
